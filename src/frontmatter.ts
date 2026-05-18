@@ -10,9 +10,8 @@ interface ParsedFrontmatter {
 
 /** Extract the list of keys from a note's YAML frontmatter block. */
 export function parseFrontmatter(content: string): ParsedFrontmatter | null {
-  const trimmed = content.trimStart();
-  if (!trimmed.startsWith(FM_DELIM)) return null;
-  const afterOpen = trimmed.slice(3);
+  if (!content.startsWith(FM_DELIM)) return null;
+  const afterOpen = content.slice(3);
   const closeIdx = findFrontmatterClose(afterOpen);
   if (closeIdx === null) return null;
 

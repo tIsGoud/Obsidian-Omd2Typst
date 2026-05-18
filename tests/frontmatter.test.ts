@@ -26,7 +26,7 @@ describe('mergeFrontmatter', () => {
   it('prepends missing keys above existing frontmatter', () => {
     const note = '---\nauthor: Alice\n---\n# Body';
     const result = mergeFrontmatter(note, ['title', 'author', 'date']);
-    expect(result).toMatch(/^---\ntitle:\ndate:\nauthor: Alice\n---/);
+    expect(result).toBe('---\ntitle:\ndate:\nauthor: Alice\n---\n# Body');
   });
 
   it('does not duplicate keys already present', () => {
@@ -40,8 +40,13 @@ describe('mergeFrontmatter', () => {
   it('inserts full block when note has no frontmatter', () => {
     const note = '# Just a heading';
     const result = mergeFrontmatter(note, ['title', 'author']);
-    expect(result).toMatch(/^---\ntitle:\nauthor:\n---\n/);
-    expect(result).toContain('# Just a heading');
+    expect(result).toBe('---\ntitle:\nauthor:\n---\n# Just a heading');
+  });
+
+  it('returns note unchanged when all template keys are already present', () => {
+    const note = '---\ntitle: My Doc\nauthor: Alice\n---\n# Body';
+    const result = mergeFrontmatter(note, ['title', 'author']);
+    expect(result).toBe(note);
   });
 });
 
