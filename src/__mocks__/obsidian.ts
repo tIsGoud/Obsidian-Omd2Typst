@@ -33,9 +33,14 @@ export class TFile {
   }
 }
 
-export class Notice {
-  constructor(public message: string, public timeout?: number) {}
-}
+export const Notice = jest.fn().mockImplementation(function(
+  this: { message: string; timeout?: number },
+  message: string,
+  timeout?: number,
+) {
+  this.message = message;
+  this.timeout = timeout;
+});
 
 export class Setting {
   constructor(containerEl: any) {}
