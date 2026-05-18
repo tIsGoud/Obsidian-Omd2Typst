@@ -10,7 +10,7 @@ const prod = process.argv[2] === 'production';
 await mkdir('wasm-runtime', { recursive: true });
 await copyFile(
   'node_modules/@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm',
-  'wasm-runtime/typst_compiler.wasm',
+  'wasm-runtime/typst_ts_web_compiler_bg.wasm',
 );
 await copyFile(
   'src/wasm/omd2typst-pkg/omd2typst_wasm_bg.wasm',
