@@ -36,6 +36,18 @@ async function ensureCompiler(): Promise<TypstCompiler> {
 
   const builder = new TypstCompilerBuilder();
 
+  // Pass all fonts that Electron/Obsidian has loaded (system fonts + web fonts).
+  // In Electron, document.fonts is a FontFaceSet containing macOS/Windows system
+  // fonts (Verdana, Arial, etc.) as well as any fonts Obsidian loaded via CSS.
+  if (typeof document !== 'undefined' && document.fonts) {
+    await document.fonts.ready;
+    const fontList = Array.from(document.fonts);
+    if (fontList.length > 0) {
+      await builder.add_web_fonts(fontList);
+    }
+    console.log(`[omd2typst] Provided ${fontList.length} web fonts to Typst compiler`);
+  }
+
   if (vaultApp) {
     const app = vaultApp;
     // Vault-backed access model so the compiler can read images and other
@@ -66,6 +78,10 @@ async function ensureCompiler(): Promise<TypstCompiler> {
   }
 
   compiler = await builder.build();
+
+  const loadedFonts = compiler.get_loaded_fonts();
+  console.log(`[omd2typst] Typst compiler loaded fonts (${loadedFonts.length}):`, loadedFonts.slice(0, 10));
+
   return compiler;
 }
 
@@ -83,6 +99,11 @@ export async function compileToPdf(typstSrc: string): Promise<Uint8Array> {
   const output: any = c.compile('/main.typ', undefined, 'pdf', 0);
 
   if (!output) throw new Error('Typst compilation returned no output.');
+
+  // Log any diagnostics so we can see font warnings, errors, etc.
+  if (output.diagnostics?.length) {
+    console.warn('[omd2typst] Typst diagnostics:', output.diagnostics);
+  }
 
   // The result property is the raw PDF bytes.
   const pdf: Uint8Array | undefined = output.result ?? output;
