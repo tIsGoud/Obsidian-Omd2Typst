@@ -25,7 +25,8 @@ async function ensureCompiler(): Promise<TypstCompiler> {
   if (!wasmUrl) throw new Error('Typst WASM path not configured. Call setTypstWasmPath() first.');
 
   // Initialise the underlying WASM binary.
-  await wasmInit(wasmUrl);
+  // Pass as object { module_or_path } — bare string triggers a deprecation warning.
+  await wasmInit({ module_or_path: wasmUrl });
 
   // Build the compiler with a dummy access model (no file-system access needed
   // since we supply sources programmatically via add_source).
