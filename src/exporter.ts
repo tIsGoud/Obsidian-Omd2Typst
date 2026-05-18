@@ -52,8 +52,11 @@ export async function exportNote(
   // Step 2: Resolve template source
   let templateSrc: string | null = null;
   if (template !== null && template.path) {
-    const templateFile = app.vault.getAbstractFileByPath(template.path) as TFile;
-    templateSrc = await app.vault.read(templateFile);
+    const abstractFile = app.vault.getAbstractFileByPath(template.path);
+    if (!(abstractFile instanceof TFile)) {
+      throw new Error(`Template file not found or is a folder: '${template.path}'`);
+    }
+    templateSrc = await app.vault.read(abstractFile);
   }
 
   // Step 3: Language compatibility check

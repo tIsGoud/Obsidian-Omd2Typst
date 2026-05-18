@@ -1,5 +1,7 @@
 import { exportNote } from '../src/exporter';
 import type { TFile } from 'obsidian';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { TFile: TFileCtor } = require('obsidian') as { TFile: new (path: string) => TFile };
 import type { Omd2TypstSettings, TemplateEntry } from '../src/settings';
 
 jest.mock('../src/wasm/omd2typst', () => ({
@@ -72,7 +74,7 @@ describe('exportNote — PDF export', () => {
     await exportNote(file, 'pdf', null, BASE_SETTINGS, app as any);
 
     const calls = (app.vault.adapter.write as jest.Mock).mock.calls;
-    expect(calls.length).toBeGreaterThanOrEqual(2);
+    expect(calls.length).toBe(2);
 
     // First write: intermediate .typ file
     expect(calls[0][0]).toBe('exports/hello.typ');
@@ -97,7 +99,7 @@ describe('exportNote — language mismatch', () => {
       languages: ['nl'],
     };
 
-    const templateFile = makeTFile('templates/duo.typ');
+    const templateFile = new TFileCtor('templates/duo.typ');
     const noteRead = jest.fn()
       .mockResolvedValueOnce('---\nlanguage: en\n---\n# Hello\n')   // note
       .mockResolvedValueOnce('// omd2typst-languages: nl\n');         // template
@@ -120,5 +122,7 @@ describe('exportNote — language mismatch', () => {
 
     // Export should still have proceeded
     expect(app.vault.adapter.write).toHaveBeenCalled();
+
+    noticeMock.mockRestore();
   });
 });
