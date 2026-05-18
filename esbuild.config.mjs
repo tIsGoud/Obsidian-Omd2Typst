@@ -5,13 +5,9 @@ import process from 'process';
 
 const prod = process.argv[2] === 'production';
 
-// Copy both WASM files to wasm-runtime/ so they can be loaded at runtime
+// Copy the omd2typst WASM to wasm-runtime/ so it can be loaded at runtime
 // via fetch() (async instantiation avoids Chrome's 4 KB sync-compile limit).
 await mkdir('wasm-runtime', { recursive: true });
-await copyFile(
-  'node_modules/@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm',
-  'wasm-runtime/typst_ts_web_compiler_bg.wasm',
-);
 await copyFile(
   'src/wasm/omd2typst-pkg/omd2typst_wasm_bg.wasm',
   'wasm-runtime/omd2typst_bg.wasm',

@@ -3,7 +3,7 @@ import { Omd2TypstSettings, DEFAULT_SETTINGS, OutputFormat, Omd2TypstSettingTab 
 import { resolveDefaultTemplate } from './template';
 import { mergeFrontmatter } from './frontmatter';
 import { exportNote } from './exporter';
-import { setTypstWasmPath } from './wasm/typst';
+import { checkTypstInstalled } from './typst-cli';
 import { setOmd2TypstWasmPath, getBuiltinTemplate } from './wasm/omd2typst';
 
 export default class Omd2TypstPlugin extends Plugin {
@@ -12,12 +12,13 @@ export default class Omd2TypstPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
 
-    // Configure the Typst WASM compiler path
-    // FileSystemAdapter.getResourcePath is not in the public DataAdapter interface
-    const wasmPath = (this.app.vault.adapter as any).getResourcePath(
-      normalizePath(`${this.manifest.dir}/wasm-runtime/typst_ts_web_compiler_bg.wasm`)
-    );
-    setTypstWasmPath(wasmPath, this.app);
+    // Verify typst CLI is installed — required for PDF export.
+    try {
+      const version = checkTypstInstalled();
+      console.log(`[omd2typst] Found ${version}`);
+    } catch {
+      new Notice('omd2typst: typst not found — PDF export will fail. Install typst from https://typst.app or add it to PATH.');
+    }
 
     // Configure the omd2typst WASM path
     const omd2typstWasmPath = (this.app.vault.adapter as any).getResourcePath(

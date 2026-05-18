@@ -7,8 +7,8 @@ import type { Omd2TypstSettings, TemplateEntry } from '../src/settings';
 jest.mock('../src/wasm/omd2typst', () => ({
   renderToTypst: jest.fn().mockResolvedValue('#heading[Hello]'),
 }));
-jest.mock('../src/wasm/typst', () => ({
-  compileToPdf: jest.fn().mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+jest.mock('../src/typst-cli', () => ({
+  compileToPdfViaCli: jest.fn().mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
 }));
 
 const BASE_SETTINGS: Omd2TypstSettings = {

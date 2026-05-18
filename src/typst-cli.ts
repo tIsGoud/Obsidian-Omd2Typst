@@ -1,0 +1,70 @@
+// Node.js modules — available in Electron (Obsidian's runtime).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const nodeFs   = typeof require !== 'undefined' ? require('fs')   as typeof import('fs')   : null;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const nodePath = typeof require !== 'undefined' ? require('path') as typeof import('path') : null;
+
+/** Return the absolute path of the typst binary, or null if not found. */
+export function findTypstBinary(): string | null {
+  if (!nodeFs) return null;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const cp = require('child_process') as typeof import('child_process');
+  try { cp.execSync('typst --version', { stdio: 'pipe' }); return 'typst'; } catch { /* fall through */ }
+  const candidates = [
+    '/opt/homebrew/bin/typst',   // macOS ARM Homebrew
+    '/usr/local/bin/typst',       // macOS Intel Homebrew / manual install
+    '/usr/bin/typst',             // Linux distro package
+    process.env.HOME ? `${process.env.HOME}/.cargo/bin/typst` : '',
+  ];
+  for (const p of candidates) {
+    if (p && nodeFs.existsSync(p)) return p;
+  }
+  return null;
+}
+
+/**
+ * Check whether typst is installed and return its version string.
+ * Throws if not found or not executable.
+ */
+export function checkTypstInstalled(): string {
+  if (!nodeFs) throw new Error('Not running in Electron/Node environment');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const cp = require('child_process') as typeof import('child_process');
+  const bin = findTypstBinary();
+  if (!bin) throw new Error('typst not found. Install from https://typst.app or add to PATH.');
+  return cp.execSync(`"${bin}" --version`, { stdio: 'pipe' }).toString().trim();
+}
+
+/**
+ * Compile a .typ file on disk to PDF using the system typst CLI.
+ * typPath   — vault-relative path to the .typ file (e.g. "exports/hello.typ")
+ * vaultBase — absolute vault root on the filesystem
+ */
+export async function compileToPdfViaCli(typPath: string, vaultBase: string): Promise<Uint8Array> {
+  if (!nodeFs || !nodePath) throw new Error('CLI requires Electron/Node environment');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const cp = require('child_process') as typeof import('child_process');
+
+  const bin = findTypstBinary();
+  if (!bin) throw new Error('typst CLI not found. Install it from https://typst.app or add it to PATH.');
+
+  const realTypPath = nodePath.join(vaultBase, typPath);
+  const realPdfPath = realTypPath.replace(/\.typ$/, '.__tmp.pdf');
+
+  const cmd = [
+    `"${bin}"`,
+    'compile',
+    `"${realTypPath}"`,
+    `"${realPdfPath}"`,
+    `--root "${vaultBase}"`,
+  ].join(' ');
+
+  console.log('[omd2typst] CLI compile:', cmd);
+  try {
+    cp.execSync(cmd, { timeout: 120_000, stdio: 'pipe' });
+    const buf = nodeFs.readFileSync(realPdfPath) as Buffer;
+    return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+  } finally {
+    try { nodeFs.unlinkSync(realPdfPath); } catch { /* best-effort cleanup */ }
+  }
+}
