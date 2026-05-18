@@ -49,14 +49,18 @@ export async function exportNote(
   // Step 1: Read the note
   const markdown = await app.vault.read(file);
 
-  // Step 2: Resolve template source
-  let templateSrc: string | null = null;
+  // Step 2: Resolve template path for #import (verify file exists; null → built-in).
+  // The renderer generates:  #import "<path>": template, callout
+  // Prefixing with / makes the path vault-root-relative so:
+  //   - WASM PDF: the vault access model strips / and reads from the vault.
+  //   - CLI:      compile with --root <vault-root> and the path resolves correctly.
+  let templatePath: string | null = null;
   if (template !== null && template.path) {
     const abstractFile = app.vault.getAbstractFileByPath(template.path);
     if (!(abstractFile instanceof TFile)) {
       throw new Error(`Template file not found or is a folder: '${template.path}'`);
     }
-    templateSrc = await app.vault.read(abstractFile);
+    templatePath = '/' + template.path;
   }
 
   // Step 3: Language compatibility check
@@ -70,7 +74,7 @@ export async function exportNote(
   }
 
   // Step 4: Render to Typst
-  const typstSrc = await renderToTypst(markdown, templateSrc);
+  const typstSrc = await renderToTypst(markdown, templatePath);
 
   // Step 5: Resolve output path
   const outputPath = resolveOutputPath(file.path, format, settings);

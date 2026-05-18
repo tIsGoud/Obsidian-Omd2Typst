@@ -99,13 +99,11 @@ describe('exportNote — language mismatch', () => {
       languages: ['nl'],
     };
 
+    // Template file existence is verified via getAbstractFileByPath;
+    // the file content is no longer read — the renderer uses the path for #import.
     const templateFile = new TFileCtor('templates/duo.typ');
-    const noteRead = jest.fn()
-      .mockResolvedValueOnce('---\nlanguage: en\n---\n# Hello\n')   // note
-      .mockResolvedValueOnce('// omd2typst-languages: nl\n');         // template
-
     const app = makeApp({
-      read: noteRead,
+      read: jest.fn().mockResolvedValueOnce('---\nlanguage: en\n---\n# Hello\n'),
       getAbstractFileByPath: jest.fn().mockReturnValue(templateFile),
     });
 
