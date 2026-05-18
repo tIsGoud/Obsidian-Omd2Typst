@@ -7,18 +7,24 @@
 // an opaque JS object; the PDF bytes are in the `.result` property.
 
 import wasmInit, { TypstCompilerBuilder, TypstCompiler } from '@myriaddreamin/typst-ts-web-compiler';
+import type { App } from 'obsidian';
 
 let compiler: TypstCompiler | null = null;
 let wasmUrl: string | null = null;
+let vaultApp: App | null = null;
 
 /**
  * Must be called once on plugin load before any PDF compilation.
  * resourcePath — the absolute resource path to the typst_ts_web_compiler_bg.wasm
- * (from app.vault.adapter.getResourcePath(normalizePath(`${pluginDir}/wasm-runtime/typst_ts_web_compiler_bg.wasm`)))
+ * app — the Obsidian App instance, used to read vault files (images, fonts, etc.)
  */
-export function setTypstWasmPath(resourcePath: string): void {
+export function setTypstWasmPath(resourcePath: string, app: App): void {
   wasmUrl = resourcePath;
+  vaultApp = app;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Ctx = any;
 
 async function ensureCompiler(): Promise<TypstCompiler> {
   if (compiler) return compiler;
@@ -28,10 +34,37 @@ async function ensureCompiler(): Promise<TypstCompiler> {
   // Pass as object { module_or_path } — bare string triggers a deprecation warning.
   await wasmInit({ module_or_path: wasmUrl });
 
-  // Build the compiler with a dummy access model (no file-system access needed
-  // since we supply sources programmatically via add_source).
   const builder = new TypstCompilerBuilder();
-  builder.set_dummy_access_model();
+
+  if (vaultApp) {
+    const app = vaultApp;
+    // Vault-backed access model so the compiler can read images and other
+    // binary assets referenced in the Typst source.
+    await builder.set_access_model(
+      null satisfies Ctx,
+      // mtime_fn: return a fixed timestamp — we don't track modification times
+      (_ctx: Ctx, _path: string) => BigInt(Date.now()),
+      // is_file_fn: assume every queried path is a file
+      (_ctx: Ctx, _path: string) => true,
+      // real_path_fn: return the path unchanged
+      (_ctx: Ctx, path: string) => path,
+      // read_all_fn: read from the Obsidian vault adapter
+      async (_ctx: Ctx, path: string) => {
+        try {
+          // Paths in the Typst source are vault-relative (e.g. /images/foo.png).
+          // Strip the leading slash so the vault adapter can locate them.
+          const vaultPath = path.startsWith('/') ? path.slice(1) : path;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return await (app.vault.adapter as any).readBinary(vaultPath);
+        } catch {
+          return null;
+        }
+      },
+    );
+  } else {
+    builder.set_dummy_access_model();
+  }
+
   compiler = await builder.build();
   return compiler;
 }

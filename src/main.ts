@@ -17,7 +17,7 @@ export default class Omd2TypstPlugin extends Plugin {
     const wasmPath = (this.app.vault.adapter as any).getResourcePath(
       normalizePath(`${this.manifest.dir}/wasm-runtime/typst_ts_web_compiler_bg.wasm`)
     );
-    setTypstWasmPath(wasmPath);
+    setTypstWasmPath(wasmPath, this.app);
 
     // Configure the omd2typst WASM path
     const omd2typstWasmPath = (this.app.vault.adapter as any).getResourcePath(
