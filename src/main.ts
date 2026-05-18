@@ -4,7 +4,7 @@ import { resolveDefaultTemplate } from './template';
 import { mergeFrontmatter } from './frontmatter';
 import { exportNote } from './exporter';
 import { setTypstWasmPath } from './wasm/typst';
-import { getBuiltinTemplate } from './wasm/omd2typst';
+import { setOmd2TypstWasmPath, getBuiltinTemplate } from './wasm/omd2typst';
 
 export default class Omd2TypstPlugin extends Plugin {
   settings: Omd2TypstSettings = DEFAULT_SETTINGS;
@@ -18,6 +18,12 @@ export default class Omd2TypstPlugin extends Plugin {
       normalizePath(`${this.manifest.dir}/wasm-runtime/typst_ts_web_compiler_bg.wasm`)
     );
     setTypstWasmPath(wasmPath);
+
+    // Configure the omd2typst WASM path
+    const omd2typstWasmPath = (this.app.vault.adapter as any).getResourcePath(
+      normalizePath(`${this.manifest.dir}/wasm-runtime/omd2typst_bg.wasm`)
+    );
+    setOmd2TypstWasmPath(omd2typstWasmPath);
 
     // Register 4 commands
     this.addCommand({
