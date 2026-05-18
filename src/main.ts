@@ -13,6 +13,7 @@ export default class Omd2TypstPlugin extends Plugin {
     await this.loadSettings();
 
     // Configure the Typst WASM compiler path
+    // FileSystemAdapter.getResourcePath is not in the public DataAdapter interface
     const wasmPath = (this.app.vault.adapter as any).getResourcePath(
       normalizePath(`${this.manifest.dir}/wasm-runtime/typst_ts_web_compiler_bg.wasm`)
     );
@@ -102,10 +103,7 @@ export default class Omd2TypstPlugin extends Plugin {
       return;
     }
     const content = editor.getValue();
-    const templateKeys = this.settings.frontmatterInline
-      .split('\n')
-      .map((l: string) => l.split(':')[0].trim())
-      .filter(Boolean);
+    const templateKeys = buildFrontmatterBlock(this.settings.frontmatterInline);
     const merged = mergeFrontmatter(content, templateKeys);
     editor.setValue(merged);
   }
