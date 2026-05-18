@@ -3,7 +3,7 @@ import type { OutputFormat, TemplateEntry, Omd2TypstSettings } from './settings'
 import { checkLanguageCompatibility } from './template';
 import { resolveOutputPath } from './output';
 import { renderToTypst } from './wasm/omd2typst';
-import { compileToPdf } from './wasm/typst';
+import { compileToPdf, compileToPdfViaCli } from './wasm/typst';
 
 /**
  * Extract the value of a YAML key from the frontmatter block.
@@ -86,11 +86,38 @@ export async function exportNote(
   if (format === 'typ') {
     await app.vault.adapter.write(outputPath, typstSrc);
   } else {
-    // PDF: write the .typ file first (for inspection on failure), then compile
+    // PDF: write the .typ file first (for inspection on failure), then compile.
     const typPath = outputPath.replace(/\.pdf$/, '.typ');
     await app.vault.adapter.write(typPath, typstSrc);
-    const pdfBytes = await compileToPdf(typstSrc);
+
+    // Pre-load the template source into the WASM compiler's in-memory VFS so
+    // the Typst compiler finds it without going through the access model (which
+    // is subject to a project-root restriction that rejects vault-relative paths).
+    const extraSources = new Map<string, string>();
+    if (templatePath !== null && template !== null) {
+      try {
+        const tFile = app.vault.getAbstractFileByPath(template.path) as TFile;
+        const tContent = await app.vault.read(tFile);
+        extraSources.set(templatePath, tContent);
+      } catch { /* skip — compiler will fall back to access model */ }
+    }
+
+    let pdfBytes: Uint8Array;
+    try {
+      pdfBytes = await compileToPdf(typstSrc, extraSources);
+    } catch (wasmErr) {
+      // WASM compilation failed (e.g. Typst version mismatch between the WASM
+      // bundle and the user's template). Fall back to the system typst CLI.
+      console.warn('[omd2typst] WASM PDF compile failed, trying CLI fallback:', wasmErr);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const vaultBase: string = (app.vault.adapter as any).basePath ?? '';
+      pdfBytes = await compileToPdfViaCli(typPath, vaultBase);
+      console.log('[omd2typst] CLI fallback succeeded');
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (app.vault.adapter.write as any)(outputPath, pdfBytes);
+    // Remove the intermediate .typ file — it was only needed as a compilation
+    // input and for failure inspection. On success the PDF is the deliverable.
+    await app.vault.adapter.remove(typPath);
   }
 }

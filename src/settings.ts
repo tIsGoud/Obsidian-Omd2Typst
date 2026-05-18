@@ -63,6 +63,77 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
+    // ── Typst Templates ──────────────────────────────────────────────────────
+    containerEl.createEl('h3', { text: 'Typst templates' });
+
+    // List existing templates
+    for (const tpl of this.plugin.settings.templates as TemplateEntry[]) {
+      new Setting(containerEl)
+        .setName(tpl.name)
+        .setDesc(tpl.path)
+        .addButton(btn =>
+          btn.setButtonText('Remove')
+            .setWarning()
+            .onClick(async () => {
+              this.plugin.settings.templates = (
+                this.plugin.settings.templates as TemplateEntry[]
+              ).filter(t => t.name !== tpl.name);
+              if (this.plugin.settings.defaultTemplate === tpl.name) {
+                this.plugin.settings.defaultTemplate = 'built-in';
+              }
+              await this.plugin.saveSettings();
+              this.display();
+            })
+        );
+    }
+
+    // Add template — two inline text fields + button
+    let newName = '';
+    let newPath = '';
+    new Setting(containerEl)
+      .setName('Add template')
+      .setDesc('Name and vault-relative path to a .typ file')
+      .addText(text =>
+        text.setPlaceholder('My Template')
+          .onChange(v => { newName = v.trim(); })
+      )
+      .addText(text =>
+        text.setPlaceholder('templates/my-template.typ')
+          .onChange(v => { newPath = v.trim(); })
+      )
+      .addButton(btn =>
+        btn.setButtonText('Add')
+          .onClick(async () => {
+            if (!newName || !newPath) return;
+            const already = (this.plugin.settings.templates as TemplateEntry[])
+              .some(t => t.name === newName);
+            if (already) return;
+            (this.plugin.settings.templates as TemplateEntry[]).push({
+              name: newName,
+              path: newPath,
+              languages: [],
+            });
+            await this.plugin.saveSettings();
+            this.display();
+          })
+      );
+
+    // Default template selector
+    new Setting(containerEl)
+      .setName('Default template')
+      .setDesc('Template used when exporting without a specific template selected.')
+      .addDropdown(dd => {
+        dd.addOption('built-in', 'Built-in template');
+        for (const tpl of this.plugin.settings.templates as TemplateEntry[]) {
+          dd.addOption(tpl.name, tpl.name);
+        }
+        dd.setValue(this.plugin.settings.defaultTemplate)
+          .onChange(async v => {
+            this.plugin.settings.defaultTemplate = v;
+            await this.plugin.saveSettings();
+          });
+      });
+
     // Section 1: Default output format
     new Setting(containerEl)
       .setName('Default output format')

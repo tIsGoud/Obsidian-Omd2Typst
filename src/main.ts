@@ -93,6 +93,7 @@ export default class Omd2TypstPlugin extends Plugin {
       await exportNote(file, format, template, this.settings, this.app);
       new Notice(`Exported: ${file.basename}.${format === 'pdf' ? 'pdf' : 'typ'}`);
     } catch (err) {
+      console.error('[omd2typst] Export failed:', err);
       new Notice(`Export failed: ${(err as Error).message}`);
     }
   }

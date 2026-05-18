@@ -47,6 +47,7 @@ function makeApp(overrides: {
       getAbstractFileByPath,
       adapter: {
         write: adapterWrite,
+        remove: jest.fn().mockResolvedValue(undefined),
       },
     },
   };
