@@ -1,0 +1,3 @@
+[submodule "libs/omd2typst"]
+	path = libs/omd2typst
+	url = ../omd2typst
