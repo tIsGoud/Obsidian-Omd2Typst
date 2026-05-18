@@ -1,3 +1,5 @@
+import { App, PluginSettingTab } from 'obsidian';
+
 export type OutputFormat = 'typ' | 'pdf';
 export type OutputMode  = 'same-folder' | 'fixed-folder' | 'ask';
 export type FrontmatterTemplateMode = 'inline' | 'file';
@@ -50,3 +52,14 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
   ].join('\n'),
   frontmatterFilePath: '',
 };
+
+export class Omd2TypstSettingTab extends PluginSettingTab {
+  plugin: any;
+  constructor(app: App, plugin: any) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+  display(): void {
+    // Full UI implemented in Task 10
+  }
+}
