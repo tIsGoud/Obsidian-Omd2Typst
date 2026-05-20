@@ -1,6 +1,5 @@
 import {
   __wbg_set_wasm,
-  __wbindgen_init_externref_table,
   render_to_typst,
   get_builtin_template,
 } from './omd2typst-pkg/omd2typst_wasm_bg.js';
@@ -29,9 +28,7 @@ async function ensureInit(): Promise<void> {
   const response = await fetch(wasmPath);
   const buffer = await response.arrayBuffer();
   const { instance } = await WebAssembly.instantiate(buffer, {
-    './omd2typst_wasm_bg.js': {
-      __wbindgen_init_externref_table,
-    },
+    './omd2typst_wasm_bg.js': {},
   });
 
   // Wire the wasm instance exports into the bg glue module.
