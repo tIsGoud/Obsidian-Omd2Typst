@@ -34,9 +34,6 @@ async function ensureInit(): Promise<void> {
   // Wire the wasm instance exports into the bg glue module.
   __wbg_set_wasm(instance.exports);
 
-  // Run wasm-bindgen start function (initialises the externref table, etc.).
-  (instance.exports.__wbindgen_start as CallableFunction)();
-
   initialised = true;
 }
 
