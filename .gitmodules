@@ -1,3 +1,3 @@
 [submodule "libs/omd2typst"]
 	path = libs/omd2typst
-	url = ../omd2typst
+	url = git@tisgoud_github:tisgoud/omd2typst.git
