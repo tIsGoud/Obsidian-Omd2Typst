@@ -1,6 +1,6 @@
-# obsidian-omd2typst
+# Obsidian-Omd2Typst
 
-An [Obsidian](https://obsidian.md) plugin that exports notes to publication-quality PDFs via [Typst](https://typst.app), using the [omd2typst](https://codeberg.org/tisgoud/omd2typst) Markdown-to-Typst conversion engine.
+An [Obsidian](https://obsidian.md) plugin that exports notes to publication-quality PDFs via [Typst](https://typst.app), using the [omd2typst](https://github.com/tisgoud/Omd2Typst) Markdown-to-Typst conversion engine.
 
 ---
 
