@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.4.0 — Template language awareness
+
+### What changed
+
+**Language badges always visible**
+When the settings panel opens, language declarations are re-read from every registered `.typ` file. Templates that were added before language parsing was introduced now show their supported languages automatically — no need to remove and re-add them.
+
+**Default language follows the selected template**
+The *Default language* dropdown now lists only the languages declared by the active default template. Switching to a different template immediately updates the available language options. When the built-in template is selected (or a template with no language declaration), all five languages are available. If the currently stored language is not supported by the newly selected template, it resets to the first available language.
+
+---
+
 ## v0.3.0 — Settings UX improvements
 
 ### What changed

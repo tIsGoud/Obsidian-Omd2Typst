@@ -156,9 +156,31 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
+  private async refreshTemplateLanguages(): Promise<void> {
+    let changed = false;
+    for (const tpl of this.plugin.settings.templates as TemplateEntry[]) {
+      const file = this.app.vault.getAbstractFileByPath(tpl.path);
+      if (!(file instanceof TFile)) continue;
+      try {
+        const content = await this.app.vault.read(file);
+        const langs = parseTemplateLanguages(content);
+        if (JSON.stringify(langs) !== JSON.stringify(tpl.languages)) {
+          tpl.languages = langs;
+          changed = true;
+        }
+      } catch { /* skip unreadable files */ }
+    }
+    if (changed) {
+      await this.plugin.saveSettings();
+      this.display();
+    }
+  }
+
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
+
+    this.refreshTemplateLanguages();
 
     // ── Typst Templates ──────────────────────────────────────────────────────
     containerEl.createEl('h3', { text: 'Typst templates' });
@@ -251,6 +273,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           .onChange(async v => {
             this.plugin.settings.defaultTemplate = v;
             await this.plugin.saveSettings();
+            this.display();
           });
       });
 
@@ -306,21 +329,42 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     // ── Document defaults ────────────────────────────────────────────────────
     containerEl.createEl('h3', { text: 'Document defaults' });
 
+    const allLanguages: Record<string, string> = {
+      en: 'English (en)',
+      nl: 'Nederlands (nl)',
+      de: 'Deutsch (de)',
+      es: 'Español (es)',
+      fr: 'Français (fr)',
+    };
+    const activeTpl = (this.plugin.settings.templates as TemplateEntry[])
+      .find(t => t.name === this.plugin.settings.defaultTemplate);
+    const availableLanguages = (activeTpl && activeTpl.languages.length > 0)
+      ? activeTpl.languages
+      : Object.keys(allLanguages);
+
+    // Auto-correct stored language if no longer in the available set
+    if (!availableLanguages.includes(this.plugin.settings.defaultLanguage)) {
+      this.plugin.settings.defaultLanguage = availableLanguages[0];
+      this.plugin.saveSettings();
+    }
+
+    const langDesc = activeTpl && activeTpl.languages.length > 0
+      ? 'Languages supported by the selected template.'
+      : 'Used when the note has no language: frontmatter key.';
+
     new Setting(containerEl)
       .setName('Default language')
-      .setDesc('Used when the note has no language: frontmatter key.')
-      .addDropdown(dd =>
-        dd.addOption('en', 'English (en)')
-          .addOption('nl', 'Nederlands (nl)')
-          .addOption('de', 'Deutsch (de)')
-          .addOption('es', 'Español (es)')
-          .addOption('fr', 'Français (fr)')
-          .setValue(this.plugin.settings.defaultLanguage)
+      .setDesc(langDesc)
+      .addDropdown(dd => {
+        for (const code of availableLanguages) {
+          dd.addOption(code, allLanguages[code] ?? code);
+        }
+        dd.setValue(this.plugin.settings.defaultLanguage)
           .onChange(async v => {
             this.plugin.settings.defaultLanguage = v;
             await this.plugin.saveSettings();
-          })
-      );
+          });
+      });
 
     new Setting(containerEl)
       .setName('Frontmatter template source')
