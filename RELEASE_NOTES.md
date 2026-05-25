@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.4.2 — Fix frontmatter insertion; add User defined mode
+
+**Fix: "Insert omd2typst frontmatter" command now works**
+Two bugs prevented the command from running at all: a missing function import caused a `ReferenceError` at runtime, and the *Template file* mode was silently ignored (always fell back to inline). Both are fixed.
+
+**New: User defined mode**
+A third option — *User defined* — is now available under *Frontmatter template source*. Selecting it disables the built-in insert command and shows a notice when the command is invoked, so users who manage frontmatter through Templater, the Templates core plugin, or any other tool can opt out of the built-in behaviour entirely.
+
+---
+
 ## v0.4.1 — Fix language detection
 
 Language detection now reads the `_lang_strings` dictionary directly from the `.typ` file instead of relying on a comment declaration. No changes needed in template files — any template that defines `_lang_strings` will have its supported languages detected automatically.

@@ -94,7 +94,7 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
 
 export type OutputFormat = 'typ' | 'pdf';
 export type OutputMode  = 'same-folder' | 'fixed-folder' | 'ask';
-export type FrontmatterTemplateMode = 'inline' | 'file';
+export type FrontmatterTemplateMode = 'inline' | 'file' | 'user-defined';
 
 export interface TemplateEntry {
   name: string;
@@ -368,10 +368,11 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Frontmatter template source')
-      .setDesc('How the frontmatter template is defined.')
+      .setDesc('How the "Insert omd2typst frontmatter" command obtains the list of keys to insert.')
       .addDropdown(dd =>
         dd.addOption('inline', 'Inline editor')
           .addOption('file', 'Template file')
+          .addOption('user-defined', 'User defined')
           .setValue(this.plugin.settings.frontmatterTemplateMode)
           .onChange(async v => {
             this.plugin.settings.frontmatterTemplateMode = v as FrontmatterTemplateMode;
@@ -383,7 +384,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     if (this.plugin.settings.frontmatterTemplateMode === 'inline') {
       new Setting(containerEl)
         .setName('Default frontmatter')
-        .setDesc('YAML keys to insert. Remove keys you never use.')
+        .setDesc('YAML keys to insert into the active note. Existing keys are never overwritten.')
         .addTextArea(ta =>
           ta.setValue(this.plugin.settings.frontmatterInline)
             .onChange(async v => {
@@ -396,7 +397,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     if (this.plugin.settings.frontmatterTemplateMode === 'file') {
       new Setting(containerEl)
         .setName('Frontmatter template file')
-        .setDesc('Markdown file whose frontmatter is used as the template.')
+        .setDesc('Markdown file whose frontmatter keys are inserted into the active note. Existing keys are never overwritten.')
         .addText(text => {
           text.setPlaceholder('Search .md files…')
             .setValue(this.plugin.settings.frontmatterFilePath)
@@ -409,6 +410,12 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           });
         });
+    }
+
+    if (this.plugin.settings.frontmatterTemplateMode === 'user-defined') {
+      new Setting(containerEl)
+        .setName('User defined')
+        .setDesc('The built-in frontmatter command is disabled. Use Templater, the Templates core plugin, or any other tool to manage frontmatter.');
     }
   }
 }

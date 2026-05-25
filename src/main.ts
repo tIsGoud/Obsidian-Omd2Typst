@@ -1,7 +1,7 @@
 import { Plugin, TFile, Notice, normalizePath } from 'obsidian';
 import { Omd2TypstSettings, DEFAULT_SETTINGS, OutputFormat, Omd2TypstSettingTab } from './settings';
 import { resolveDefaultTemplate } from './template';
-import { mergeFrontmatter } from './frontmatter';
+import { mergeFrontmatter, buildFrontmatterBlock, parseFrontmatter } from './frontmatter';
 import { exportNote } from './exporter';
 import { checkTypstInstalled } from './typst-cli';
 import { setOmd2TypstWasmPath, getBuiltinTemplate } from './wasm/omd2typst';
@@ -99,19 +99,37 @@ export default class Omd2TypstPlugin extends Plugin {
     }
   }
 
-  private insertFrontmatter() {
+  private async insertFrontmatter() {
+    if (this.settings.frontmatterTemplateMode === 'user-defined') {
+      new Notice('Frontmatter insertion is set to User defined — manage frontmatter with your own template tool.');
+      return;
+    }
+
     const file = this.app.workspace.getActiveFile();
-    if (!file) {
-      new Notice('No active file.');
-      return;
-    }
+    if (!file) { new Notice('No active file.'); return; }
     const editor = this.app.workspace.activeEditor?.editor;
-    if (!editor) {
-      new Notice('No active editor.');
-      return;
+    if (!editor) { new Notice('No active editor.'); return; }
+
+    let templateKeys: string[];
+
+    if (this.settings.frontmatterTemplateMode === 'file') {
+      const tplFile = this.app.vault.getAbstractFileByPath(this.settings.frontmatterFilePath);
+      if (!(tplFile instanceof TFile)) {
+        new Notice('Frontmatter template file not found. Check the path in settings.');
+        return;
+      }
+      const tplContent = await this.app.vault.read(tplFile);
+      const parsed = parseFrontmatter(tplContent);
+      templateKeys = parsed ? parsed.keys : [];
+      if (templateKeys.length === 0) {
+        new Notice('Template file has no frontmatter keys.');
+        return;
+      }
+    } else {
+      templateKeys = buildFrontmatterBlock(this.settings.frontmatterInline);
     }
+
     const content = editor.getValue();
-    const templateKeys = buildFrontmatterBlock(this.settings.frontmatterInline);
     const merged = mergeFrontmatter(content, templateKeys);
     editor.setValue(merged);
   }
