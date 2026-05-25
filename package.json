@@ -1,6 +1,6 @@
 {
   "name": "obsidian-omd2typst",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "private": true,
   "scripts": {
     "build:wasm": "bash scripts/build-wasm.sh",

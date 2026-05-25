@@ -1,14 +1,17 @@
 const FM_DELIM = '---';
 
 interface ParsedFrontmatter {
+  /** Key names only — used for existence checks. */
   keys: string[];
+  /** Full trimmed YAML lines (key: value) — used when inserting from a template file. */
+  lines: string[];
   /** Byte offset of the opening '---\n' (0). */
   openEnd: number;
   /** Byte offset just after the closing '---'. */
   closeEnd: number;
 }
 
-/** Extract the list of keys from a note's YAML frontmatter block. */
+/** Extract key names and full lines from a note's YAML frontmatter block. */
 export function parseFrontmatter(content: string): ParsedFrontmatter | null {
   if (!content.startsWith(FM_DELIM)) return null;
   const afterOpen = content.slice(3);
@@ -16,34 +19,35 @@ export function parseFrontmatter(content: string): ParsedFrontmatter | null {
   if (closeIdx === null) return null;
 
   const yamlBlock = afterOpen.slice(0, closeIdx);
-  const keys = yamlBlock
+  const lines = yamlBlock
     .split('\n')
-    .map(l => l.split(':')[0].trim())
-    .filter(k => k.length > 0 && !k.startsWith('#'));
+    .map(l => l.trim())
+    .filter(l => l.length > 0 && !l.startsWith('#'));
+  const keys = lines.map(l => l.split(':')[0].trim());
 
   const openEnd  = 4; // '---\n'
   const closeEnd = 4 + closeIdx + 4; // '---\n' + yaml + '\n---'
-  return { keys, openEnd, closeEnd };
+  return { keys, lines, openEnd, closeEnd };
 }
 
 /**
- * Merge template keys into the note's frontmatter.
- * Missing keys are prepended above existing keys; existing keys are untouched.
+ * Merge template lines into the note's frontmatter.
+ * Missing keys are prepended above existing keys with their template values.
+ * Existing keys are never overwritten.
  * If the note has no frontmatter, a full block is inserted at the top.
  */
-export function mergeFrontmatter(noteContent: string, templateKeys: string[]): string {
+export function mergeFrontmatter(noteContent: string, templateLines: string[]): string {
   const parsed = parseFrontmatter(noteContent);
   if (!parsed) {
-    const block = `${FM_DELIM}\n${templateKeys.map(k => `${k}:`).join('\n')}\n${FM_DELIM}\n`;
+    const block = `${FM_DELIM}\n${templateLines.join('\n')}\n${FM_DELIM}\n`;
     return block + noteContent;
   }
 
   const existingKeys = new Set(parsed.keys);
-  const missingKeys = templateKeys.filter(k => !existingKeys.has(k));
-  if (missingKeys.length === 0) return noteContent;
+  const missingLines = templateLines.filter(l => !existingKeys.has(l.split(':')[0].trim()));
+  if (missingLines.length === 0) return noteContent;
 
-  // Insert missing keys immediately after the opening ---
-  const insertLines = missingKeys.map(k => `${k}:`).join('\n') + '\n';
+  const insertLines = missingLines.join('\n') + '\n';
   return (
     `${FM_DELIM}\n` +
     insertLines +
@@ -52,12 +56,12 @@ export function mergeFrontmatter(noteContent: string, templateKeys: string[]): s
   );
 }
 
-/** Convert the inline YAML-lines setting string to a list of key names. */
+/** Return full trimmed YAML lines from the inline setting string (preserving values). */
 export function buildFrontmatterBlock(yamlLines: string): string[] {
   return yamlLines
     .split('\n')
-    .map(l => l.split(':')[0].trim())
-    .filter(k => k.length > 0 && !k.startsWith('#'));
+    .map(l => l.trim())
+    .filter(l => l.length > 0 && !l.startsWith('#'));
 }
 
 function findFrontmatterClose(s: string): number | null {

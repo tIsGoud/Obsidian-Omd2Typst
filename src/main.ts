@@ -110,7 +110,7 @@ export default class Omd2TypstPlugin extends Plugin {
     const editor = this.app.workspace.activeEditor?.editor;
     if (!editor) { new Notice('No active editor.'); return; }
 
-    let templateKeys: string[];
+    let templateLines: string[];
 
     if (this.settings.frontmatterTemplateMode === 'file') {
       const tplFile = this.app.vault.getAbstractFileByPath(this.settings.frontmatterFilePath);
@@ -120,17 +120,17 @@ export default class Omd2TypstPlugin extends Plugin {
       }
       const tplContent = await this.app.vault.read(tplFile);
       const parsed = parseFrontmatter(tplContent);
-      templateKeys = parsed ? parsed.keys : [];
-      if (templateKeys.length === 0) {
+      templateLines = parsed ? parsed.lines : [];
+      if (templateLines.length === 0) {
         new Notice('Template file has no frontmatter keys.');
         return;
       }
     } else {
-      templateKeys = buildFrontmatterBlock(this.settings.frontmatterInline);
+      templateLines = buildFrontmatterBlock(this.settings.frontmatterInline);
     }
 
     const content = editor.getValue();
-    const merged = mergeFrontmatter(content, templateKeys);
+    const merged = mergeFrontmatter(content, templateLines);
     editor.setValue(merged);
   }
 

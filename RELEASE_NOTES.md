@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.4.3 — Frontmatter template values are now preserved
+
+**Fix: default values in the frontmatter template are inserted correctly**
+Previously, `key: value` lines in both the inline editor and the template file had their values stripped — only the key name survived, so the note always received an empty `key:` line regardless of what the template said. All three pipeline functions (`buildFrontmatterBlock`, `mergeFrontmatter`, `parseFrontmatter`) now preserve full `key: value` lines. Existing keys in the note are still never overwritten.
+
+---
+
 ## v0.4.2 — Fix frontmatter insertion; add User defined mode
 
 **Fix: "Insert omd2typst frontmatter" command now works**
