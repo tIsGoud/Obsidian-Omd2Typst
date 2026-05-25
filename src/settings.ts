@@ -1,7 +1,7 @@
-import { App, AbstractInputSuggest, TFile, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+import { App, AbstractInputSuggest, TFile, TFolder, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 
 // ---------------------------------------------------------------------------
-// File suggest — autocomplete for .typ files in the vault
+// Suggest helpers
 // ---------------------------------------------------------------------------
 
 class TypFileSuggest extends AbstractInputSuggest<TFile> {
@@ -31,6 +31,65 @@ class TypFileSuggest extends AbstractInputSuggest<TFile> {
     this.close();
   }
 }
+
+class MdFileSuggest extends AbstractInputSuggest<TFile> {
+  private onPick: (file: TFile) => void;
+
+  constructor(app: App, inputEl: HTMLInputElement, onPick: (file: TFile) => void) {
+    super(app, inputEl);
+    this.onPick = onPick;
+  }
+
+  getSuggestions(query: string): TFile[] {
+    const q = query.toLowerCase();
+    return this.app.vault
+      .getFiles()
+      .filter(f => f.extension === 'md' && f.path.toLowerCase().includes(q))
+      .sort((a, b) => a.path.localeCompare(b.path));
+  }
+
+  renderSuggestion(file: TFile, el: HTMLElement): void {
+    el.createEl('div', { text: file.basename });
+    el.createEl('small', { text: file.path });
+  }
+
+  selectSuggestion(file: TFile): void {
+    this.setValue(file.path);
+    this.onPick(file);
+    this.close();
+  }
+}
+
+class FolderSuggest extends AbstractInputSuggest<TFolder> {
+  private onPick: (folder: TFolder) => void;
+
+  constructor(app: App, inputEl: HTMLInputElement, onPick: (folder: TFolder) => void) {
+    super(app, inputEl);
+    this.onPick = onPick;
+  }
+
+  getSuggestions(query: string): TFolder[] {
+    const q = query.toLowerCase();
+    return this.app.vault
+      .getAllFolders()
+      .filter(f => f.path.toLowerCase().includes(q))
+      .sort((a, b) => a.path.localeCompare(b.path));
+  }
+
+  renderSuggestion(folder: TFolder, el: HTMLElement): void {
+    el.createEl('div', { text: folder.path || '/ (vault root)' });
+  }
+
+  selectSuggestion(folder: TFolder): void {
+    this.setValue(folder.path);
+    this.onPick(folder);
+    this.close();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Types and defaults
+// ---------------------------------------------------------------------------
 
 export type OutputFormat = 'typ' | 'pdf';
 export type OutputMode  = 'same-folder' | 'fixed-folder' | 'ask';
@@ -85,12 +144,17 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
   frontmatterFilePath: '',
 };
 
+// ---------------------------------------------------------------------------
+// Settings tab
+// ---------------------------------------------------------------------------
+
 export class Omd2TypstSettingTab extends PluginSettingTab {
   plugin: any;
   constructor(app: App, plugin: any) {
     super(app, plugin);
     this.plugin = plugin;
   }
+
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
@@ -100,9 +164,12 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
 
     // List existing templates
     for (const tpl of this.plugin.settings.templates as TemplateEntry[]) {
+      const langBadge = tpl.languages.length > 0
+        ? `${tpl.path}  ·  ${tpl.languages.join(', ')}`
+        : tpl.path;
       new Setting(containerEl)
         .setName(tpl.name)
-        .setDesc(tpl.path)
+        .setDesc(langBadge)
         .addButton(btn =>
           btn.setButtonText('Remove')
             .setWarning()
@@ -178,13 +245,15 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           });
       });
 
-    // Section 1: Default output format
+    // ── Export ───────────────────────────────────────────────────────────────
+    containerEl.createEl('h3', { text: 'Export' });
+
     new Setting(containerEl)
       .setName('Default output format')
       .setDesc('Format used by the palette commands.')
       .addDropdown(dd =>
-        dd.addOption('typ', 'Typst source (.typ)')
-          .addOption('pdf', 'PDF')
+        dd.addOption('pdf', 'PDF')
+          .addOption('typ', 'Typst source (.typ)')
           .setValue(this.plugin.settings.defaultOutputFormat)
           .onChange(async v => {
             this.plugin.settings.defaultOutputFormat = v as OutputFormat;
@@ -192,7 +261,6 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           })
       );
 
-    // Section 2: Output location
     new Setting(containerEl)
       .setName('Output location')
       .setDesc('Where to save exported files.')
@@ -204,30 +272,40 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           .onChange(async v => {
             this.plugin.settings.outputMode = v as OutputMode;
             await this.plugin.saveSettings();
+            this.display();
           })
       );
 
-    // Section 3: Output folder (only when outputMode = 'fixed-folder')
     if (this.plugin.settings.outputMode === 'fixed-folder') {
       new Setting(containerEl)
         .setName('Output folder')
-        .setDesc('Vault-relative path (e.g. exports/).')
-        .addText(text =>
-          text.setValue(this.plugin.settings.outputFolder)
+        .setDesc('Vault folder where exported files are saved.')
+        .addText(text => {
+          text.setPlaceholder('Search folders…')
+            .setValue(this.plugin.settings.outputFolder)
             .onChange(async v => {
               this.plugin.settings.outputFolder = v;
               await this.plugin.saveSettings();
-            })
-        );
+            });
+          new FolderSuggest(this.app, text.inputEl, async (folder: TFolder) => {
+            this.plugin.settings.outputFolder = folder.path;
+            await this.plugin.saveSettings();
+          });
+        });
     }
 
-    // Section 4: Default language
+    // ── Document defaults ────────────────────────────────────────────────────
+    containerEl.createEl('h3', { text: 'Document defaults' });
+
     new Setting(containerEl)
       .setName('Default language')
       .setDesc('Used when the note has no language: frontmatter key.')
       .addDropdown(dd =>
         dd.addOption('en', 'English (en)')
           .addOption('nl', 'Nederlands (nl)')
+          .addOption('de', 'Deutsch (de)')
+          .addOption('es', 'Español (es)')
+          .addOption('fr', 'Français (fr)')
           .setValue(this.plugin.settings.defaultLanguage)
           .onChange(async v => {
             this.plugin.settings.defaultLanguage = v;
@@ -235,7 +313,6 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           })
       );
 
-    // Section 5: Frontmatter template source
     new Setting(containerEl)
       .setName('Frontmatter template source')
       .setDesc('How the frontmatter template is defined.')
@@ -246,10 +323,10 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           .onChange(async v => {
             this.plugin.settings.frontmatterTemplateMode = v as FrontmatterTemplateMode;
             await this.plugin.saveSettings();
+            this.display();
           })
       );
 
-    // Section 6: Inline frontmatter (only when frontmatterTemplateMode = 'inline')
     if (this.plugin.settings.frontmatterTemplateMode === 'inline') {
       new Setting(containerEl)
         .setName('Default frontmatter')
@@ -263,18 +340,22 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
         );
     }
 
-    // Section 7: Frontmatter file (only when frontmatterTemplateMode = 'file')
     if (this.plugin.settings.frontmatterTemplateMode === 'file') {
       new Setting(containerEl)
         .setName('Frontmatter template file')
-        .setDesc('Vault-relative path to a .md file whose frontmatter is used as the template.')
-        .addText(text =>
-          text.setValue(this.plugin.settings.frontmatterFilePath)
+        .setDesc('Markdown file whose frontmatter is used as the template.')
+        .addText(text => {
+          text.setPlaceholder('Search .md files…')
+            .setValue(this.plugin.settings.frontmatterFilePath)
             .onChange(async v => {
               this.plugin.settings.frontmatterFilePath = v;
               await this.plugin.saveSettings();
-            })
-        );
+            });
+          new MdFileSuggest(this.app, text.inputEl, async (file: TFile) => {
+            this.plugin.settings.frontmatterFilePath = file.path;
+            await this.plugin.saveSettings();
+          });
+        });
     }
   }
 }

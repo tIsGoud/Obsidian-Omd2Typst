@@ -1,5 +1,31 @@
 # Release Notes
 
+## v0.3.0 — Settings UX improvements
+
+### What changed
+
+Four improvements to the settings panel:
+
+**Folder picker for output folder**
+When *Output location* is set to *Fixed folder*, the folder field now has vault-aware autocomplete. Start typing and matching vault folders appear in a dropdown.
+
+**File picker for frontmatter template file**
+When *Frontmatter template source* is set to *Template file*, the path field now has autocomplete for `.md` files in the vault — same pattern as the template file picker.
+
+**Reactive settings panel**
+Switching *Output location* or *Frontmatter template source* now immediately shows or hides the dependent field without needing to close and reopen settings.
+
+**All five languages in the dropdown**
+The *Default language* dropdown now lists all supported languages: English, Nederlands, Deutsch, Español, Français.
+
+**Language badges on registered templates**
+If a template declares which languages it supports, those language codes are shown alongside the vault path in the template list.
+
+**Settings grouped into sections**
+Settings are now organised under three headings: *Typst templates*, *Export*, and *Document defaults*.
+
+---
+
 ## v0.2.0 — Vault file picker for template selection
 
 ### What changed
