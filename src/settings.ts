@@ -1,4 +1,5 @@
 import { App, AbstractInputSuggest, TFile, TFolder, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+import { parseTemplateLanguages } from './template';
 
 // ---------------------------------------------------------------------------
 // Suggest helpers
@@ -219,10 +220,18 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
             const already = (this.plugin.settings.templates as TemplateEntry[])
               .some(t => t.name === name);
             if (already) return;
+            let languages: string[] = [];
+            const file = this.app.vault.getAbstractFileByPath(newPath);
+            if (file instanceof TFile) {
+              try {
+                const content = await this.app.vault.read(file);
+                languages = parseTemplateLanguages(content);
+              } catch { /* leave empty if unreadable */ }
+            }
             (this.plugin.settings.templates as TemplateEntry[]).push({
               name,
               path: newPath,
-              languages: [],
+              languages,
             });
             await this.plugin.saveSettings();
             this.display();
