@@ -1,5 +1,18 @@
 # Release Notes
 
+## v0.4.4 — README overhaul
+
+**README rewritten to reflect current behaviour**
+The README now documents the plugin as it actually works today. Corrections and additions:
+
+- Installation section added (download zip, unzip, place in vault)
+- Template language detection: corrected from the removed `// omd2typst-languages:` comment approach to the current automatic detection from `_lang_strings`
+- Default language: documents the template-aware behaviour — options are limited to the languages supported by the selected default template
+- Frontmatter template source: all three modes (*Inline editor*, *Template file*, *User defined*) are documented including what each one does and how values are preserved
+- Template authoring section: explains how to declare language support via `_lang_strings` and how to export the built-in template as a starting point
+
+---
+
 ## v0.4.3 — Frontmatter template values are now preserved
 
 **Fix: default values in the frontmatter template are inserted correctly**
