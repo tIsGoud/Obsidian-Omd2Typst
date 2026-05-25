@@ -1,10 +1,16 @@
 import type { TemplateEntry, Omd2TypstSettings } from './settings';
 
-/** Parse the `// omd2typst-languages: nl, en` comment from a .typ file's content. */
+/** Detect supported languages by reading the top-level keys of `_lang_strings` in a .typ file. */
 export function parseTemplateLanguages(typContent: string): string[] {
-  const match = typContent.match(/\/\/\s*omd2typst-languages:\s*(.+)/);
-  if (!match) return [];
-  return match[1].split(',').map(l => l.trim()).filter(Boolean);
+  const blockMatch = typContent.match(/#let _lang_strings\s*=\s*\(([\s\S]*?)\n\)/);
+  if (!blockMatch) return [];
+  const langs: string[] = [];
+  const re = /^\s+"([a-z]{2})"\s*:/gm;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(blockMatch[1])) !== null) {
+    langs.push(m[1]);
+  }
+  return langs;
 }
 
 /**

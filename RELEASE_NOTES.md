@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.4.1 — Fix language detection
+
+Language detection now reads the `_lang_strings` dictionary directly from the `.typ` file instead of relying on a comment declaration. No changes needed in template files — any template that defines `_lang_strings` will have its supported languages detected automatically.
+
+---
+
 ## v0.4.0 — Template language awareness
 
 ### What changed
