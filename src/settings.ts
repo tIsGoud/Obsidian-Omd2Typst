@@ -1,4 +1,36 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, AbstractInputSuggest, TFile, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+
+// ---------------------------------------------------------------------------
+// File suggest — autocomplete for .typ files in the vault
+// ---------------------------------------------------------------------------
+
+class TypFileSuggest extends AbstractInputSuggest<TFile> {
+  private onPick: (file: TFile) => void;
+
+  constructor(app: App, inputEl: HTMLInputElement, onPick: (file: TFile) => void) {
+    super(app, inputEl);
+    this.onPick = onPick;
+  }
+
+  getSuggestions(query: string): TFile[] {
+    const q = query.toLowerCase();
+    return this.app.vault
+      .getFiles()
+      .filter(f => f.extension === 'typ' && f.path.toLowerCase().includes(q))
+      .sort((a, b) => a.path.localeCompare(b.path));
+  }
+
+  renderSuggestion(file: TFile, el: HTMLElement): void {
+    el.createEl('div', { text: file.basename });
+    el.createEl('small', { text: file.path });
+  }
+
+  selectSuggestion(file: TFile): void {
+    this.setValue(file.path);
+    this.onPick(file);
+    this.close();
+  }
+}
 
 export type OutputFormat = 'typ' | 'pdf';
 export type OutputMode  = 'same-folder' | 'fixed-folder' | 'ask';
@@ -87,29 +119,41 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
         );
     }
 
-    // Add template — two inline text fields + button
+    // Add template — file picker with autocomplete + optional name override
     let newName = '';
     let newPath = '';
+    let nameComp: TextComponent;
+
     new Setting(containerEl)
       .setName('Add template')
-      .setDesc('Name and vault-relative path to a .typ file')
-      .addText(text =>
-        text.setPlaceholder('My Template')
-          .onChange(v => { newName = v.trim(); })
-      )
-      .addText(text =>
-        text.setPlaceholder('templates/my-template.typ')
-          .onChange(v => { newPath = v.trim(); })
-      )
+      .setDesc('Select a .typ file from the vault. Name is derived from the filename.')
+      .addText(text => {
+        nameComp = text;
+        text.setPlaceholder('Name (optional)')
+          .onChange(v => { newName = v.trim(); });
+      })
+      .addText(text => {
+        text.setPlaceholder('Search .typ files…');
+        text.onChange(v => { newPath = v.trim(); });
+        new TypFileSuggest(this.app, text.inputEl, (file: TFile) => {
+          newPath = file.path;
+          if (!newName) {
+            newName = file.basename;
+            nameComp.setValue(file.basename);
+          }
+        });
+      })
       .addButton(btn =>
         btn.setButtonText('Add')
+          .setCta()
           .onClick(async () => {
-            if (!newName || !newPath) return;
+            if (!newPath) return;
+            const name = newName || newPath.split('/').pop()?.replace(/\.typ$/, '') || newPath;
             const already = (this.plugin.settings.templates as TemplateEntry[])
-              .some(t => t.name === newName);
+              .some(t => t.name === name);
             if (already) return;
             (this.plugin.settings.templates as TemplateEntry[]).push({
-              name: newName,
+              name,
               path: newPath,
               languages: [],
             });
