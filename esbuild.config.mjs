@@ -1,17 +1,8 @@
 import esbuild from 'esbuild';
 import builtins from 'builtin-modules';
-import { copyFile, mkdir } from 'fs/promises';
 import process from 'process';
 
 const prod = process.argv[2] === 'production';
-
-// Copy the omd2typst WASM to wasm-runtime/ so it can be loaded at runtime
-// via fetch() (async instantiation avoids Chrome's 4 KB sync-compile limit).
-await mkdir('wasm-runtime', { recursive: true });
-await copyFile(
-  'src/wasm/omd2typst-pkg/omd2typst_wasm_bg.wasm',
-  'wasm-runtime/omd2typst_bg.wasm',
-);
 
 const OBSIDIAN_EXTERNALS = [
   'obsidian', 'electron',
@@ -33,6 +24,7 @@ await esbuild.build({
   treeShaking: true,
   outfile: 'main.js',
   minify: false,
+  loader: { '.wasm': 'binary' },
   plugins: [],
   logLevel: 'info',
 });

@@ -1,10 +1,10 @@
-import { Plugin, TFile, Notice, normalizePath } from 'obsidian';
+import { Plugin, TFile, Notice } from 'obsidian';
 import { Omd2TypstSettings, DEFAULT_SETTINGS, OutputFormat, Omd2TypstSettingTab } from './settings';
 import { resolveDefaultTemplate } from './template';
 import { mergeFrontmatter, buildFrontmatterBlock, parseFrontmatter } from './frontmatter';
 import { exportNote } from './exporter';
 import { checkTypstInstalled } from './typst-cli';
-import { setOmd2TypstWasmPath, getBuiltinTemplate } from './wasm/omd2typst';
+import { getBuiltinTemplate } from './wasm/omd2typst';
 
 export default class Omd2TypstPlugin extends Plugin {
   settings: Omd2TypstSettings = DEFAULT_SETTINGS;
@@ -19,12 +19,6 @@ export default class Omd2TypstPlugin extends Plugin {
     } catch {
       new Notice('omd2typst: typst not found — PDF export will fail. Install typst from https://typst.app or add it to PATH.');
     }
-
-    // Configure the omd2typst WASM path
-    const omd2typstWasmPath = (this.app.vault.adapter as any).getResourcePath(
-      normalizePath(`${this.manifest.dir}/wasm-runtime/omd2typst_bg.wasm`)
-    );
-    setOmd2TypstWasmPath(omd2typstWasmPath);
 
     // Register 4 commands
     this.addCommand({
