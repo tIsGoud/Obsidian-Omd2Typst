@@ -1,5 +1,26 @@
 # Release Notes
 
+## v0.6.0 — WASM bundled into main.js; license corrected to AGPL-3.0
+
+**Plugin is now fully self-contained**
+The omd2typst WASM engine is embedded directly inside `main.js` via esbuild's binary loader. Installation no longer requires a separate `wasm-runtime/` folder — only `main.js` and `manifest.json` are needed.
+
+**License corrected to AGPL-3.0-only**
+Both the `LICENSE` file and `package.json` now consistently declare AGPL-3.0-only. The previous release had a mismatch (LICENSE said MIT, package.json said AGPL-3.0-only).
+
+**Built on omd2typst v0.9.0**
+
+---
+
+## v0.5.0 — AGPL-3.0 license declaration; built on omd2typst v0.8.0
+
+- License declared as AGPL-3.0-only in `package.json`
+- Plugin id corrected to `obsidian-omd2typst` in manifest
+- Built against omd2typst engine v0.8.0
+- Author URL added to manifest
+
+---
+
 ## v0.4.4 — README overhaul
 
 **README rewritten to reflect current behaviour**
