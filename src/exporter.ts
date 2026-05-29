@@ -108,15 +108,18 @@ export async function exportNote(
     let pdfBytes: Uint8Array;
 
     if (bin) {
-      // System typst path: write .typ → run CLI → read PDF → remove .typ
-      const typPath = outputPath.replace(/\.pdf$/, '.typ');
-      await app.vault.adapter.write(typPath, typstSrc);
+      // Write the temp .typ at the vault root so vault-relative image paths (no
+      // leading /) resolve correctly. Typst resolves bare relative paths from
+      // the .typ file's directory — if the file is inside a subfolder the path
+      // becomes double-prefixed; at the vault root it matches vault-relative paths.
+      const typTempName = `__omd2typst_${Date.now()}.typ`;
+      await app.vault.adapter.write(typTempName, typstSrc);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const vaultBase: string = (app.vault.adapter as any).basePath ?? '';
       try {
-        pdfBytes = await compileToPdfViaCli(typPath, vaultBase);
+        pdfBytes = await compileToPdfViaCli(typTempName, vaultBase);
       } finally {
-        try { await app.vault.adapter.remove(typPath); } catch { /* best-effort */ }
+        try { await app.vault.adapter.remove(typTempName); } catch { /* best-effort */ }
       }
     } else {
       // WASM fallback: compile entirely in-memory (no temp files needed).
