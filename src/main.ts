@@ -1,23 +1,34 @@
-import { Plugin, TFile, Notice } from 'obsidian';
+import { Plugin, TFile, Notice, normalizePath } from 'obsidian';
 import { Omd2TypstSettings, DEFAULT_SETTINGS, OutputFormat, Omd2TypstSettingTab } from './settings';
 import { resolveDefaultTemplate } from './template';
 import { mergeFrontmatter, buildFrontmatterBlock, parseFrontmatter } from './frontmatter';
 import { exportNote } from './exporter';
-import { checkTypstInstalled } from './typst-cli';
+import { detectSystemTypst, TypstStatus } from './typst-cli';
+import { isPdfWasmCached, PDF_WASM_TYPST_VERSION } from './typst-pdf-wasm';
 import { getBuiltinTemplate } from './wasm/omd2typst';
 
 export default class Omd2TypstPlugin extends Plugin {
   settings: Omd2TypstSettings = DEFAULT_SETTINGS;
+  typstStatus: TypstStatus = { source: 'none', version: '' };
 
   async onload() {
     await this.loadSettings();
 
-    // Verify typst CLI is installed — required for PDF export.
-    try {
-      const version = checkTypstInstalled();
-      console.log(`[omd2typst] Found ${version}`);
-    } catch {
-      new Notice('omd2typst: typst not found — PDF export will fail. Install typst from https://typst.app or add it to PATH.');
+    // Detect system typst binary.
+    this.typstStatus = detectSystemTypst();
+
+    if (this.typstStatus.source === 'system') {
+      console.log(`[omd2typst] System typst ${this.typstStatus.version} found`);
+    } else {
+      // Check if the PDF WASM compiler is already cached in the vault.
+      const pluginDir = this.manifest.dir ?? '.obsidian/plugins/obsidian-omd2typst';
+      const wasmCached = await isPdfWasmCached(this.app, pluginDir);
+      if (wasmCached) {
+        this.typstStatus = { source: 'wasm', version: PDF_WASM_TYPST_VERSION };
+        console.log('[omd2typst] Using cached PDF WASM compiler');
+      } else {
+        console.log('[omd2typst] typst not found — PDF export will download WASM on first use');
+      }
     }
 
     // Register 4 commands
@@ -62,7 +73,7 @@ export default class Omd2TypstPlugin extends Plugin {
       })
     );
 
-    this.addSettingTab(new Omd2TypstSettingTab(this.app, this));
+    this.addSettingTab(new Omd2TypstSettingTab(this.app, this, () => this.typstStatus));
   }
 
   async loadSettings() {

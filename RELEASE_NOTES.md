@@ -1,5 +1,20 @@
 # Release Notes
 
+## v0.7.0 — WASM PDF fallback; Typst version shown in settings
+
+**PDF export no longer requires a system typst installation**
+The plugin now detects the system `typst` binary at startup and falls back to a downloadable WASM compiler if it is not found. On the first PDF export without system `typst`, the WASM compiler (~27 MB) is downloaded from the omd2typst GitHub release and cached in the vault — subsequent exports use the cache with no further network access.
+
+**Typst compiler status in settings**
+The *Export* section of the settings panel now shows a read-only *Typst compiler* row indicating which compiler is in use and its version:
+- `Typst 0.13.1 (system)` — system binary found in PATH or a known location
+- `Typst 0.13.1 (WASM, cached)` — WASM compiler already downloaded and cached
+- `Typst not found` — no system binary; WASM will be downloaded on the first PDF export
+
+**Built on omd2typst v0.10.0**
+
+---
+
 ## v0.6.0 — WASM bundled into main.js; license corrected to AGPL-3.0
 
 **Plugin is now fully self-contained**

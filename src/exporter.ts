@@ -3,7 +3,8 @@ import type { OutputFormat, TemplateEntry, Omd2TypstSettings } from './settings'
 import { checkLanguageCompatibility } from './template';
 import { resolveOutputPath } from './output';
 import { renderToTypst } from './wasm/omd2typst';
-import { compileToPdfViaCli } from './typst-cli';
+import { findTypstBinary, compileToPdfViaCli } from './typst-cli';
+import { compileToPdfViaWasm, PDF_WASM_TYPST_VERSION } from './typst-pdf-wasm';
 
 /**
  * Extract the value of a YAML key from the frontmatter block.
@@ -86,17 +87,39 @@ export async function exportNote(
   if (format === 'typ') {
     await app.vault.adapter.write(outputPath, typstSrc);
   } else {
-    // PDF: write .typ to disk so the CLI can compile it with --root <vaultBase>,
-    // which lets vault-relative #import paths (e.g. /typst/template.typ) resolve.
-    const typPath = outputPath.replace(/\.pdf$/, '.typ');
-    await app.vault.adapter.write(typPath, typstSrc);
+    // PDF: prefer system typst CLI; fall back to WASM compiler.
+    const bin = findTypstBinary();
+    let pdfBytes: Uint8Array;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const vaultBase: string = (app.vault.adapter as any).basePath ?? '';
-    const pdfBytes = await compileToPdfViaCli(typPath, vaultBase);
+    if (bin) {
+      // System typst path: write .typ → run CLI → read PDF → remove .typ
+      const typPath = outputPath.replace(/\.pdf$/, '.typ');
+      await app.vault.adapter.write(typPath, typstSrc);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const vaultBase: string = (app.vault.adapter as any).basePath ?? '';
+      try {
+        pdfBytes = await compileToPdfViaCli(typPath, vaultBase);
+      } finally {
+        try { await app.vault.adapter.remove(typPath); } catch { /* best-effort */ }
+      }
+    } else {
+      // WASM fallback: compile entirely in-memory (no temp files needed).
+      // Collect vault files the template might import.
+      const vaultFiles: Record<string, string> = {};
+      if (template !== null && template.path) {
+        const tplFile = app.vault.getAbstractFileByPath(template.path);
+        if (tplFile instanceof TFile) {
+          vaultFiles[template.path] = await app.vault.read(tplFile);
+        }
+      }
+
+      new Notice(`PDF: using WASM compiler (Typst ${PDF_WASM_TYPST_VERSION}) — downloading if needed…`);
+      const pluginDir = (app as any).plugins?.getPlugin?.('obsidian-omd2typst')?.manifest?.dir
+        ?? '.obsidian/plugins/obsidian-omd2typst';
+      pdfBytes = await compileToPdfViaWasm(typstSrc, vaultFiles, app, pluginDir);
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (app.vault.adapter.write as any)(outputPath, pdfBytes);
-    await app.vault.adapter.remove(typPath);
   }
 }

@@ -7,9 +7,9 @@ An [Obsidian](https://obsidian.md) plugin that exports notes to publication-qual
 ## Requirements
 
 - **Obsidian** 1.4.0 or later (desktop only — macOS, Windows, Linux)
-- **typst** installed and available on your system ([install guide](https://typst.app/docs/))
-  - The plugin checks for `typst` in `PATH` on startup and shows a notice if it is not found
+- **typst** (optional) — if installed, the plugin uses it for PDF compilation
   - Common locations searched automatically: `/opt/homebrew/bin/typst`, `~/.cargo/bin/typst`, `/usr/local/bin/typst`
+  - If `typst` is not found, the plugin downloads a WASM compiler (~27 MB) on the first PDF export and caches it in the vault — no manual installation needed
 
 ---
 
@@ -152,8 +152,16 @@ scripts/
 git submodule update --init       # pull omd2typst Rust source
 ./scripts/build-wasm.sh           # wasm-pack build → src/wasm/omd2typst-pkg/
 npm install                        # dev dependencies
-npm run build                      # esbuild → main.js (WASM bundled in)
+npm run build                      # esbuild → main.js (omd2typst WASM bundled in)
 npm test                           # Jest unit tests
+```
+
+To rebuild the PDF compiler WASM (only needed when updating the omd2typst submodule):
+
+```bash
+./scripts/build-pdf-wasm.sh       # wasm-pack build → src/wasm/omd2typst-pdf-pkg/ (JS glue only)
+                                   # WASM binary output: /tmp/omd2typst-pdf-compiler.wasm
+                                   # → publish as release artifact on GitHub
 ```
 
 ### Install into a vault (development)

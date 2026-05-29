@@ -5,3 +5,4 @@ dist/
 wasm-runtime/
 src/wasm/omd2typst-pkg/
 .superpowers/
+*.zip

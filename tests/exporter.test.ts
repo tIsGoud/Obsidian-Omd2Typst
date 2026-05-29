@@ -8,7 +8,12 @@ jest.mock('../src/wasm/omd2typst', () => ({
   renderToTypst: jest.fn().mockResolvedValue('#heading[Hello]'),
 }));
 jest.mock('../src/typst-cli', () => ({
+  findTypstBinary: jest.fn().mockReturnValue('/usr/local/bin/typst'),
   compileToPdfViaCli: jest.fn().mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+}));
+jest.mock('../src/typst-pdf-wasm', () => ({
+  compileToPdfViaWasm: jest.fn().mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+  PDF_WASM_TYPST_VERSION: '0.13.1',
 }));
 
 const BASE_SETTINGS: Omd2TypstSettings = {

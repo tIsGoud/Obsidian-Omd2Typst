@@ -1,10 +1,11 @@
 {
   "name": "obsidian-omd2typst",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "license": "AGPL-3.0-only",
   "private": true,
   "scripts": {
     "build:wasm": "bash scripts/build-wasm.sh",
+    "build:pdf-wasm": "bash scripts/build-pdf-wasm.sh",
     "build": "node esbuild.config.mjs production",
     "dev": "node esbuild.config.mjs",
     "test": "jest"

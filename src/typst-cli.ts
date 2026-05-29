@@ -4,6 +4,35 @@ const nodeFs   = typeof require !== 'undefined' ? require('fs')   as typeof impo
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const nodePath = typeof require !== 'undefined' ? require('path') as typeof import('path') : null;
 
+export interface TypstStatus {
+  /** How PDF compilation will be performed. */
+  source: 'system' | 'wasm' | 'none';
+  /** Human-readable Typst compiler version, e.g. "0.13.1". */
+  version: string;
+  /** Absolute path to the typst binary — only set when source === 'system'. */
+  path?: string;
+}
+
+/**
+ * Detect whether a system typst binary is available and return a status object.
+ * This is a synchronous, best-effort probe — never throws.
+ */
+export function detectSystemTypst(): TypstStatus {
+  const bin = findTypstBinary();
+  if (!bin) return { source: 'none', version: '' };
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const cp = require('child_process') as typeof import('child_process');
+    const raw = cp.execSync(`"${bin}" --version`, { stdio: 'pipe' }).toString().trim();
+    const match = raw.match(/(\d+\.\d+\.\d+)/);
+    const version = match ? match[1] : raw;
+    const path = bin === 'typst' ? undefined : bin;
+    return { source: 'system', version, path };
+  } catch {
+    return { source: 'none', version: '' };
+  }
+}
+
 /** Return the absolute path of the typst binary, or null if not found. */
 export function findTypstBinary(): string | null {
   if (!nodeFs) return null;

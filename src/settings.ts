@@ -1,5 +1,7 @@
 import { App, AbstractInputSuggest, TFile, TFolder, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import { parseTemplateLanguages } from './template';
+import type { TypstStatus } from './typst-cli';
+import { PDF_WASM_TYPST_VERSION } from './typst-pdf-wasm';
 
 // ---------------------------------------------------------------------------
 // Suggest helpers
@@ -151,9 +153,12 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
 
 export class Omd2TypstSettingTab extends PluginSettingTab {
   plugin: any;
-  constructor(app: App, plugin: any) {
+  private getTypstStatus: () => TypstStatus;
+
+  constructor(app: App, plugin: any, getTypstStatus: () => TypstStatus) {
     super(app, plugin);
     this.plugin = plugin;
+    this.getTypstStatus = getTypstStatus;
   }
 
   private async refreshTemplateLanguages(): Promise<void> {
@@ -279,6 +284,32 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
 
     // ── Export ───────────────────────────────────────────────────────────────
     containerEl.createEl('h3', { text: 'Export' });
+
+    // Typst compiler info row
+    const status = this.getTypstStatus();
+    let typstLabel: string;
+    let typstDesc: string;
+
+    if (status.source === 'system') {
+      typstLabel = `Typst ${status.version} (system)`;
+      typstDesc = status.path
+        ? `System binary: ${status.path}`
+        : 'Found in PATH';
+    } else if (status.source === 'wasm') {
+      typstLabel = `Typst ${status.version} (WASM, cached)`;
+      typstDesc = 'Bundled WASM compiler — downloaded and cached in vault';
+    } else {
+      typstLabel = 'Typst not found';
+      typstDesc = `System typst not installed. WASM compiler (Typst ${PDF_WASM_TYPST_VERSION}) will be downloaded on the first PDF export.`;
+    }
+
+    new Setting(containerEl)
+      .setName('Typst compiler')
+      .setDesc(typstDesc)
+      .addText(text =>
+        text.setValue(typstLabel)
+            .setDisabled(true)
+      );
 
     new Setting(containerEl)
       .setName('Default output format')
