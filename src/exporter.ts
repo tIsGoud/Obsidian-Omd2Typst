@@ -4,7 +4,18 @@ import { checkLanguageCompatibility } from './template';
 import { resolveOutputPath } from './output';
 import { renderToTypst } from './wasm/omd2typst';
 import { findTypstBinary, compileToPdfViaCli } from './typst-cli';
-import { compileToPdfViaWasm, PDF_WASM_TYPST_VERSION } from './typst-pdf-wasm';
+import { compileToPdfViaWasm, uint8ArrayToBase64, PDF_WASM_TYPST_VERSION } from './typst-pdf-wasm';
+
+/** Extract all `#image("path")` paths from a Typst source string. */
+function extractImagePaths(typstSrc: string): string[] {
+  const paths: string[] = [];
+  const re = /#image\("([^"]+)"\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(typstSrc)) !== null) {
+    paths.push(m[1]);
+  }
+  return paths;
+}
 
 /**
  * Extract the value of a YAML key from the frontmatter block.
@@ -104,7 +115,7 @@ export async function exportNote(
       }
     } else {
       // WASM fallback: compile entirely in-memory (no temp files needed).
-      // Collect vault files the template might import.
+      // Collect text files (template) and binary files (images) the source references.
       const vaultFiles: Record<string, string> = {};
       if (template !== null && template.path) {
         const tplFile = app.vault.getAbstractFileByPath(template.path);
@@ -113,10 +124,23 @@ export async function exportNote(
         }
       }
 
+      // Collect binary files (images) referenced by the generated Typst source.
+      const binaryFiles: Record<string, string> = {};
+      for (const imgPath of extractImagePaths(typstSrc)) {
+        // Paths may start with / (vault-root-relative) or be bare (relative to doc root).
+        const vaultPath = imgPath.startsWith('/') ? imgPath.slice(1) : imgPath;
+        try {
+          const imgBuf = await app.vault.adapter.readBinary(vaultPath);
+          binaryFiles[vaultPath] = uint8ArrayToBase64(new Uint8Array(imgBuf));
+        } catch {
+          // Image not accessible — skip; Typst will report a missing-file error.
+        }
+      }
+
       new Notice(`PDF: using WASM compiler (Typst ${PDF_WASM_TYPST_VERSION}) — downloading if needed…`);
       const pluginDir = (app as any).plugins?.getPlugin?.('obsidian-omd2typst')?.manifest?.dir
         ?? '.obsidian/plugins/obsidian-omd2typst';
-      pdfBytes = await compileToPdfViaWasm(typstSrc, vaultFiles, app, pluginDir);
+      pdfBytes = await compileToPdfViaWasm(typstSrc, vaultFiles, binaryFiles, app, pluginDir);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

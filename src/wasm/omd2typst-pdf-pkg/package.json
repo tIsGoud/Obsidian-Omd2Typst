@@ -7,13 +7,11 @@
   "files": [
     "omd2typst_pdf_wasm_bg.wasm",
     "omd2typst_pdf_wasm.js",
-    "omd2typst_pdf_wasm_bg.js",
     "omd2typst_pdf_wasm.d.ts"
   ],
   "main": "omd2typst_pdf_wasm.js",
   "types": "omd2typst_pdf_wasm.d.ts",
   "sideEffects": [
-    "./omd2typst_pdf_wasm.js",
     "./snippets/*"
   ]
 }

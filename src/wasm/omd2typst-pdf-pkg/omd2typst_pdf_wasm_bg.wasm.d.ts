@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export const render_to_pdf: (a: number, b: number, c: number, d: number, e: number) => void;
+export const render_to_pdf: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const typst_version: (a: number) => void;
 export const lut_inverse_interp16: (a: number, b: number, c: number) => number;
 export const qcms_profile_precache_output_transform: (a: number) => void;

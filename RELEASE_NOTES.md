@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.7.3 — Fix images not found during WASM PDF compilation
+
+**Image files are now included in WASM PDF export**
+When compiling to PDF via the WASM fallback compiler, images referenced with `#image()` in the generated Typst source were not accessible — the compiler raised a "file not found" error for every image path. The exporter now reads all referenced image files as binary from the vault, base64-encodes them, and passes them to the WASM compiler alongside the template text.
+
+**Cache invalidation on version bump**
+The cached WASM binary filename now includes the release version (e.g. `omd2typst-pdf-compiler-v0.10.1.wasm`). Upgrading the plugin will automatically download the matching binary and leave the old one behind rather than silently reusing a binary whose function signatures no longer match the JS glue.
+
+**Built on omd2typst v0.10.1**
+
+---
+
 ## v0.7.2 — Fix WASM instantiation missing JS imports
 
 The PDF WASM module imports callbacks from its JS glue (e.g. for string-to-JS conversion). These were missing from the instantiation call, causing a `LinkError`. The full JS glue module is now passed as the import namespace so all required functions are available.

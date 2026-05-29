@@ -13,6 +13,7 @@ jest.mock('../src/typst-cli', () => ({
 }));
 jest.mock('../src/typst-pdf-wasm', () => ({
   compileToPdfViaWasm: jest.fn().mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+  uint8ArrayToBase64: jest.fn().mockReturnValue(''),
   PDF_WASM_TYPST_VERSION: '0.13.1',
 }));
 
