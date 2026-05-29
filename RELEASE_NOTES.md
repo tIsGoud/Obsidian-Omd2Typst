@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.7.2 — Fix WASM instantiation missing JS imports
+
+The PDF WASM module imports callbacks from its JS glue (e.g. for string-to-JS conversion). These were missing from the instantiation call, causing a `LinkError`. The full JS glue module is now passed as the import namespace so all required functions are available.
+
+---
+
 ## v0.7.1 — Fix WASM download blocked by CORS
 
 `fetch()` is blocked by Obsidian's renderer CORS policy when downloading from GitHub. Switched to Obsidian's `requestUrl()` API, which routes through Electron's main process and is not subject to CORS restrictions.
