@@ -6,10 +6,15 @@ import { renderToTypst } from './wasm/omd2typst';
 import { findTypstBinary, compileToPdfViaCli } from './typst-cli';
 import { compileToPdfViaWasm, uint8ArrayToBase64, PDF_WASM_TYPST_VERSION } from './typst-pdf-wasm';
 
-/** Extract all `#image("path")` paths from a Typst source string. */
+/**
+ * Extract file paths from `image("path")` calls in a Typst source string.
+ * The omd2typst renderer emits `image("path")` (no leading #) inside #figure().
+ * Skips `image(bytes(…))` forms used for embedded SVG icons.
+ */
 function extractImagePaths(typstSrc: string): string[] {
   const paths: string[] = [];
-  const re = /#image\("([^"]+)"\)/g;
+  // Match image("...") — opening paren+quote signals a file path, not bytes(...)
+  const re = /\bimage\("([^"]+)"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(typstSrc)) !== null) {
     paths.push(m[1]);
