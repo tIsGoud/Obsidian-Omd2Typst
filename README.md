@@ -7,10 +7,9 @@ An [Obsidian](https://obsidian.md) plugin that exports notes to publication-qual
 ## Requirements
 
 - **Obsidian** 1.4.0 or later (desktop only — macOS, Windows, Linux)
-- **Typst** — required for PDF export; not needed for `.typ` export
+- **Typst** — required for PDF export
   - Install: `brew install typst` (macOS) · `winget install --id Typst.Typst` (Windows) · or download from [typst.app](https://typst.app)
   - Common locations are searched automatically: `PATH`, `/opt/homebrew/bin/typst`, `~/.cargo/bin/typst`, `/usr/local/bin/typst`
-  - If Typst is not installed and PDF is requested, the plugin exports `.typ` instead and shows a notice
 
 ---
 
@@ -57,7 +56,7 @@ omd2typst.wasm          Markdown → Typst source (in memory)
           └──► typst compile --root <vault>  →  PDF  →  write .pdf  →  remove .typ
 ```
 
-The omd2typst WASM module handles Markdown parsing and Typst source generation. PDF compilation uses the user's installed `typst` binary via `child_process`, with `--root <vault>` so vault-relative template `#import` paths resolve correctly.
+The omd2typst WASM module handles Markdown parsing and Typst source generation. PDF compilation uses the user's installed `typst` binary via `child_process`, with `--root <vault>` so vault-relative template `#import` paths resolve correctly. If `typst` is not found, the PDF command exports `.typ` instead and shows a notice with installation instructions.
 
 ---
 
