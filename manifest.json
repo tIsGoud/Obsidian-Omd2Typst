@@ -1,7 +1,7 @@
 {
   "id": "obsidian-omd2typst",
   "name": "Omd2Typst",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "minAppVersion": "1.4.0",
   "description": "Export Obsidian notes to Typst source or PDF",
   "author": "A.W. Alberts",

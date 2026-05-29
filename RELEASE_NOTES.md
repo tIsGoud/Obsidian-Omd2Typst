@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.7.1 — Fix WASM download blocked by CORS
+
+`fetch()` is blocked by Obsidian's renderer CORS policy when downloading from GitHub. Switched to Obsidian's `requestUrl()` API, which routes through Electron's main process and is not subject to CORS restrictions.
+
+---
+
 ## v0.7.0 — WASM PDF fallback; Typst version shown in settings
 
 **PDF export no longer requires a system typst installation**
