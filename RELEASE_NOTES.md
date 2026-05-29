@@ -1,5 +1,23 @@
 # Release Notes
 
+## v0.8.0 — Drop WASM PDF compiler; PDF requires system Typst
+
+**PDF export now requires a system Typst installation**
+The downloadable WASM PDF compiler introduced in v0.7.0 has been removed. It required every image, template file, and font to be explicitly passed across the JS/WASM boundary — a fundamental constraint that caused recurring bugs (images missing, emoji absent, binary encoding overhead) and would have required bundling a ~10 MB emoji font to match CLI output quality.
+
+PDF export now uses the system `typst` binary exclusively, which has full access to the OS filesystem and all installed fonts. If Typst is not installed and a PDF export is requested, the plugin exports a `.typ` file instead and shows a notice with a link to typst.app.
+
+**Installing Typst**
+```
+brew install typst          # macOS
+winget install --id Typst.Typst  # Windows
+```
+Or download from [typst.app](https://typst.app).
+
+**Built on omd2typst v0.10.1**
+
+---
+
 ## v0.7.3 — Fix images not found during WASM PDF compilation
 
 **Image files are now included in WASM PDF export**

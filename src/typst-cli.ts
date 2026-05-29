@@ -5,8 +5,8 @@ const nodeFs   = typeof require !== 'undefined' ? require('fs')   as typeof impo
 const nodePath = typeof require !== 'undefined' ? require('path') as typeof import('path') : null;
 
 export interface TypstStatus {
-  /** How PDF compilation will be performed. */
-  source: 'system' | 'wasm' | 'none';
+  /** Whether a system typst binary was found. */
+  source: 'system' | 'none';
   /** Human-readable Typst compiler version, e.g. "0.13.1". */
   version: string;
   /** Absolute path to the typst binary — only set when source === 'system'. */

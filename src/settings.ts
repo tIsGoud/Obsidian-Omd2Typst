@@ -1,7 +1,6 @@
 import { App, AbstractInputSuggest, TFile, TFolder, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import { parseTemplateLanguages } from './template';
 import type { TypstStatus } from './typst-cli';
-import { PDF_WASM_TYPST_VERSION } from './typst-pdf-wasm';
 
 // ---------------------------------------------------------------------------
 // Suggest helpers
@@ -292,15 +291,10 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
 
     if (status.source === 'system') {
       typstLabel = `Typst ${status.version} (system)`;
-      typstDesc = status.path
-        ? `System binary: ${status.path}`
-        : 'Found in PATH';
-    } else if (status.source === 'wasm') {
-      typstLabel = `Typst ${status.version} (WASM, cached)`;
-      typstDesc = 'Bundled WASM compiler — downloaded and cached in vault';
+      typstDesc = status.path ? `System binary: ${status.path}` : 'Found in PATH';
     } else {
       typstLabel = 'Typst not found';
-      typstDesc = `System typst not installed. WASM compiler (Typst ${PDF_WASM_TYPST_VERSION}) will be downloaded on the first PDF export.`;
+      typstDesc = 'PDF export falls back to .typ — install Typst from typst.app to enable PDF.';
     }
 
     new Setting(containerEl)

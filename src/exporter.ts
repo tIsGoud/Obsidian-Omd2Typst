@@ -4,23 +4,6 @@ import { checkLanguageCompatibility } from './template';
 import { resolveOutputPath } from './output';
 import { renderToTypst } from './wasm/omd2typst';
 import { findTypstBinary, compileToPdfViaCli } from './typst-cli';
-import { compileToPdfViaWasm, uint8ArrayToBase64, PDF_WASM_TYPST_VERSION } from './typst-pdf-wasm';
-
-/**
- * Extract file paths from `image("path")` calls in a Typst source string.
- * The omd2typst renderer emits `image("path")` (no leading #) inside #figure().
- * Skips `image(bytes(…))` forms used for embedded SVG icons.
- */
-function extractImagePaths(typstSrc: string): string[] {
-  const paths: string[] = [];
-  // Match image("...") — opening paren+quote signals a file path, not bytes(...)
-  const re = /\bimage\("([^"]+)"/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(typstSrc)) !== null) {
-    paths.push(m[1]);
-  }
-  return paths;
-}
 
 /**
  * Extract the value of a YAML key from the frontmatter block.
@@ -67,10 +50,7 @@ export async function exportNote(
   const markdown = await app.vault.read(file);
 
   // Step 2: Resolve template path for #import (verify file exists; null → built-in).
-  // The renderer generates:  #import "<path>": template, callout
-  // Prefixing with / makes the path vault-root-relative so:
-  //   - WASM PDF: the vault access model strips / and reads from the vault.
-  //   - CLI:      compile with --root <vault-root> and the path resolves correctly.
+  // Prefixing with / makes the path vault-root-relative; typst resolves it from --root.
   let templatePath: string | null = null;
   if (template !== null && template.path) {
     const abstractFile = app.vault.getAbstractFileByPath(template.path);
@@ -103,45 +83,24 @@ export async function exportNote(
   if (format === 'typ') {
     await app.vault.adapter.write(outputPath, typstSrc);
   } else {
-    // PDF: prefer system typst CLI; fall back to WASM compiler.
+    // PDF: requires system typst CLI. Fall back to .typ if not installed.
     const bin = findTypstBinary();
-    let pdfBytes: Uint8Array;
 
     if (bin) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const vaultBase: string = (app.vault.adapter as any).basePath ?? '';
-      pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase);
+      const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (app.vault.adapter.write as any)(outputPath, pdfBytes);
     } else {
-      // WASM fallback: compile entirely in-memory (no temp files needed).
-      // Collect text files (template) and binary files (images) the source references.
-      const vaultFiles: Record<string, string> = {};
-      if (template !== null && template.path) {
-        const tplFile = app.vault.getAbstractFileByPath(template.path);
-        if (tplFile instanceof TFile) {
-          vaultFiles[template.path] = await app.vault.read(tplFile);
-        }
-      }
-
-      // Collect binary files (images) referenced by the generated Typst source.
-      const binaryFiles: Record<string, string> = {};
-      for (const imgPath of extractImagePaths(typstSrc)) {
-        // Paths may start with / (vault-root-relative) or be bare (relative to doc root).
-        const vaultPath = imgPath.startsWith('/') ? imgPath.slice(1) : imgPath;
-        try {
-          const imgBuf = await app.vault.adapter.readBinary(vaultPath);
-          binaryFiles[vaultPath] = uint8ArrayToBase64(new Uint8Array(imgBuf));
-        } catch {
-          // Image not accessible — skip; Typst will report a missing-file error.
-        }
-      }
-
-      new Notice(`PDF: using WASM compiler (Typst ${PDF_WASM_TYPST_VERSION}) — downloading if needed…`);
-      const pluginDir = (app as any).plugins?.getPlugin?.('obsidian-omd2typst')?.manifest?.dir
-        ?? '.obsidian/plugins/obsidian-omd2typst';
-      pdfBytes = await compileToPdfViaWasm(typstSrc, vaultFiles, binaryFiles, app, pluginDir);
+      // No system typst — export .typ so the user has something useful.
+      const typPath = resolveOutputPath(file.path, 'typ', settings)!;
+      await app.vault.adapter.write(typPath, typstSrc);
+      new Notice(
+        'Typst not installed — exported as .typ instead. ' +
+        'Install Typst from typst.app to enable PDF export.',
+        8000,
+      );
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (app.vault.adapter.write as any)(outputPath, pdfBytes);
   }
 }
