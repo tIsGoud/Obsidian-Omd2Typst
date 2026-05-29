@@ -65,11 +65,14 @@ export function checkTypstInstalled(): string {
 }
 
 /**
- * Compile a .typ file on disk to PDF using the system typst CLI.
- * typPath   — vault-relative path to the .typ file (e.g. "exports/hello.typ")
+ * Compile Typst source to PDF using the system typst CLI.
+ * Writes a temp .typ file directly via Node fs (bypassing Obsidian's vault
+ * watcher) at the vault root so vault-relative image paths resolve correctly.
+ *
+ * typstSrc  — Typst source string
  * vaultBase — absolute vault root on the filesystem
  */
-export async function compileToPdfViaCli(typPath: string, vaultBase: string): Promise<Uint8Array> {
+export async function compileToPdfViaCli(typstSrc: string, vaultBase: string): Promise<Uint8Array> {
   if (!nodeFs || !nodePath) throw new Error('CLI requires Electron/Node environment');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const cp = require('child_process') as typeof import('child_process');
@@ -77,8 +80,13 @@ export async function compileToPdfViaCli(typPath: string, vaultBase: string): Pr
   const bin = findTypstBinary();
   if (!bin) throw new Error('typst CLI not found. Install it from https://typst.app or add it to PATH.');
 
-  const realTypPath = nodePath.join(vaultBase, typPath);
-  const realPdfPath = realTypPath.replace(/\.typ$/, '.__tmp.pdf');
+  // Use Node fs directly — bypasses Obsidian's vault watcher so the temp file
+  // is never indexed and the ENOENT from async vault reads doesn't occur.
+  const tmpBase = nodePath.join(vaultBase, `__omd2typst_${Date.now()}`);
+  const realTypPath = `${tmpBase}.typ`;
+  const realPdfPath = `${tmpBase}.pdf`;
+
+  nodeFs.writeFileSync(realTypPath, typstSrc, 'utf8');
 
   const cmd = [
     `"${bin}"`,
@@ -94,6 +102,7 @@ export async function compileToPdfViaCli(typPath: string, vaultBase: string): Pr
     const buf = nodeFs.readFileSync(realPdfPath) as Buffer;
     return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
   } finally {
+    try { nodeFs.unlinkSync(realTypPath); } catch { /* best-effort cleanup */ }
     try { nodeFs.unlinkSync(realPdfPath); } catch { /* best-effort cleanup */ }
   }
 }

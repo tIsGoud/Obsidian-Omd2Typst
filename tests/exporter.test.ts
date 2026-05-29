@@ -74,22 +74,21 @@ describe('exportNote — Typst export', () => {
 });
 
 describe('exportNote — PDF export', () => {
-  it('writes .typ first then .pdf with correct magic bytes', async () => {
+  it('passes Typst source to CLI and writes PDF with correct magic bytes', async () => {
     const file = makeTFile('notes/hello.md');
     const app = makeApp();
 
     await exportNote(file, 'pdf', null, BASE_SETTINGS, app as any);
 
+    // compileToPdfViaCli receives the Typst source directly (no vault write for .typ)
+    const { compileToPdfViaCli } = require('../src/typst-cli');
+    expect(compileToPdfViaCli).toHaveBeenCalledWith('#heading[Hello]', expect.any(String));
+
+    // Only one adapter.write call: the final PDF
     const calls = (app.vault.adapter.write as jest.Mock).mock.calls;
-    expect(calls.length).toBe(2);
-
-    // First write: intermediate .typ file
-    expect(calls[0][0]).toBe('exports/hello.typ');
-    expect(calls[0][1]).toBe('#heading[Hello]');
-
-    // Second write: .pdf with PDF magic bytes
-    expect(calls[1][0]).toBe('exports/hello.pdf');
-    const pdfBytes: Uint8Array = calls[1][1];
+    expect(calls.length).toBe(1);
+    expect(calls[0][0]).toBe('exports/hello.pdf');
+    const pdfBytes: Uint8Array = calls[0][1];
     expect(pdfBytes[0]).toBe(0x25); // %
     expect(pdfBytes[1]).toBe(0x50); // P
     expect(pdfBytes[2]).toBe(0x44); // D
