@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - '[0-9]*'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -43,9 +43,9 @@ jobs:
         run: |
           python3 - <<'PYEOF' > notes.md
           import re
-          tag = "${{ github.ref_name }}"
+          tag = "${{ github.ref_name }}".lstrip('v')
           content = open('RELEASE_NOTES.md').read()
-          pattern = rf'## {re.escape(tag)} .+?\n(.*?)(?=\n---|\n## v|\Z)'
+          pattern = rf'## v?{re.escape(tag)} .+?\n(.*?)(?=\n---|\n## |\Z)'
           match = re.search(pattern, content, re.DOTALL)
           print(match.group(1).strip() if match else '')
           PYEOF
