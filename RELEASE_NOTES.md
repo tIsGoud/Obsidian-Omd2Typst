@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.8.3 — Fix plugin ID (digits not allowed)
+
+Plugin ID renamed from `omd2typst` to `omd-to-typst` — only lowercase letters and hyphens are permitted; digits are not allowed.
+
+**Action required for manual installs:** rename your plugin folder from `.obsidian/plugins/omd2typst/` to `.obsidian/plugins/omd-to-typst/`.
+
+---
+
 ## v0.8.2 — Fix plugin ID for Obsidian community store
 
 Plugin ID renamed from `obsidian-omd2typst` to `omd2typst` — IDs containing "obsidian" are not permitted in the community directory.
