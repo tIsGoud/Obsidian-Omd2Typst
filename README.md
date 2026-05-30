@@ -42,7 +42,7 @@ Frontmatter from the sample input file. with the
 
 ## PDF output
 
-The sample PDF output, shows the Typst generated output from the input file. Template and input files can be downloaded here.
+The sample PDF output, shows the Typst generated output from the input file. Download the [example input files and templates](https://github.com/tIsGoud/Obsidian-Omd2Typst/releases/latest/download/omd2typst-examples.zip) to get started.
 
 This partial PDF output shows the added front page, the added revision and approval page and the table-of-contents. The optional figure-list is not shown here.
 
