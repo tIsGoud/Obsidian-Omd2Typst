@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.8.1 — Examples download; figure list in all templates
+
+- **`omd2typst-examples.zip`** added as a release asset — contains sample Markdown input files for all five languages, the public Typst templates (`purple-template.typ`, `tig-template.typ`), and `omd2typst-frontmatter.md` to get started quickly
+- **Figure list page** added to `purple-template.typ` and `tig-template.typ` — set `figure-list: true` in frontmatter to include a numbered list of figures before the document body
+- README rewritten for Obsidian community store submission with screenshots and updated settings documentation
+- Typst compiler row in settings changed to a plain status indicator (was a disabled text field)
+
+---
+
 ## v0.8.0 — Drop WASM PDF compiler; PDF requires system Typst
 
 **PDF export now requires a system Typst installation**

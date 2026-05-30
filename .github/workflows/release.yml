@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+
+      - run: npm install
+      - run: npm run build:wasm
+      - run: npm run build
+
+      - name: Package examples
+        run: zip -r omd2typst-examples.zip input/ templates/ -x "**/.DS_Store"
+
+      - name: Extract release notes
+        run: |
+          python3 - <<'PYEOF' > notes.md
+          import re
+          tag = "${{ github.ref_name }}"
+          content = open('RELEASE_NOTES.md').read()
+          pattern = rf'## {re.escape(tag)} .+?\n(.*?)(?=\n---|\n## v|\Z)'
+          match = re.search(pattern, content, re.DOTALL)
+          print(match.group(1).strip() if match else '')
+          PYEOF
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view ${{ github.ref_name }} --repo ${{ github.repository }} > /dev/null 2>&1; then
+            gh release create ${{ github.ref_name }} \
+              --repo ${{ github.repository }} \
+              --title "${{ github.ref_name }}" \
+              --notes-file notes.md
+          fi
+
+          gh release upload ${{ github.ref_name }} \
+            --repo ${{ github.repository }} \
+            --clobber \
+            main.js \
+            manifest.json \
+            omd2typst-examples.zip

@@ -44,3 +44,14 @@ jobs:
       - run: npm install
       - run: npm run build:wasm
       - run: npm run build
+
+      - name: Package examples
+        run: zip -r omd2typst-examples.zip input/ templates/ -x "**/.DS_Store"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-build
+          path: |
+            main.js
+            manifest.json
+            omd2typst-examples.zip
