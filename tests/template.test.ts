@@ -23,11 +23,12 @@ describe('parseTemplateLanguages', () => {
   });
 
   it('parses a single language', () => {
-    expect(parseTemplateLanguages('// omd2typst-languages: nl')).toEqual(['nl']);
+    const src = '#let _lang_strings = (\n  "nl": (),\n)';
+    expect(parseTemplateLanguages(src)).toEqual(['nl']);
   });
 
-  it('parses multiple languages and trims whitespace', () => {
-    const src = '// page setup\n// omd2typst-languages: nl, en\n#set text(size: 11pt)';
+  it('parses multiple languages', () => {
+    const src = '#let _lang_strings = (\n  "nl": (),\n  "en": (),\n)';
     expect(parseTemplateLanguages(src)).toEqual(['nl', 'en']);
   });
 });

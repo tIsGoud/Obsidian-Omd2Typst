@@ -25,13 +25,13 @@ describe('parseFrontmatter', () => {
 describe('mergeFrontmatter', () => {
   it('prepends missing keys above existing frontmatter', () => {
     const note = '---\nauthor: Alice\n---\n# Body';
-    const result = mergeFrontmatter(note, ['title', 'author', 'date']);
+    const result = mergeFrontmatter(note, ['title:', 'author:', 'date:']);
     expect(result).toBe('---\ntitle:\ndate:\nauthor: Alice\n---\n# Body');
   });
 
   it('does not duplicate keys already present', () => {
     const note = '---\ntitle: My Doc\n---\n# Body';
-    const result = mergeFrontmatter(note, ['title', 'author']);
+    const result = mergeFrontmatter(note, ['title:', 'author:']);
     const matches = result.match(/title/g)!;
     expect(matches).toHaveLength(1);
     expect(result).toContain('author:');
@@ -39,25 +39,25 @@ describe('mergeFrontmatter', () => {
 
   it('inserts full block when note has no frontmatter', () => {
     const note = '# Just a heading';
-    const result = mergeFrontmatter(note, ['title', 'author']);
+    const result = mergeFrontmatter(note, ['title:', 'author:']);
     expect(result).toBe('---\ntitle:\nauthor:\n---\n# Just a heading');
   });
 
   it('returns note unchanged when all template keys are already present', () => {
     const note = '---\ntitle: My Doc\nauthor: Alice\n---\n# Body';
-    const result = mergeFrontmatter(note, ['title', 'author']);
+    const result = mergeFrontmatter(note, ['title:', 'author:']);
     expect(result).toBe(note);
   });
 });
 
 describe('buildFrontmatterBlock', () => {
-  it('converts YAML lines string to key array', () => {
+  it('returns full YAML lines from inline setting string', () => {
     const yaml = 'title:\nauthor:\ndate:';
-    expect(buildFrontmatterBlock(yaml)).toEqual(['title', 'author', 'date']);
+    expect(buildFrontmatterBlock(yaml)).toEqual(['title:', 'author:', 'date:']);
   });
 
   it('ignores blank lines and comments', () => {
     const yaml = 'title:\n\n# a comment\nauthor:';
-    expect(buildFrontmatterBlock(yaml)).toEqual(['title', 'author']);
+    expect(buildFrontmatterBlock(yaml)).toEqual(['title:', 'author:']);
   });
 });
