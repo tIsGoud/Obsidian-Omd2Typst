@@ -298,12 +298,8 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     }
 
     new Setting(containerEl)
-      .setName('Typst compiler')
-      .setDesc(typstDesc)
-      .addText(text =>
-        text.setValue(typstLabel)
-            .setDisabled(true)
-      );
+      .setName(typstLabel)
+      .setDesc(typstDesc);
 
     new Setting(containerEl)
       .setName('Default output format')

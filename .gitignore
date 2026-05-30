@@ -2,7 +2,6 @@ node_modules/
 main.js
 main.js.map
 dist/
-wasm-runtime/
 src/wasm/omd2typst-pkg/
 .superpowers/
 *.zip

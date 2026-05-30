@@ -1,68 +1,100 @@
-# Obsidian-Omd2Typst
+# Omd2Typst
 
-An [Obsidian](https://obsidian.md) plugin that exports notes to publication-quality PDFs via [Typst](https://typst.app), using the [omd2typst](https://github.com/tisgoud/Omd2Typst) Markdown-to-Typst conversion engine.
+Export your Obsidian notes to professionally typeset PDFs — with a structured cover page, auto-numbered table of contents, callout blocks, tables, images, and support for five languages — using [Typst](https://typst.app), a modern document compiler.
+
+> **Desktop only** — macOS, Windows, Linux. Not available on mobile.
+
+---
+
+## Screenshots
+
+### Command palette
+
+Command palette showing the four Omd2Typst commands:
+
+![Command palette showing the four Omd2Typst commands](images/command-palette.png)
+
+### Settings
+
+**Default settings**
+
+Default settings, without [Typst](https://typst.app) installed. No export to PDF, only export to .typ.
+
+![Default Omd2Typst settings](images/default-settings.png)
+
+**Configured settings**
+
+Configured settings with, sample template, installed Typst version and template for the frontmatter.
+
+![Configured Omd2Typst settings — template, Typst compiler status, and output options](images/configured-settings.png)
+
+## Context menu
+
+The right-click context menu with the two options "Export as PDF" and "Export as Typst".
+
+![Right-click context menu with Export as PDF and Export as Typst source](images/context-menu.png)
+
+## Frontmatter
+
+Frontmatter from the sample input file. with the
+**Sample input file with frontmatter**
+![Sample input file — cover page and table of contents](images/frontmatter.png)
+
+## PDF output
+
+The sample PDF output, shows the Typst generated output from the input file. Template and input files can be downloaded here.
+
+This partial PDF output shows the added front page, the added revision and approval page and the table-of-contents. The optional figure-list is not shown here.
+
+![Sample PDF output — cover page and table of contents](images/pdf-output.png)
 
 ---
 
 ## Requirements
 
-- **Obsidian** 1.4.0 or later (desktop only — macOS, Windows, Linux)
+- **Obsidian** 1.4.0 or later
 - **Typst** — required for PDF export
   - Install: `brew install typst` (macOS) · `winget install --id Typst.Typst` (Windows) · or download from [typst.app](https://typst.app)
-  - Common locations are searched automatically: `PATH`, `/opt/homebrew/bin/typst`, `~/.cargo/bin/typst`, `/usr/local/bin/typst`
+  - The plugin searches common locations automatically; no path configuration needed in most cases
+  - Without Typst, `.typ` source export still works — PDF export shows an install notice
 
 ---
 
 ## Installation
 
-1. Download `omd2typst-vX.Y.Z.zip` from the [latest release](https://github.com/tIsGoud/Obsidian-Omd2Typst/releases/latest)
-2. Unzip into `.obsidian/plugins/` inside your vault — the zip extracts as a folder named `obsidian-omd2typst`
-3. In Obsidian: Settings → Community plugins → enable **Omd2Typst**
+### Via the Community Plugin browser *(recommended)*
 
-The folder structure inside `.obsidian/plugins/obsidian-omd2typst/` should be:
+1. In Obsidian: **Settings → Community plugins → Browse**
+2. Search for **Omd2Typst**
+3. Click **Install**, then **Enable**
 
-```
-main.js
-manifest.json
-```
+### Manual install
 
-The conversion engine (omd2typst WASM) is bundled directly inside `main.js` — no additional files are required.
+1. Download `main.js` and `manifest.json` from the [latest release](https://github.com/tIsGoud/Obsidian-Omd2Typst/releases/latest)
+2. Create a folder `.obsidian/plugins/obsidian-omd2typst/` inside your vault
+3. Copy both files into that folder
+4. In Obsidian: **Settings → Community plugins → enable Omd2Typst**
 
 ---
 
 ## Features
 
-- Export the active note as **Typst source (`.typ`)** or **PDF** from the command palette or right-click file menu
-- **Template support** — configure named templates (`.typ` files in your vault) with a selectable default; supported languages are detected automatically from the template's `_lang_strings` dictionary
-- **Language-aware default language** — the *Default language* dropdown shows only the languages supported by the selected default template
-- **Frontmatter insertion** — insert a configurable YAML frontmatter block into any note via the *Insert omd2typst frontmatter* command, merging with existing keys without overwriting them
-- **Export built-in template** — write the built-in `.typ` template to your vault root as a customisation starting point
-- **Output location modes** — same folder as note, fixed folder (with vault folder autocomplete), or ask every time
-
----
-
-## How it works
-
-```
-Note (.md)
-    │
-    ▼
-omd2typst.wasm          Markdown → Typst source (in memory)
-    │
-    ├──► write .typ      (Typst source export)
-    │
-    └──► write .typ  (intermediate)
-          │
-          └──► typst compile --root <vault>  →  PDF  →  write .pdf  →  remove .typ
-```
-
-The omd2typst WASM module handles Markdown parsing and Typst source generation. PDF compilation uses the user's installed `typst` binary via `child_process`, with `--root <vault>` so vault-relative template `#import` paths resolve correctly. If `typst` is not found, the PDF command exports `.typ` instead and shows a notice with installation instructions.
+- Export the active note as **PDF** or **Typst source (`.typ`)** from the command palette or the right-click file menu
+- **Cover page** — populated from YAML frontmatter (`title`, `subtitle`, `author`, `date`, `version`, `status`, `summary`)
+- **Table of contents** with numbered headings
+- **Revision and approval tables** — extracted from named sections and placed before the TOC
+- **13 callout types** with Lucide SVG icons (`note`, `tip`, `warning`, `danger`, `bug`, `quote`, …)
+- **10 checkbox variants** (`- [ ]` to `- [*]`)
+- **Custom templates** — register any `.typ` file in your vault; supported languages are detected automatically
+- **Five languages** — `nl` · `en` · `de` · `es` · `fr`; the default language dropdown updates automatically when you switch templates
+- **Frontmatter insertion** — insert a configurable YAML frontmatter block; existing keys are never overwritten
+- **Output location** — same folder as note, fixed folder (with vault autocomplete), or ask every time
 
 ---
 
 ## Commands
 
-| Command | Palette | Right-click |
+| Command | Palette | Right-click menu |
 |---|---|---|
 | Export as PDF | ✓ | ✓ |
 | Export as Typst source (.typ) | ✓ | ✓ |
@@ -83,9 +115,10 @@ The omd2typst WASM module handles Markdown parsing and Typst source generation. 
 
 ### Export
 
+The top of the Export section shows the detected Typst version and path, or *"Typst not found"* with an install hint. This is a status indicator — not a configurable option.
+
 | Setting | Description |
 |---|---|
-| **Typst compiler** | Read-only status row — shows the detected Typst version and path, or *"Typst not found"* with an install hint. |
 | **Default output format** | `PDF` or `Typst source (.typ)`. |
 | **Output location** | *Same folder as note* / *Fixed folder* (vault folder autocomplete) / *Ask every time*. |
 
@@ -93,7 +126,7 @@ The omd2typst WASM module handles Markdown parsing and Typst source generation. 
 
 | Setting | Description |
 |---|---|
-| **Default language** | Applied when the note has no `language:` frontmatter key. Options are limited to the languages supported by the selected default template. All five languages (`en`, `nl`, `de`, `es`, `fr`) are available when the built-in template is selected. If the stored language is not supported by a newly selected template, it resets to the first available language. |
+| **Default language** | Applied when the note has no `language:` frontmatter key. Options are limited to the languages supported by the selected default template. |
 | **Frontmatter template source** | Controls how the *Insert omd2typst frontmatter* command works — see below. |
 
 #### Frontmatter template source modes
@@ -106,11 +139,35 @@ The omd2typst WASM module handles Markdown parsing and Typst source generation. 
 
 ---
 
+## Supported Markdown features
+
+Full coverage of standard Markdown plus the most-used Obsidian extensions:
+
+| Feature | Notes |
+|---|---|
+| Headings `# H1` … `###### H6` | Level offset applied automatically when document has a title |
+| Bold, italic, strikethrough, highlight | `**`, `*`, `~~`, `==` |
+| Inline and display math | Typst math syntax — `$…$` and `$$…$$` |
+| Code blocks with language tag | Language label preserved |
+| Tables | Left / center / right alignment |
+| Images — standard `![alt](path)` and wikilink `![[path\|width]]` | Width in points |
+| Callouts `> [!type] Title` | 13 built-in types with Lucide SVG icons |
+| Block quotes `> text` | Left accent bar |
+| Checkbox lists | 10 variants: `[ ]` `[x]` `[/]` `[-]` `[>]` `[!]` `[?]` `[i]` `[I]` `[*]` |
+| Footnotes `[^1]` | Rendered at page bottom |
+| Superscript `<sup>` / subscript `<sub>` | HTML inline tags |
+| Obsidian wikilink images `![[…]]` | Converted automatically |
+| Thematic breaks `---` | Full-width rule |
+
+For the complete feature reference including YAML frontmatter keys, callout icon colours, and checkbox meanings, see the [omd2typst README](https://github.com/tIsGoud/Omd2Typst#readme).
+
+---
+
 ## Template authoring
 
-Templates are standard Typst files that export a `template` function and a `callout` function consumed by omd2typst.
+Templates are standard Typst files that export a `template` function (document wrapper) and a `callout` function.
 
-**Language support** is declared by defining a `_lang_strings` dictionary with a top-level entry per supported language code:
+**Declare supported languages** by defining a `_lang_strings` dictionary:
 
 ```typst
 #let _lang_strings = (
@@ -119,13 +176,28 @@ Templates are standard Typst files that export a `template` function and a `call
 )
 ```
 
-The plugin detects the supported languages automatically — no separate comment or annotation is needed. The language codes found in `_lang_strings` appear as the language badge in the template list and limit the *Default language* dropdown when that template is selected.
+The plugin detects language support automatically — no annotation needed. Language codes appear as badges in the template list and limit the *Default language* dropdown.
 
-To start from the built-in template, run the *Export built-in template* command — it writes `omd2typst-template.typ` to the vault root.
+To start from the built-in template, run **Export built-in template** — it writes `omd2typst-template.typ` to the vault root.
 
 ---
 
-## Project structure
+## Privacy
+
+The plugin makes **no network requests** and collects **no data**. All processing is local:
+
+- Markdown-to-Typst conversion runs inside a WASM module bundled inside `main.js`
+- PDF compilation runs the locally installed `typst` binary via `child_process`
+- No analytics, no telemetry, no external services
+
+---
+
+## Contributing
+
+<details>
+<summary>Project structure and build instructions</summary>
+
+### Project structure
 
 ```
 src/
@@ -145,9 +217,7 @@ scripts/
   build-wasm.sh     — runs wasm-pack inside the submodule
 ```
 
----
-
-## Building
+### Build
 
 ```bash
 git submodule update --init       # pull omd2typst Rust source
@@ -167,8 +237,4 @@ cp main.js manifest.json "$VAULT/.obsidian/plugins/obsidian-omd2typst/"
 
 Then enable the plugin in Obsidian → Settings → Community Plugins.
 
----
-
-## Supported Markdown features
-
-See the [omd2typst README](https://github.com/tIsGoud/Omd2Typst) for the full list of supported Markdown and Obsidian features, callout types, checkbox variants, frontmatter keys, and template authoring guide.
+</details>
