@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.8.2 — Fix plugin ID for Obsidian community store
+
+Plugin ID renamed from `obsidian-omd2typst` to `omd2typst` — IDs containing "obsidian" are not permitted in the community directory.
+
+**Action required for manual installs:** rename your plugin folder from `.obsidian/plugins/obsidian-omd2typst/` to `.obsidian/plugins/omd2typst/`.
+
+---
+
 ## v0.8.1 — Examples download; figure list in all templates
 
 - **`omd2typst-examples.zip`** added as a release asset — contains sample Markdown input files for all five languages, the public Typst templates (`purple-template.typ`, `tig-template.typ`), and `omd2typst-frontmatter.md` to get started quickly
