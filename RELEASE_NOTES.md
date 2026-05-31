@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.8.6 — Add artifact attestations
+
+Release assets (`main.js`, `manifest.json`, `omd2typst-examples.zip`) now have GitHub artifact attestations. Verify provenance with:
+
+```
+gh attestation verify main.js --repo tIsGoud/Obsidian-Omd2Typst
+```
+
+---
+
 ## v0.8.5 — Replace builtin-modules with Node.js built-in
 
 `builtin-modules` (devDependency) replaced with `builtinModules` from Node.js `module` — same functionality, no third-party package required.
