@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.8.4 — Fix LICENSE file recognition
+
+Replace custom copyright preamble with canonical AGPL-3.0 text so GitHub and the Obsidian community store recognize the license correctly.
+
+---
+
 ## v0.8.3 — Fix plugin ID (digits not allowed)
 
 Plugin ID renamed from `omd2typst` to `omd-to-typst` — only lowercase letters and hyphens are permitted; digits are not allowed.
