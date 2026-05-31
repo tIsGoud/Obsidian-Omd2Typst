@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.8.5 — Replace builtin-modules with Node.js built-in
+
+`builtin-modules` (devDependency) replaced with `builtinModules` from Node.js `module` — same functionality, no third-party package required.
+
+---
+
 ## v0.8.4 — Fix LICENSE file recognition
 
 Replace custom copyright preamble with canonical AGPL-3.0 text so GitHub and the Obsidian community store recognize the license correctly.
