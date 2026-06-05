@@ -1,3 +1,9 @@
+export class FileSystemAdapter {
+  private base: string;
+  constructor(basePath = '') { this.base = basePath; }
+  getBasePath() { return this.base; }
+}
+
 export class Plugin {
   app: any = {};
   manifest: any = { dir: '.obsidian/plugins/omd2typst', id: 'omd2typst' };

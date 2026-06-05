@@ -38,7 +38,14 @@ function makeApp(overrides: {
   read?: jest.Mock;
   getAbstractFileByPath?: jest.Mock;
 } = {}) {
-  const adapterWrite = jest.fn().mockResolvedValue(undefined);
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { FileSystemAdapter } = require('obsidian') as { FileSystemAdapter: new (p: string) => { getBasePath(): string } };
+  const adapterBase = new FileSystemAdapter('/tmp/vault');
+  const adapter = Object.assign(adapterBase, {
+    write:       jest.fn().mockResolvedValue(undefined),
+    writeBinary: jest.fn().mockResolvedValue(undefined),
+    remove:      jest.fn().mockResolvedValue(undefined),
+  });
   const read = overrides.read ?? jest.fn().mockResolvedValue('# Hello\n');
   const getAbstractFileByPath =
     overrides.getAbstractFileByPath ?? jest.fn().mockReturnValue(null);
@@ -46,10 +53,7 @@ function makeApp(overrides: {
     vault: {
       read,
       getAbstractFileByPath,
-      adapter: {
-        write: adapterWrite,
-        remove: jest.fn().mockResolvedValue(undefined),
-      },
+      adapter,
     },
   };
 }
@@ -79,15 +83,16 @@ describe('exportNote — PDF export', () => {
     const { compileToPdfViaCli } = require('../src/typst-cli');
     expect(compileToPdfViaCli).toHaveBeenCalledWith('#heading[Hello]', expect.any(String));
 
-    // Only one adapter.write call: the final PDF
-    const calls = (app.vault.adapter.write as jest.Mock).mock.calls;
-    expect(calls.length).toBe(1);
-    expect(calls[0][0]).toBe('exports/hello.pdf');
-    const pdfBytes: Uint8Array = calls[0][1];
-    expect(pdfBytes[0]).toBe(0x25); // %
-    expect(pdfBytes[1]).toBe(0x50); // P
-    expect(pdfBytes[2]).toBe(0x44); // D
-    expect(pdfBytes[3]).toBe(0x46); // F
+    // PDF is written via writeBinary; write should not be called
+    expect((app.vault.adapter.write as jest.Mock).mock.calls.length).toBe(0);
+    const binaryCalls = (app.vault.adapter.writeBinary as jest.Mock).mock.calls;
+    expect(binaryCalls.length).toBe(1);
+    expect(binaryCalls[0][0]).toBe('exports/hello.pdf');
+    const bytes = new Uint8Array(binaryCalls[0][1] as ArrayBuffer);
+    expect(bytes[0]).toBe(0x25); // %
+    expect(bytes[1]).toBe(0x50); // P
+    expect(bytes[2]).toBe(0x44); // D
+    expect(bytes[3]).toBe(0x46); // F
   });
 });
 
