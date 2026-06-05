@@ -180,7 +180,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
 
   private async refreshTemplateLanguages(): Promise<void> {
     let changed = false;
-    for (const tpl of this.plugin.settings.templates as TemplateEntry[]) {
+    for (const tpl of this.plugin.settings.templates) {
       const file = this.app.vault.getAbstractFileByPath(tpl.path);
       if (!(file instanceof TFile)) continue;
       try {
@@ -208,7 +208,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName('Typst templates').setHeading();
 
     // List existing templates
-    for (const tpl of this.plugin.settings.templates as TemplateEntry[]) {
+    for (const tpl of this.plugin.settings.templates) {
       const langBadge = tpl.languages.length > 0
         ? `${tpl.path}  ·  ${tpl.languages.join(', ')}`
         : tpl.path;
@@ -217,7 +217,6 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
         .setDesc(langBadge)
         .addButton(btn =>
           btn.setButtonText('Remove')
-            .setWarning()
             .onClick(async () => {
               this.plugin.settings.templates = (
                 this.plugin.settings.templates              ).filter(t => t.name !== tpl.name);
@@ -260,7 +259,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           .onClick(async () => {
             if (!newPath) return;
             const name = newName || newPath.split('/').pop()?.replace(/\.typ$/, '') || newPath;
-            const already = (this.plugin.settings.templates as TemplateEntry[])
+            const already = this.plugin.settings.templates
               .some(t => t.name === name);
             if (already) return;
             let languages: string[] = [];
@@ -271,7 +270,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
                 languages = parseTemplateLanguages(content);
               } catch { /* leave empty if unreadable */ }
             }
-            (this.plugin.settings.templates as TemplateEntry[]).push({
+            this.plugin.settings.templates.push({
               name,
               path: newPath,
               languages,
@@ -287,7 +286,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
       .setDesc('Template used when exporting without a specific template selected.')
       .addDropdown(dd => {
         dd.addOption('built-in', 'Built-in template');
-        for (const tpl of this.plugin.settings.templates as TemplateEntry[]) {
+        for (const tpl of this.plugin.settings.templates) {
           dd.addOption(tpl.name, tpl.name);
         }
         dd.setValue(this.plugin.settings.defaultTemplate)
@@ -374,7 +373,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
       es: 'Español (es)',
       fr: 'Français (fr)',
     };
-    const activeTpl = (this.plugin.settings.templates as TemplateEntry[])
+    const activeTpl = this.plugin.settings.templates
       .find(t => t.name === this.plugin.settings.defaultTemplate);
     const availableLanguages = (activeTpl && activeTpl.languages.length > 0)
       ? activeTpl.languages

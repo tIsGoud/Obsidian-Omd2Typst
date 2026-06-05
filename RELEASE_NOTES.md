@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.8.10 — Fix remaining review warnings from Obsidian store
+
+- Redundant `as TemplateEntry[]` casts removed from all six remaining call sites in `settings.ts` — `plugin.settings.templates` is already typed as `TemplateEntry[]` via the `PluginHost` interface
+- `.setWarning()` removed from the Remove button — the method is deprecated in future Obsidian versions and `setDestructive()` (the replacement) is not yet available in the minimum supported version (1.7.2); the button is now unstyled
+
+---
+
 ## v0.8.9 — Fix remaining TypeScript lint errors from Obsidian review
 
 - `setDestructive()` (not available in 1.7.2) reverted to `setWarning()` on the Remove button
