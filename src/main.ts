@@ -65,6 +65,9 @@ export default class Omd2TypstPlugin extends Plugin {
     );
 
     this.addSettingTab(new Omd2TypstSettingTab(this.app, this, () => this.typstStatus));
+
+    // Make .typ files visible in the vault without "Show all file types".
+    this.registerExtensions(['typ'], 'markdown');
   }
 
   async loadSettings() {

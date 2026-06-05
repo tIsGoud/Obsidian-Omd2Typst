@@ -85,7 +85,7 @@ This partial PDF output shows the added front page, the added revision and appro
 - **Revision and approval tables** — extracted from named sections and placed before the TOC
 - **13 callout types** with Lucide SVG icons (`note`, `tip`, `warning`, `danger`, `bug`, `quote`, …)
 - **10 checkbox variants** (`- [ ]` to `- [*]`)
-- **Custom templates** — register any `.typ` file in your vault; supported languages are detected automatically
+- **Custom templates** — register any `.typ` file in your vault; `.typ` files are visible in the vault navigator and file pickers without enabling *Show all file types*; supported languages are detected automatically
 - **Five languages** — `nl` · `en` · `de` · `es` · `fr`; the default language dropdown updates automatically when you switch templates
 - **Frontmatter insertion** — insert a configurable YAML frontmatter block; existing keys are never overwritten
 - **Output location** — same folder as note, fixed folder (with vault autocomplete), or ask every time

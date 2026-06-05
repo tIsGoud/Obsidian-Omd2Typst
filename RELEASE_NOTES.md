@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.8.7 — Register .typ extension with the vault
+
+`.typ` files are now visible in the Obsidian vault navigator and file pickers without enabling *Show all file types*. Files open in Obsidian's text editor; for a richer editing experience use an external code editor.
+
+---
+
 ## v0.8.6 — Add artifact attestations
 
 Release assets (`main.js`, `manifest.json`, `omd2typst-examples.zip`) now have GitHub artifact attestations. Verify provenance with:
