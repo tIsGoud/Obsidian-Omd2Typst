@@ -1,4 +1,4 @@
-import { Notice, TFile, App } from 'obsidian';
+import { Notice, TFile, App, FileSystemAdapter } from 'obsidian';
 import type { OutputFormat, TemplateEntry, Omd2TypstSettings } from './settings';
 import { checkLanguageCompatibility } from './template';
 import { resolveOutputPath } from './output';
@@ -87,11 +87,10 @@ export async function exportNote(
     const bin = findTypstBinary();
 
     if (bin) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const vaultBase: string = (app.vault.adapter as any).basePath ?? '';
+      const adapter = app.vault.adapter;
+      const vaultBase = adapter instanceof FileSystemAdapter ? adapter.basePath : '';
       const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (app.vault.adapter.write as any)(outputPath, pdfBytes);
+      await app.vault.adapter.writeBinary(outputPath, pdfBytes.buffer);
     } else {
       // No system typst — export .typ so the user has something useful.
       const typPath = resolveOutputPath(file.path, 'typ', settings)!;

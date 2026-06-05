@@ -1,8 +1,8 @@
 {
   "id": "omd-to-typst",
   "name": "Omd2Typst",
-  "version": "0.8.7",
-  "minAppVersion": "1.4.0",
+  "version": "0.8.8",
+  "minAppVersion": "1.7.2",
   "description": "Export notes to professional PDFs via Typst — cover page, TOC, templates, callouts, 5 languages.",
   "author": "A.W. Alberts",
   "authorUrl": "https://github.com/tIsGoud",

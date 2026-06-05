@@ -1,7 +1,7 @@
 // Node.js modules — available in Electron (Obsidian's runtime).
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- Node.js built-in, not available via ESM in Electron
 const nodeFs   = typeof require !== 'undefined' ? require('fs')   as typeof import('fs')   : null;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- Node.js built-in, not available via ESM in Electron
 const nodePath = typeof require !== 'undefined' ? require('path') as typeof import('path') : null;
 
 export interface TypstStatus {
@@ -21,7 +21,7 @@ export function detectSystemTypst(): TypstStatus {
   const bin = findTypstBinary();
   if (!bin) return { source: 'none', version: '' };
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
     const cp = require('child_process') as typeof import('child_process');
     const raw = cp.execSync(`"${bin}" --version`, { stdio: 'pipe' }).toString().trim();
     const match = raw.match(/(\d+\.\d+\.\d+)/);
@@ -36,7 +36,7 @@ export function detectSystemTypst(): TypstStatus {
 /** Return the absolute path of the typst binary, or null if not found. */
 export function findTypstBinary(): string | null {
   if (!nodeFs) return null;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
   const cp = require('child_process') as typeof import('child_process');
   try { cp.execSync('typst --version', { stdio: 'pipe' }); return 'typst'; } catch { /* fall through */ }
   const candidates = [
@@ -57,7 +57,7 @@ export function findTypstBinary(): string | null {
  */
 export function checkTypstInstalled(): string {
   if (!nodeFs) throw new Error('Not running in Electron/Node environment');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
   const cp = require('child_process') as typeof import('child_process');
   const bin = findTypstBinary();
   if (!bin) throw new Error('typst not found. Install from https://typst.app or add to PATH.');
@@ -74,7 +74,7 @@ export function checkTypstInstalled(): string {
  */
 export async function compileToPdfViaCli(typstSrc: string, vaultBase: string): Promise<Uint8Array> {
   if (!nodeFs || !nodePath) throw new Error('CLI requires Electron/Node environment');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
   const cp = require('child_process') as typeof import('child_process');
 
   const bin = findTypstBinary();
@@ -99,8 +99,8 @@ export async function compileToPdfViaCli(typstSrc: string, vaultBase: string): P
   console.log('[omd2typst] CLI compile:', cmd);
   try {
     cp.execSync(cmd, { timeout: 120_000, stdio: 'pipe' });
-    const buf = nodeFs.readFileSync(realPdfPath) as Buffer;
-    return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+    const buf = nodeFs.readFileSync(realPdfPath);
+    return new Uint8Array(buf);
   } finally {
     try { nodeFs.unlinkSync(realTypPath); } catch { /* best-effort cleanup */ }
     try { nodeFs.unlinkSync(realPdfPath); } catch { /* best-effort cleanup */ }

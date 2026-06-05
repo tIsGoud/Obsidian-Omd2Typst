@@ -12,12 +12,12 @@ async function ensureInit(): Promise<void> {
   if (initialised) return;
 
   // Instantiate directly from the bundled bytes (no fetch needed).
-  const { instance } = await WebAssembly.instantiate(wasmBytes, {
+  const { instance } = await WebAssembly.instantiate(wasmBytes as unknown as ArrayBuffer, {
     './omd2typst_wasm_bg.js': {},
   });
 
   // Wire the wasm instance exports into the bg glue module.
-  __wbg_set_wasm(instance.exports);
+  __wbg_set_wasm(instance.exports as WebAssembly.Exports);
 
   initialised = true;
 }
@@ -31,11 +31,11 @@ export async function renderToTypst(
   templateSrc: string | null,
 ): Promise<string> {
   await ensureInit();
-  return render_to_typst(markdown, templateSrc ?? undefined);
+  return render_to_typst(markdown, templateSrc ?? undefined) as string;
 }
 
 /** Return the built-in Typst template source. */
 export async function getBuiltinTemplate(): Promise<string> {
   await ensureInit();
-  return get_builtin_template();
+  return get_builtin_template() as string;
 }

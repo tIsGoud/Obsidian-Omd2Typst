@@ -1,5 +1,23 @@
 # Release Notes
 
+## v0.8.8 — Fix TypeScript lint errors from Obsidian review
+
+Resolves all errors and warnings flagged by the Obsidian community store review:
+
+- `eslint-disable-next-line` comments now include descriptions explaining why the suppression is necessary
+- `FileSystemAdapter` used directly instead of `any` cast for `basePath`; binary PDF written via `writeBinary()` instead of casting `write()`
+- `vault.getAllFolders()` (added in 1.7.2) replaced with vault-root traversal for compatibility
+- `AbstractInputSuggest.setValue()` replaced with direct `inputEl.value` assignment
+- `plugin: any` in settings replaced with a typed `PluginHost` interface
+- Section headings use `Setting.setHeading()` instead of raw `createEl('h3')`
+- `setWarning()` replaced with `setDestructive()` on the Remove button
+- Floating promises marked with `void`; async `onPick` callbacks typed as `void | Promise<void>`
+- Unnecessary `as Buffer` assertion removed; WASM glue calls typed with explicit assertions
+- Command name "Insert omd2typst frontmatter" shortened to "Insert frontmatter" (plugin name already shown in UI)
+- `minAppVersion` bumped to `1.7.2`
+
+---
+
 ## v0.8.7 — Register .typ extension with the vault
 
 `.typ` files are now visible in the Obsidian vault navigator and file pickers without enabling *Show all file types*. Files open in Obsidian's text editor; for a richer editing experience use an external code editor.

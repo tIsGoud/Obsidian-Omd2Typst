@@ -1,4 +1,4 @@
-import { App, AbstractInputSuggest, TFile, TFolder, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+import { App, AbstractInputSuggest, Plugin, TFile, TFolder, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import { parseTemplateLanguages } from './template';
 import type { TypstStatus } from './typst-cli';
 
@@ -28,16 +28,16 @@ class TypFileSuggest extends AbstractInputSuggest<TFile> {
   }
 
   selectSuggestion(file: TFile): void {
-    this.setValue(file.path);
-    this.onPick(file);
+    this.inputEl.value = file.path;
     this.close();
+    this.onPick(file);
   }
 }
 
 class MdFileSuggest extends AbstractInputSuggest<TFile> {
-  private onPick: (file: TFile) => void;
+  private onPick: (file: TFile) => void | Promise<void>;
 
-  constructor(app: App, inputEl: HTMLInputElement, onPick: (file: TFile) => void) {
+  constructor(app: App, inputEl: HTMLInputElement, onPick: (file: TFile) => void | Promise<void>) {
     super(app, inputEl);
     this.onPick = onPick;
   }
@@ -56,24 +56,31 @@ class MdFileSuggest extends AbstractInputSuggest<TFile> {
   }
 
   selectSuggestion(file: TFile): void {
-    this.setValue(file.path);
-    this.onPick(file);
+    this.inputEl.value = file.path;
     this.close();
+    void this.onPick(file);
   }
 }
 
 class FolderSuggest extends AbstractInputSuggest<TFolder> {
-  private onPick: (folder: TFolder) => void;
+  private onPick: (folder: TFolder) => void | Promise<void>;
 
-  constructor(app: App, inputEl: HTMLInputElement, onPick: (folder: TFolder) => void) {
+  constructor(app: App, inputEl: HTMLInputElement, onPick: (folder: TFolder) => void | Promise<void>) {
     super(app, inputEl);
     this.onPick = onPick;
   }
 
   getSuggestions(query: string): TFolder[] {
     const q = query.toLowerCase();
-    return this.app.vault
-      .getAllFolders()
+    const folders: TFolder[] = [];
+    const collect = (folder: TFolder) => {
+      folders.push(folder);
+      for (const child of folder.children) {
+        if (child instanceof TFolder) collect(child);
+      }
+    };
+    collect(this.app.vault.getRoot());
+    return folders
       .filter(f => f.path.toLowerCase().includes(q))
       .sort((a, b) => a.path.localeCompare(b.path));
   }
@@ -83,9 +90,9 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
   }
 
   selectSuggestion(folder: TFolder): void {
-    this.setValue(folder.path);
-    this.onPick(folder);
+    this.inputEl.value = folder.path;
     this.close();
+    void this.onPick(folder);
   }
 }
 
@@ -150,11 +157,16 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
 // Settings tab
 // ---------------------------------------------------------------------------
 
+interface PluginHost extends Plugin {
+  settings: Omd2TypstSettings;
+  saveSettings(): Promise<void>;
+}
+
 export class Omd2TypstSettingTab extends PluginSettingTab {
-  plugin: any;
+  private plugin: PluginHost;
   private getTypstStatus: () => TypstStatus;
 
-  constructor(app: App, plugin: any, getTypstStatus: () => TypstStatus) {
+  constructor(app: App, plugin: PluginHost, getTypstStatus: () => TypstStatus) {
     super(app, plugin);
     this.plugin = plugin;
     this.getTypstStatus = getTypstStatus;
@@ -184,10 +196,10 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    this.refreshTemplateLanguages();
+    void this.refreshTemplateLanguages();
 
     // ── Typst Templates ──────────────────────────────────────────────────────
-    containerEl.createEl('h3', { text: 'Typst templates' });
+    new Setting(containerEl).setName('Typst templates').setHeading();
 
     // List existing templates
     for (const tpl of this.plugin.settings.templates as TemplateEntry[]) {
@@ -199,7 +211,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
         .setDesc(langBadge)
         .addButton(btn =>
           btn.setButtonText('Remove')
-            .setWarning()
+            .setDestructive()
             .onClick(async () => {
               this.plugin.settings.templates = (
                 this.plugin.settings.templates as TemplateEntry[]
@@ -282,7 +294,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
       });
 
     // ── Export ───────────────────────────────────────────────────────────────
-    containerEl.createEl('h3', { text: 'Export' });
+    new Setting(containerEl).setName('Export').setHeading();
 
     // Typst compiler info row
     const status = this.getTypstStatus();
@@ -348,7 +360,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     }
 
     // ── Document defaults ────────────────────────────────────────────────────
-    containerEl.createEl('h3', { text: 'Document defaults' });
+    new Setting(containerEl).setName('Document defaults').setHeading();
 
     const allLanguages: Record<string, string> = {
       en: 'English (en)',
@@ -366,7 +378,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     // Auto-correct stored language if no longer in the available set
     if (!availableLanguages.includes(this.plugin.settings.defaultLanguage)) {
       this.plugin.settings.defaultLanguage = availableLanguages[0];
-      this.plugin.saveSettings();
+      void this.plugin.saveSettings();
     }
 
     const langDesc = activeTpl && activeTpl.languages.length > 0

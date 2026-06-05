@@ -1,4 +1,4 @@
-import { Plugin, TFile, Notice, normalizePath } from 'obsidian';
+import { Plugin, TFile, TAbstractFile, Notice, normalizePath, Menu, MenuItem } from 'obsidian';
 import { Omd2TypstSettings, DEFAULT_SETTINGS, OutputFormat, Omd2TypstSettingTab } from './settings';
 import { resolveDefaultTemplate } from './template';
 import { mergeFrontmatter, buildFrontmatterBlock, parseFrontmatter } from './frontmatter';
@@ -37,7 +37,7 @@ export default class Omd2TypstPlugin extends Plugin {
 
     this.addCommand({
       id: 'insert-frontmatter',
-      name: 'Insert omd2typst frontmatter',
+      name: 'Insert frontmatter',
       callback: () => this.insertFrontmatter(),
     });
 
@@ -49,15 +49,15 @@ export default class Omd2TypstPlugin extends Plugin {
 
     // Register file-menu context menus (right-click in file explorer)
     this.registerEvent(
-      this.app.workspace.on('file-menu', (menu: any, file: any) => {
+      this.app.workspace.on('file-menu', (menu: Menu, file: TAbstractFile) => {
         if (!(file instanceof TFile) || file.extension !== 'md') return;
-        menu.addItem((item: any) => {
-          item.setTitle('Export as PDF (omd2typst)')
+        menu.addItem((item: MenuItem) => {
+          item.setTitle('Export as PDF')
               .setIcon('file-pdf')
               .onClick(() => this.exportFile(file, 'pdf'));
         });
-        menu.addItem((item: any) => {
-          item.setTitle('Export as Typst source (omd2typst)')
+        menu.addItem((item: MenuItem) => {
+          item.setTitle('Export as Typst source')
               .setIcon('file-type')
               .onClick(() => this.exportFile(file, 'typ'));
         });
