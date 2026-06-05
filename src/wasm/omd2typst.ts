@@ -1,10 +1,16 @@
 import {
-  __wbg_set_wasm,
-  render_to_typst,
-  get_builtin_template,
+  __wbg_set_wasm as _setWasm,
+  render_to_typst as _renderToTypst,
+  get_builtin_template as _getBuiltinTemplate,
 } from './omd2typst-pkg/omd2typst_wasm_bg.js';
 // @ts-ignore — esbuild binary loader provides this as a Uint8Array
 import wasmBytes from './omd2typst-pkg/omd2typst_wasm_bg.wasm';
+
+// The bg glue module exports are untyped (the .d.ts only covers raw wasm memory
+// signatures). Cast to the string-level function types that the JS glue exposes.
+const setWasm    = _setWasm          as unknown as (exports: WebAssembly.Exports) => void;
+const renderFn   = _renderToTypst    as unknown as (md: string, tpl?: string) => string;
+const templateFn = _getBuiltinTemplate as unknown as () => string;
 
 let initialised = false;
 
@@ -17,7 +23,7 @@ async function ensureInit(): Promise<void> {
   });
 
   // Wire the wasm instance exports into the bg glue module.
-  __wbg_set_wasm(instance.exports as WebAssembly.Exports);
+  setWasm(instance.exports);
 
   initialised = true;
 }
@@ -31,11 +37,11 @@ export async function renderToTypst(
   templateSrc: string | null,
 ): Promise<string> {
   await ensureInit();
-  return render_to_typst(markdown, templateSrc ?? undefined) as string;
+  return renderFn(markdown, templateSrc ?? undefined);
 }
 
 /** Return the built-in Typst template source. */
 export async function getBuiltinTemplate(): Promise<string> {
   await ensureInit();
-  return get_builtin_template() as string;
+  return templateFn();
 }

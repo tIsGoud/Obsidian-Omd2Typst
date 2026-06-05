@@ -8,9 +8,11 @@ import type { TypstStatus } from './typst-cli';
 
 class TypFileSuggest extends AbstractInputSuggest<TFile> {
   private onPick: (file: TFile) => void;
+  private el: HTMLInputElement;
 
   constructor(app: App, inputEl: HTMLInputElement, onPick: (file: TFile) => void) {
     super(app, inputEl);
+    this.el = inputEl;
     this.onPick = onPick;
   }
 
@@ -28,7 +30,7 @@ class TypFileSuggest extends AbstractInputSuggest<TFile> {
   }
 
   selectSuggestion(file: TFile): void {
-    this.inputEl.value = file.path;
+    this.el.value = file.path;
     this.close();
     this.onPick(file);
   }
@@ -36,9 +38,11 @@ class TypFileSuggest extends AbstractInputSuggest<TFile> {
 
 class MdFileSuggest extends AbstractInputSuggest<TFile> {
   private onPick: (file: TFile) => void | Promise<void>;
+  private el: HTMLInputElement;
 
   constructor(app: App, inputEl: HTMLInputElement, onPick: (file: TFile) => void | Promise<void>) {
     super(app, inputEl);
+    this.el = inputEl;
     this.onPick = onPick;
   }
 
@@ -56,7 +60,7 @@ class MdFileSuggest extends AbstractInputSuggest<TFile> {
   }
 
   selectSuggestion(file: TFile): void {
-    this.inputEl.value = file.path;
+    this.el.value = file.path;
     this.close();
     void this.onPick(file);
   }
@@ -64,9 +68,11 @@ class MdFileSuggest extends AbstractInputSuggest<TFile> {
 
 class FolderSuggest extends AbstractInputSuggest<TFolder> {
   private onPick: (folder: TFolder) => void | Promise<void>;
+  private el: HTMLInputElement;
 
   constructor(app: App, inputEl: HTMLInputElement, onPick: (folder: TFolder) => void | Promise<void>) {
     super(app, inputEl);
+    this.el = inputEl;
     this.onPick = onPick;
   }
 
@@ -90,7 +96,7 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
   }
 
   selectSuggestion(folder: TFolder): void {
-    this.inputEl.value = folder.path;
+    this.el.value = folder.path;
     this.close();
     void this.onPick(folder);
   }
@@ -211,11 +217,10 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
         .setDesc(langBadge)
         .addButton(btn =>
           btn.setButtonText('Remove')
-            .setDestructive()
+            .setWarning()
             .onClick(async () => {
               this.plugin.settings.templates = (
-                this.plugin.settings.templates as TemplateEntry[]
-              ).filter(t => t.name !== tpl.name);
+                this.plugin.settings.templates              ).filter(t => t.name !== tpl.name);
               if (this.plugin.settings.defaultTemplate === tpl.name) {
                 this.plugin.settings.defaultTemplate = 'built-in';
               }

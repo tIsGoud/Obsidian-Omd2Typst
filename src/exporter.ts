@@ -88,9 +88,9 @@ export async function exportNote(
 
     if (bin) {
       const adapter = app.vault.adapter;
-      const vaultBase = adapter instanceof FileSystemAdapter ? adapter.basePath : '';
+      const vaultBase = adapter instanceof FileSystemAdapter ? adapter.getBasePath() : '';
       const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase);
-      await app.vault.adapter.writeBinary(outputPath, pdfBytes.buffer);
+      await app.vault.adapter.writeBinary(outputPath, pdfBytes.buffer as ArrayBuffer);
     } else {
       // No system typst — export .typ so the user has something useful.
       const typPath = resolveOutputPath(file.path, 'typ', settings)!;

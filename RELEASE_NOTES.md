@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.8.9 — Fix remaining TypeScript lint errors from Obsidian review
+
+- `setDestructive()` (not available in 1.7.2) reverted to `setWarning()` on the Remove button
+- `FileSystemAdapter.basePath` replaced with `getBasePath()` method (the typed API)
+- `Uint8Array.buffer` cast to `ArrayBuffer` for `writeBinary()` (buffer is `ArrayBufferLike` in TypeScript lib)
+- `loadData()` cast to `Partial<Omd2TypstSettings>` to remove unsafe `any` assignment
+- `this.inputEl` (unresolvable type on parent class) replaced with own `el: HTMLInputElement` field in all three suggest classes
+- Redundant `as TemplateEntry[]` casts removed — now that `plugin` is typed via `PluginHost` interface, `settings.templates` is already `TemplateEntry[]`
+- Type declaration file added for wasm-pack background glue (`omd2typst_wasm_bg.d.ts`) so `render_to_typst`, `get_builtin_template`, and `__wbg_set_wasm` are properly typed; redundant `as WebAssembly.Exports` and `as string` assertions removed
+
+---
+
 ## v0.8.8 — Fix TypeScript lint errors from Obsidian review
 
 Resolves all errors and warnings flagged by the Obsidian community store review:
