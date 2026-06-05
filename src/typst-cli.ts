@@ -96,7 +96,6 @@ export async function compileToPdfViaCli(typstSrc: string, vaultBase: string): P
     `--root "${vaultBase}"`,
   ].join(' ');
 
-  console.log('[omd2typst] CLI compile:', cmd);
   try {
     cp.execSync(cmd, { timeout: 120_000, stdio: 'pipe' });
     const buf = nodeFs.readFileSync(realPdfPath);

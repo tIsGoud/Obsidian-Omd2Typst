@@ -16,11 +16,6 @@ export default class Omd2TypstPlugin extends Plugin {
     // Detect system typst binary.
     this.typstStatus = detectSystemTypst();
 
-    if (this.typstStatus.source === 'system') {
-      console.log(`[omd2typst] System typst ${this.typstStatus.version} found`);
-    } else {
-      console.log('[omd2typst] typst not found — PDF export will fall back to .typ');
-    }
 
     // Register 4 commands
     this.addCommand({
@@ -31,7 +26,7 @@ export default class Omd2TypstPlugin extends Plugin {
 
     this.addCommand({
       id: 'export-typ',
-      name: 'Export as Typst source (.typ)',
+      name: 'Export as typst source (.typ)',
       callback: () => this.exportActiveNote('typ'),
     });
 
@@ -57,7 +52,7 @@ export default class Omd2TypstPlugin extends Plugin {
               .onClick(() => this.exportFile(file, 'pdf'));
         });
         menu.addItem((item: MenuItem) => {
-          item.setTitle('Export as Typst source')
+          item.setTitle('Export as typst source')
               .setIcon('file-type')
               .onClick(() => this.exportFile(file, 'typ'));
         });
@@ -100,7 +95,7 @@ export default class Omd2TypstPlugin extends Plugin {
 
   private async insertFrontmatter() {
     if (this.settings.frontmatterTemplateMode === 'user-defined') {
-      new Notice('Frontmatter insertion is set to User defined — manage frontmatter with your own template tool.');
+      new Notice('Frontmatter insertion is set to user defined — manage frontmatter with your own template tool.');
       return;
     }
 

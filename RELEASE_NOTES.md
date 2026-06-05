@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.8.11 — Add eslint-plugin-obsidianmd; fix console.log and sentence-case warnings
+
+- `eslint-plugin-obsidianmd` added as a dev dependency — this is the exact linter used by the Obsidian community store review bot; `npm run lint` now catches review issues before submission
+- Pre-commit git hook added: runs `npm run lint && npm test` on every commit
+- `console.log` removed from `main.ts` (typst detection status) and `typst-cli.ts` (CLI compile command)
+- UI strings corrected to sentence case: `'Export as typst source (.typ)'`, `'Export as typst source'`, `'Frontmatter insertion is set to user defined…'`, and the settings descriptions
+
+---
+
 ## v0.8.10 — Fix remaining review warnings from Obsidian store
 
 - Redundant `as TemplateEntry[]` casts removed from all six remaining call sites in `settings.ts` — `plugin.settings.templates` is already typed as `TemplateEntry[]` via the `PluginHost` interface

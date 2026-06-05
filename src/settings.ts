@@ -405,7 +405,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Frontmatter template source')
-      .setDesc('How the "Insert omd2typst frontmatter" command obtains the list of keys to insert.')
+      .setDesc('How the "insert omd2typst frontmatter" command obtains the list of keys to insert.')
       .addDropdown(dd =>
         dd.addOption('inline', 'Inline editor')
           .addOption('file', 'Template file')
@@ -452,7 +452,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     if (this.plugin.settings.frontmatterTemplateMode === 'user-defined') {
       new Setting(containerEl)
         .setName('User defined')
-        .setDesc('The built-in frontmatter command is disabled. Use Templater, the Templates core plugin, or any other tool to manage frontmatter.');
+        .setDesc('The built-in frontmatter command is disabled. Use templater, the templates core plugin, or any other tool to manage frontmatter.');
     }
   }
 }
