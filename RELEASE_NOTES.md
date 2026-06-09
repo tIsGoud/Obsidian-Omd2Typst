@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.8.14 — Fix clippy lint; built on omd2typst v0.10.5
+
+Internal clippy fix in the YAML block scalar parser (`map_or(false, …)` →
+`is_some_and(…)`). No functional change. Resolves CI pipeline failures on
+the omd2typst v0.10.3 and v0.10.4 builds.
+
+---
+
 ## v0.8.13 — Fix `|-` chomping variant written by Obsidian's YAML editor
 
 Obsidian's live preview automatically rewrites `summary: |` to `summary: |-`
