@@ -1,5 +1,21 @@
 # Release Notes
 
+## v0.8.12 — Support multi-line summary on cover page
+
+The `summary` frontmatter field now supports multi-line text using the YAML
+literal block scalar syntax:
+
+```yaml
+summary: |
+  First line of the summary.
+  Second line of the summary.
+```
+
+Each line is rendered as a separate line in the summary box on the PDF cover
+page. Built on omd2typst v0.10.3.
+
+---
+
 ## v0.8.11 — Add eslint-plugin-obsidianmd; fix console.log and sentence-case warnings
 
 - `eslint-plugin-obsidianmd` added as a dev dependency — this is the exact linter used by the Obsidian community store review bot; `npm run lint` now catches review issues before submission
