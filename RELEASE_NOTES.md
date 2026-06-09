@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.8.13 — Fix `|-` chomping variant written by Obsidian's YAML editor
+
+Obsidian's live preview automatically rewrites `summary: |` to `summary: |-`
+(strip chomping) when the note is saved. The parser now accepts `|-` and `|+`
+in addition to `|`, so multi-line summaries work regardless of which variant
+Obsidian writes. Built on omd2typst v0.10.4.
+
+---
+
 ## v0.8.12 — Support multi-line summary on cover page
 
 The `summary` frontmatter field now supports multi-line text using the YAML
