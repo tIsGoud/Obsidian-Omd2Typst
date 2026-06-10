@@ -11,6 +11,8 @@ function getMermaid(): MermaidApi | undefined {
   return w['mermaid'] as MermaidApi | undefined;
 }
 
+let mermaidInitialized = false;
+
 export async function renderMermaidBlocks(
   markdown: string,
   app: App,
@@ -38,7 +40,10 @@ export async function renderMermaidBlocks(
     return { markdown, cleanup: noop };
   }
 
-  mermaid.initialize({ startOnLoad: false });
+  if (!mermaidInitialized) {
+    mermaid.initialize({ startOnLoad: false });
+    mermaidInitialized = true;
+  }
 
   const dir = noteFile.parent ? noteFile.parent.path + '/' : '';
   const writtenPaths: string[] = [];

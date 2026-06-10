@@ -105,6 +105,8 @@ export async function exportNote(
       }
     }
   } finally {
-    await cleanup();
+    if (format === 'pdf') {
+      await cleanup();
+    }
   }
 }
