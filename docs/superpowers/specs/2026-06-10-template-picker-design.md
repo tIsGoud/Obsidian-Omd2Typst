@@ -11,12 +11,12 @@ The plugin always exports using the default template set in settings. Users who 
 
 - Existing export commands show the current default template name in their label:
   - `Export as PDF (Built-in)` or `Export as PDF (purple-template)`
-  - `Export as typst source (.typ) (Built-in)` or `Export as typst source (.typ) (tig-template)`
+  - `Export as Typst file (Built-in)` or `Export as Typst file (tig-template)`
   - Names update live when the user changes the default template in settings — no reload required.
 
 - Two new commands appear in the command palette **only** when at least one custom template is registered:
   - `Export as PDF with template…`
-  - `Export as typst source with template…`
+  - `Export as Typst file with template…`
   - Invoking either opens a modal listing templates; the export runs with the chosen template.
   - A new **Show built-in template in picker** setting controls whether the built-in template appears in this list. Default: off — users working with custom templates should not have the built-in cluttering the list.
 
@@ -82,7 +82,7 @@ function exportCommandName(verb: string, ext: string, settings: Omd2TypstSetting
   return `Export as ${verb} (${label})`;
 }
 // e.g. exportCommandName('PDF', 'pdf', settings) → 'Export as PDF (Built-in)'
-// e.g. exportCommandName('typst source (.typ)', 'typ', settings) → 'Export as typst source (.typ) (tig-template)'
+// e.g. exportCommandName('Typst file', 'typ', settings) → 'Export as Typst file (tig-template)'
 ```
 
 **Command registration:**
@@ -113,7 +113,7 @@ this.addCommand({
     return true;
   },
 });
-// mirror for export-typ-pick-template
+// mirror for export-typ-pick-template with name: 'Export as Typst file with template…'
 ```
 
 The modal callback: `new TemplateSuggestModal(this.app, this.settings, (entry) => this.exportActiveNote('pdf', entry)).open()`
