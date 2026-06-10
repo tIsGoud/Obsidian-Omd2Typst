@@ -22,6 +22,8 @@ const BASE_SETTINGS: Omd2TypstSettings = {
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',
+  showContextMenu: true,
+  showBuiltinInPicker: false,
 };
 
 /** Create a minimal TFile-like object for testing. */

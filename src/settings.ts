@@ -133,6 +133,10 @@ export interface Omd2TypstSettings {
   frontmatterInline: string;
   /** Vault-relative path to a .md file used in file mode. */
   frontmatterFilePath: string;
+  /** Show Omd2Typst items in the right-click file menu. */
+  showContextMenu: boolean;
+  /** Include the built-in template in the "Export with template" picker. */
+  showBuiltinInPicker: boolean;
 }
 
 export const DEFAULT_SETTINGS: Omd2TypstSettings = {
@@ -157,6 +161,8 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
     'approval-table:',
   ].join('\n'),
   frontmatterFilePath: '',
+  showContextMenu: true,
+  showBuiltinInPicker: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -362,6 +368,28 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           });
         });
     }
+
+    new Setting(containerEl)
+      .setName('Show context menu items')
+      .setDesc('Show omd2typst export options in the right-click file menu.')
+      .addToggle(toggle =>
+        toggle.setValue(this.plugin.settings.showContextMenu)
+          .onChange(async v => {
+            this.plugin.settings.showContextMenu = v;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Show built-in template in picker')
+      .setDesc('Include the built-in template in the "export with template" list.')
+      .addToggle(toggle =>
+        toggle.setValue(this.plugin.settings.showBuiltinInPicker)
+          .onChange(async v => {
+            this.plugin.settings.showBuiltinInPicker = v;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // ── Document defaults ────────────────────────────────────────────────────
     new Setting(containerEl).setName('Document defaults').setHeading();

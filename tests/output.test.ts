@@ -6,6 +6,7 @@ const BASE: Omd2TypstSettings = {
   defaultOutputFormat: 'pdf', outputMode: 'same-folder', outputFolder: 'exports',
   defaultLanguage: 'en', frontmatterTemplateMode: 'inline',
   frontmatterInline: '', frontmatterFilePath: '',
+  showContextMenu: true, showBuiltinInPicker: false,
 };
 
 describe('resolveOutputPath (same-folder)', () => {

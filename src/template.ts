@@ -34,3 +34,11 @@ export function resolveDefaultTemplate(settings: Omd2TypstSettings): TemplateEnt
   if (settings.defaultTemplate === 'built-in') return null;
   return settings.templates.find(t => t.name === settings.defaultTemplate) ?? null;
 }
+
+/** Returns the command palette label for an export command, including the default template name. */
+export function exportCommandName(verb: string, settings: Omd2TypstSettings): string {
+  const label = settings.defaultTemplate === 'built-in'
+    ? 'Built-in'
+    : settings.defaultTemplate;
+  return `Export as ${verb} (${label})`;
+}

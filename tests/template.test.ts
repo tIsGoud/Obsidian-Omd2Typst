@@ -2,6 +2,7 @@ import {
   parseTemplateLanguages,
   checkLanguageCompatibility,
   resolveDefaultTemplate,
+  exportCommandName,
 } from '../src/template';
 import type { TemplateEntry, Omd2TypstSettings } from '../src/settings';
 
@@ -15,6 +16,8 @@ const SETTINGS_BASE: Omd2TypstSettings = {
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',
+  showContextMenu: true,
+  showBuiltinInPicker: false,
 };
 
 describe('parseTemplateLanguages', () => {
@@ -67,5 +70,16 @@ describe('resolveDefaultTemplate', () => {
   it('returns null when defaultTemplate name is not in list', () => {
     const settings = { ...SETTINGS_BASE, defaultTemplate: 'Missing' };
     expect(resolveDefaultTemplate(settings)).toBeNull();
+  });
+});
+
+describe('exportCommandName', () => {
+  it('uses "Built-in" label when defaultTemplate is built-in', () => {
+    expect(exportCommandName('PDF', SETTINGS_BASE)).toBe('Export as PDF (Built-in)');
+  });
+
+  it('uses the template name when a custom template is set', () => {
+    const s = { ...SETTINGS_BASE, defaultTemplate: 'purple-template' };
+    expect(exportCommandName('Typst file', s)).toBe('Export as Typst file (purple-template)');
   });
 });
