@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.8.19 — Fix mermaid SVG cleanup for .typ export
+
+- Mermaid SVG files are now kept alongside the note when exporting to `.typ` — they are needed when compiling the `.typ` file manually with `typst compile`.
+- `mermaid.initialize()` is now called at most once per session to avoid resetting Obsidian's mermaid theme configuration on repeated exports.
+
+---
+
 ## v0.8.18 — Mermaid diagram support
 
 Mermaid code blocks are now rendered as diagrams in exported PDFs and `.typ` files.
