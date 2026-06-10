@@ -1,14 +1,17 @@
-import { Plugin, TFile, TAbstractFile, Notice, normalizePath, Menu, MenuItem } from 'obsidian';
-import { Omd2TypstSettings, DEFAULT_SETTINGS, OutputFormat, Omd2TypstSettingTab } from './settings';
-import { resolveDefaultTemplate } from './template';
+import { Plugin, TFile, TAbstractFile, Notice, normalizePath, Menu, MenuItem, Command } from 'obsidian';
+import { Omd2TypstSettings, DEFAULT_SETTINGS, OutputFormat, Omd2TypstSettingTab, TemplateEntry } from './settings';
+import { resolveDefaultTemplate, exportCommandName } from './template';
 import { mergeFrontmatter, buildFrontmatterBlock, parseFrontmatter } from './frontmatter';
 import { exportNote } from './exporter';
 import { detectSystemTypst, TypstStatus } from './typst-cli';
 import { getBuiltinTemplate } from './wasm/omd2typst';
+import { TemplateSuggestModal } from './template-picker';
 
 export default class Omd2TypstPlugin extends Plugin {
   settings: Omd2TypstSettings = DEFAULT_SETTINGS;
   typstStatus: TypstStatus = { source: 'none', version: '' };
+  private cmdExportPdf: Command | undefined;
+  private cmdExportTyp: Command | undefined;
 
   async onload() {
     await this.loadSettings();
@@ -18,15 +21,15 @@ export default class Omd2TypstPlugin extends Plugin {
 
 
     // Register 4 commands
-    this.addCommand({
+    this.cmdExportPdf = this.addCommand({
       id: 'export-pdf',
-      name: 'Export as PDF',
+      name: exportCommandName('PDF', this.settings),
       callback: () => this.exportActiveNote('pdf'),
     });
 
-    this.addCommand({
+    this.cmdExportTyp = this.addCommand({
       id: 'export-typ',
-      name: 'Export as typst source (.typ)',
+      name: exportCommandName('Typst file', this.settings),
       callback: () => this.exportActiveNote('typ'),
     });
 
@@ -42,20 +45,73 @@ export default class Omd2TypstPlugin extends Plugin {
       callback: () => this.exportBuiltinTemplate(),
     });
 
+    this.addCommand({
+      id: 'export-pdf-pick-template',
+      name: 'Export as PDF with template…',
+      checkCallback: (checking: boolean) => {
+        if (this.settings.templates.length < 1) return false;
+        if (!checking) {
+          const file = this.app.workspace.getActiveFile();
+          if (!file) { new Notice('No active file.'); return; }
+          new TemplateSuggestModal(this.app, this.settings, (entry) => {
+            void this.exportFile(file, 'pdf', entry);
+          }).open();
+        }
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: 'export-typ-pick-template',
+      name: 'Export as typst file with template…',
+      checkCallback: (checking: boolean) => {
+        if (this.settings.templates.length < 1) return false;
+        if (!checking) {
+          const file = this.app.workspace.getActiveFile();
+          if (!file) { new Notice('No active file.'); return; }
+          new TemplateSuggestModal(this.app, this.settings, (entry) => {
+            void this.exportFile(file, 'typ', entry);
+          }).open();
+        }
+        return true;
+      },
+    });
+
     // Register file-menu context menus (right-click in file explorer)
     this.registerEvent(
       this.app.workspace.on('file-menu', (menu: Menu, file: TAbstractFile) => {
         if (!(file instanceof TFile) || file.extension !== 'md') return;
+        if (!this.settings.showContextMenu) return;
         menu.addItem((item: MenuItem) => {
           item.setTitle('Export as PDF')
               .setIcon('file-pdf')
               .onClick(() => this.exportFile(file, 'pdf'));
         });
         menu.addItem((item: MenuItem) => {
-          item.setTitle('Export as typst source')
+          item.setTitle('Export as typst file')
               .setIcon('file-type')
               .onClick(() => this.exportFile(file, 'typ'));
         });
+        if (this.settings.templates.length >= 1) {
+          menu.addItem((item: MenuItem) => {
+            item.setTitle('Export as PDF with template…')
+                .setIcon('file-pdf')
+                .onClick(() => {
+                  new TemplateSuggestModal(this.app, this.settings, (entry) => {
+                    void this.exportFile(file, 'pdf', entry);
+                  }).open();
+                });
+          });
+          menu.addItem((item: MenuItem) => {
+            item.setTitle('Export as typst file with template…')
+                .setIcon('file-type')
+                .onClick(() => {
+                  new TemplateSuggestModal(this.app, this.settings, (entry) => {
+                    void this.exportFile(file, 'typ', entry);
+                  }).open();
+                });
+          });
+        }
       })
     );
 
@@ -71,6 +127,8 @@ export default class Omd2TypstPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+    if (this.cmdExportPdf) this.cmdExportPdf.name = exportCommandName('PDF', this.settings);
+    if (this.cmdExportTyp) this.cmdExportTyp.name = exportCommandName('Typst file', this.settings);
   }
 
   private async exportActiveNote(format: OutputFormat) {
@@ -82,9 +140,9 @@ export default class Omd2TypstPlugin extends Plugin {
     await this.exportFile(file, format);
   }
 
-  private async exportFile(file: TFile, format: OutputFormat) {
+  private async exportFile(file: TFile, format: OutputFormat, templateOverride?: TemplateEntry | null) {
     try {
-      const template = resolveDefaultTemplate(this.settings);
+      const template = templateOverride !== undefined ? templateOverride : resolveDefaultTemplate(this.settings);
       await exportNote(file, format, template, this.settings, this.app);
       new Notice(`Exported: ${file.basename}.${format === 'pdf' ? 'pdf' : 'typ'}`);
     } catch (err) {
