@@ -1,5 +1,16 @@
 # Release Notes
 
+## v0.8.15 — Template picker at export time
+
+Choose a template when exporting instead of always using the default:
+
+- **Export as PDF (template-name)** and **Export as Typst file (template-name)** — existing commands now show the active default template name; the name updates live when the default is changed in settings.
+- **Export as PDF with template…** and **Export as Typst file with template…** — new commands that open a template picker. Only visible in the command palette when at least one custom template is registered.
+- **Show context menu items** — new setting to show or hide all Omd2Typst options in the right-click file menu.
+- **Show built-in template in picker** — new setting (default off) to include the built-in template in the picker list.
+
+---
+
 ## v0.8.14 — Fix clippy lint; built on omd2typst v0.10.5
 
 Internal clippy fix in the YAML block scalar parser (`map_or(false, …)` →
