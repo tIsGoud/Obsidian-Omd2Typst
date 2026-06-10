@@ -63,7 +63,8 @@ export default class Omd2TypstPlugin extends Plugin {
 
     this.addCommand({
       id: 'export-typ-pick-template',
-      name: 'Export as typst file with template…',
+      // eslint-disable-next-line obsidianmd/ui/sentence-case -- Typst is a proper noun
+      name: 'Export as Typst file with template…',
       checkCallback: (checking: boolean) => {
         if (this.settings.templates.length < 1) return false;
         if (!checking) {
@@ -88,7 +89,8 @@ export default class Omd2TypstPlugin extends Plugin {
               .onClick(() => this.exportFile(file, 'pdf'));
         });
         menu.addItem((item: MenuItem) => {
-          item.setTitle('Export as typst file')
+          // eslint-disable-next-line obsidianmd/ui/sentence-case -- Typst is a proper noun
+          item.setTitle('Export as Typst file')
               .setIcon('file-type')
               .onClick(() => this.exportFile(file, 'typ'));
         });
@@ -103,7 +105,8 @@ export default class Omd2TypstPlugin extends Plugin {
                 });
           });
           menu.addItem((item: MenuItem) => {
-            item.setTitle('Export as typst file with template…')
+            // eslint-disable-next-line obsidianmd/ui/sentence-case -- Typst is a proper noun
+            item.setTitle('Export as Typst file with template…')
                 .setIcon('file-type')
                 .onClick(() => {
                   new TemplateSuggestModal(this.app, this.settings, (entry) => {
