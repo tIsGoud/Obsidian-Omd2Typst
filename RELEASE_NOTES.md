@@ -1,5 +1,18 @@
 # Release Notes
 
+## v0.8.18 — Mermaid diagram support
+
+Mermaid code blocks are now rendered as diagrams in exported PDFs and `.typ` files.
+The plugin uses Obsidian's own bundled mermaid library — no extra tools or packages required.
+
+- Each ` ```mermaid ` block is rendered to SVG and embedded as an image in the export.
+- If a diagram cannot be rendered (e.g. invalid syntax), that block is left as a code listing
+  and a notice is shown; other diagrams in the same note still render.
+- If Obsidian's mermaid library is unavailable, all blocks are left as code listings and a
+  notice explains how to resolve it (usually: restart Obsidian).
+
+---
+
 ## v0.8.17 — Fix missing plugin prefix on live-updated command names
 
 When the default template was changed in settings, the command palette showed
