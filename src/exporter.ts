@@ -4,6 +4,7 @@ import { checkLanguageCompatibility } from './template';
 import { resolveOutputPath } from './output';
 import { renderToTypst } from './wasm/omd2typst';
 import { findTypstBinary, compileToPdfViaCli } from './typst-cli';
+import { renderMermaidBlocks } from './mermaid';
 
 /**
  * Extract the value of a YAML key from the frontmatter block.
@@ -32,7 +33,7 @@ function extractFrontmatterValue(content: string, key: string): string | null {
  * Export a note to Typst or PDF format.
  *
  * Steps:
- *  1. Read the note content.
+ *  1. Read and pre-process the note (renders mermaid blocks to temp SVGs).
  *  2. Resolve template source (null for built-in).
  *  3. Check language compatibility (emit Notice on mismatch, do not abort).
  *  4. Render to Typst source.
@@ -46,60 +47,64 @@ export async function exportNote(
   settings: Omd2TypstSettings,
   app: App,
 ): Promise<void> {
-  // Step 1: Read the note
-  const markdown = await app.vault.read(file);
-
-  // Step 2: Resolve template path for #import (verify file exists; null → built-in).
-  // Prefixing with / makes the path vault-root-relative; typst resolves it from --root.
-  let templatePath: string | null = null;
-  if (template !== null && template.path) {
-    const abstractFile = app.vault.getAbstractFileByPath(template.path);
-    if (!(abstractFile instanceof TFile)) {
-      throw new Error(`Template file not found or is a folder: '${template.path}'`);
+  // Step 1: Read and pre-process the note (renders mermaid blocks to temp SVGs)
+  const rawMarkdown = await app.vault.read(file);
+  const { markdown, cleanup } = await renderMermaidBlocks(rawMarkdown, app, file);
+  try {
+    // Step 2: Resolve template path for #import (verify file exists; null → built-in).
+    // Prefixing with / makes the path vault-root-relative; typst resolves it from --root.
+    let templatePath: string | null = null;
+    if (template !== null && template.path) {
+      const abstractFile = app.vault.getAbstractFileByPath(template.path);
+      if (!(abstractFile instanceof TFile)) {
+        throw new Error(`Template file not found or is a folder: '${template.path}'`);
+      }
+      templatePath = '/' + template.path;
     }
-    templatePath = '/' + template.path;
-  }
 
-  // Step 3: Language compatibility check
-  if (template !== null) {
-    const noteLanguage =
-      extractFrontmatterValue(markdown, 'language') ?? settings.defaultLanguage;
-    const warning = checkLanguageCompatibility(template, noteLanguage);
-    if (warning !== null) {
-      new Notice(warning);
+    // Step 3: Language compatibility check
+    if (template !== null) {
+      const noteLanguage =
+        extractFrontmatterValue(markdown, 'language') ?? settings.defaultLanguage;
+      const warning = checkLanguageCompatibility(template, noteLanguage);
+      if (warning !== null) {
+        new Notice(warning);
+      }
     }
-  }
 
-  // Step 4: Render to Typst
-  const typstSrc = await renderToTypst(markdown, templatePath);
+    // Step 4: Render to Typst
+    const typstSrc = await renderToTypst(markdown, templatePath);
 
-  // Step 5: Resolve output path
-  const outputPath = resolveOutputPath(file.path, format, settings);
-  if (outputPath === null) {
-    throw new Error('ask-every-time output mode not yet implemented');
-  }
+    // Step 5: Resolve output path
+    const outputPath = resolveOutputPath(file.path, format, settings);
+    if (outputPath === null) {
+      throw new Error('ask-every-time output mode not yet implemented');
+    }
 
-  // Step 6: Write output
-  if (format === 'typ') {
-    await app.vault.adapter.write(outputPath, typstSrc);
-  } else {
-    // PDF: requires system typst CLI. Fall back to .typ if not installed.
-    const bin = findTypstBinary();
-
-    if (bin) {
-      const adapter = app.vault.adapter;
-      const vaultBase = adapter instanceof FileSystemAdapter ? adapter.getBasePath() : '';
-      const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase);
-      await app.vault.adapter.writeBinary(outputPath, pdfBytes.buffer as ArrayBuffer);
+    // Step 6: Write output
+    if (format === 'typ') {
+      await app.vault.adapter.write(outputPath, typstSrc);
     } else {
-      // No system typst — export .typ so the user has something useful.
-      const typPath = resolveOutputPath(file.path, 'typ', settings)!;
-      await app.vault.adapter.write(typPath, typstSrc);
-      new Notice(
-        'Typst not installed — exported as .typ instead. ' +
-        'Install Typst from typst.app to enable PDF export.',
-        8000,
-      );
+      // PDF: requires system typst CLI. Fall back to .typ if not installed.
+      const bin = findTypstBinary();
+
+      if (bin) {
+        const adapter = app.vault.adapter;
+        const vaultBase = adapter instanceof FileSystemAdapter ? adapter.getBasePath() : '';
+        const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase);
+        await app.vault.adapter.writeBinary(outputPath, pdfBytes.buffer as ArrayBuffer);
+      } else {
+        // No system typst — export .typ so the user has something useful.
+        const typPath = resolveOutputPath(file.path, 'typ', settings)!;
+        await app.vault.adapter.write(typPath, typstSrc);
+        new Notice(
+          'Typst not installed — exported as .typ instead. ' +
+          'Install Typst from typst.app to enable PDF export.',
+          8000,
+        );
+      }
     }
+  } finally {
+    await cleanup();
   }
 }
