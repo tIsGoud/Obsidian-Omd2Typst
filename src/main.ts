@@ -29,7 +29,7 @@ export default class Omd2TypstPlugin extends Plugin {
 
     this.cmdExportTyp = this.addCommand({
       id: 'export-typ',
-      name: exportCommandName('Typst file', this.settings),
+      name: exportCommandName('typst file', this.settings),
       callback: () => this.exportActiveNote('typ'),
     });
 
@@ -63,8 +63,7 @@ export default class Omd2TypstPlugin extends Plugin {
 
     this.addCommand({
       id: 'export-typ-pick-template',
-      // eslint-disable-next-line obsidianmd/ui/sentence-case -- Typst is a proper noun
-      name: 'Export as Typst file with template…',
+      name: 'Export as typst file with template…',
       checkCallback: (checking: boolean) => {
         if (this.settings.templates.length < 1) return false;
         if (!checking) {
@@ -89,8 +88,7 @@ export default class Omd2TypstPlugin extends Plugin {
               .onClick(() => this.exportFile(file, 'pdf'));
         });
         menu.addItem((item: MenuItem) => {
-          // eslint-disable-next-line obsidianmd/ui/sentence-case -- Typst is a proper noun
-          item.setTitle('Export as Typst file')
+          item.setTitle('Export as typst file')
               .setIcon('file-type')
               .onClick(() => this.exportFile(file, 'typ'));
         });
@@ -105,8 +103,7 @@ export default class Omd2TypstPlugin extends Plugin {
                 });
           });
           menu.addItem((item: MenuItem) => {
-            // eslint-disable-next-line obsidianmd/ui/sentence-case -- Typst is a proper noun
-            item.setTitle('Export as Typst file with template…')
+            item.setTitle('Export as typst file with template…')
                 .setIcon('file-type')
                 .onClick(() => {
                   new TemplateSuggestModal(this.app, this.settings, (entry) => {
@@ -131,7 +128,7 @@ export default class Omd2TypstPlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
     if (this.cmdExportPdf) this.cmdExportPdf.name = exportCommandName('PDF', this.settings);
-    if (this.cmdExportTyp) this.cmdExportTyp.name = exportCommandName('Typst file', this.settings);
+    if (this.cmdExportTyp) this.cmdExportTyp.name = exportCommandName('typst file', this.settings);
   }
 
   private async exportActiveNote(format: OutputFormat) {

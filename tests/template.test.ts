@@ -80,6 +80,6 @@ describe('exportCommandName', () => {
 
   it('uses the template name when a custom template is set', () => {
     const s = { ...SETTINGS_BASE, defaultTemplate: 'purple-template' };
-    expect(exportCommandName('Typst file', s)).toBe('Export as Typst file (purple-template)');
+    expect(exportCommandName('typst file', s)).toBe('Export as typst file (purple-template)');
   });
 });

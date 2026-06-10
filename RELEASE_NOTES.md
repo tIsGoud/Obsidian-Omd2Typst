@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.8.16 — Fix sentence-case violations in command names
+
+Removed `eslint-disable` suppressions for the Obsidian review linter — disabling
+`obsidianmd/ui/sentence-case` is not permitted. "Typst" is now consistently
+lowercase in all UI strings: `Export as typst file`, `Export as typst file with template…`.
+
+---
+
 ## v0.8.15 — Template picker at export time
 
 Choose a template when exporting instead of always using the default:
