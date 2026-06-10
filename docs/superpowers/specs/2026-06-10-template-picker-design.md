@@ -17,7 +17,8 @@ The plugin always exports using the default template set in settings. Users who 
 - Two new commands appear in the command palette **only** when at least one custom template is registered:
   - `Export as PDF with template…`
   - `Export as typst source with template…`
-  - Invoking either opens a modal listing all templates; the export runs with the chosen template.
+  - Invoking either opens a modal listing templates; the export runs with the chosen template.
+  - A new **Show built-in template in picker** setting controls whether the built-in template appears in this list. Default: off — users working with custom templates should not have the built-in cluttering the list.
 
 - All four export items appear in the right-click file menu, gated on a new **Show context menu items** setting. The two "with template" items additionally require at least one custom template.
 
@@ -30,7 +31,7 @@ Plugin-only — no changes to the omd2typst Rust crate or WASM bundle.
 | Action | Path | Purpose |
 |--------|------|---------|
 | Create | `src/template-picker.ts` | `TemplateSuggestModal` class |
-| Modify | `src/settings.ts` | Add `showContextMenu` boolean; add toggle row in Export section |
+| Modify | `src/settings.ts` | Add `showContextMenu` and `showBuiltinInPicker` booleans; add toggle rows in Export section |
 | Modify | `src/main.ts` | Hold command references for live name updates; register new commands; apply context menu gate |
 
 ## Design
@@ -40,13 +41,17 @@ Plugin-only — no changes to the omd2typst Rust crate or WASM bundle.
 Add to `Omd2TypstSettings` interface and `DEFAULT_SETTINGS`:
 
 ```typescript
-showContextMenu: boolean;  // default: true
+showContextMenu: boolean;     // default: true
+showBuiltinInPicker: boolean; // default: false
 ```
 
-Add a toggle row in the **Export** section of `Omd2TypstSettingTab.display()`, after the output location row:
+Add two toggle rows in the **Export** section of `Omd2TypstSettingTab.display()`, after the output location row:
 
 > **Show context menu items**
 > *Show Omd2Typst export options in the right-click file menu.*
+
+> **Show built-in template in picker**
+> *Include the built-in template in the "Export with template" list. Turn on if you want to switch to the built-in from the picker without changing the default.*
 
 ### `src/template-picker.ts`
 
@@ -57,8 +62,8 @@ type TemplateChoice = { label: string; entry: TemplateEntry | null };
 `TemplateSuggestModal extends SuggestModal<TemplateChoice>`:
 
 - **Constructor:** `(app, settings, onPick)` — `onPick: (entry: TemplateEntry | null) => void`
-- **`getSuggestions(_query)`:** ignores query, returns the full list:
-  - `{ label: 'Built-in', entry: null }` first
+- **`getSuggestions(_query)`:** ignores query, returns:
+  - `{ label: 'Built-in', entry: null }` first — **only** when `settings.showBuiltinInPicker` is `true`
   - then `settings.templates.map(t => ({ label: t.name, entry: t }))`
 - **`renderSuggestion(choice, el)`:** sets `el.setText(choice.label)`
 - **`onChooseSuggestion(choice)`:** calls `onPick(choice.entry)`
@@ -130,7 +135,7 @@ Gate the entire `file-menu` registration block on `this.settings.showContextMenu
 
 `TemplateSuggestModal` wraps Obsidian's `SuggestModal` (DOM-dependent) — not unit tested.
 
-The `showContextMenu` setting is a boolean gate in `main.ts` with no logic to test beyond the existing mock infrastructure.
+The `showContextMenu` and `showBuiltinInPicker` settings are boolean gates with no logic to test beyond the existing mock infrastructure.
 
 ## Out of scope
 
