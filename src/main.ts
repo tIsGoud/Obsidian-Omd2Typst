@@ -127,8 +127,10 @@ export default class Omd2TypstPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
-    if (this.cmdExportPdf) this.cmdExportPdf.name = exportCommandName('PDF', this.settings);
-    if (this.cmdExportTyp) this.cmdExportTyp.name = exportCommandName('typst file', this.settings);
+    // addCommand() prefixes the name with the plugin name; replicate that prefix when updating live.
+    const prefix = `${this.manifest.name}: `;
+    if (this.cmdExportPdf) this.cmdExportPdf.name = prefix + exportCommandName('PDF', this.settings);
+    if (this.cmdExportTyp) this.cmdExportTyp.name = prefix + exportCommandName('typst file', this.settings);
   }
 
   private async exportActiveNote(format: OutputFormat) {

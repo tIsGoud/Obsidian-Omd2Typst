@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.8.17 — Fix missing plugin prefix on live-updated command names
+
+When the default template was changed in settings, the command palette showed
+"Export as PDF (DUO)" instead of "Omd2Typst: Export as PDF (DUO)". Obsidian
+stores the plugin name as part of the command name after `addCommand()`; the
+live-update in `saveSettings` now replicates that prefix.
+
+---
+
 ## v0.8.16 — Fix sentence-case violations in command names
 
 Removed `eslint-disable` suppressions for the Obsidian review linter — disabling
