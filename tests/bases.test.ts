@@ -356,3 +356,113 @@ describe('filter evaluation — frontmatter properties', () => {
     expect(result).not.toContain('doc');
   });
 });
+
+describe('table building', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('builds a markdown pipe table with correct headers and rows', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      views: [{ type: 'table', name: 'T', order: ['file.name', 'title', 'date'] }],
+    });
+    const f1 = makeFile('notes/report.md');
+    const f2 = makeFile('notes/memo.md');
+    const caches = new Map([
+      [f1.path, makeCache({ title: 'Annual Report', date: '2024-01-01' })],
+      [f2.path, makeCache({ title: 'Quick Memo', date: '2024-02-01' })],
+    ]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [f1, f2], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/doc.md'));
+
+    expect(result).toContain('| name | title | date |');
+    expect(result).toContain('| report | Annual Report | 2024-01-01 |');
+    expect(result).toContain('| memo | Quick Memo | 2024-02-01 |');
+  });
+
+  it('uses displayName override for column headers', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      views: [{ type: 'table', name: 'T', order: ['file.name', 'year'] }],
+      properties: { 'file.name': { displayName: 'Lokatie' }, year: { displayName: 'Jaar' } },
+    });
+    const f = makeFile('notes/venue.md');
+    const caches = new Map([[f.path, makeCache({ year: '2024' })]]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [f], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/doc.md'));
+
+    expect(result).toContain('| Lokatie | Jaar |');
+    expect(result).toContain('| venue | 2024 |');
+  });
+
+  it('outputs *No results.* when query returns zero rows', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      filters: 'file.ext == "nonexistent"',
+      views: [{ type: 'table', name: 'T', order: ['file.name'] }],
+    });
+    const f = makeFile('notes/doc.md');
+    const caches = new Map([[f.path, makeCache()]]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [f], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/source.md'));
+
+    expect(result).toBe('*No results.*');
+  });
+
+  it('strips [[Link]] syntax from cell values', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      views: [{ type: 'table', name: 'T', order: ['file.name', 'categories'] }],
+    });
+    const f = makeFile('notes/slides.md');
+    const caches = new Map([[f.path, makeCache({ categories: '[[Presentations]]' })]]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [f], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/doc.md'));
+
+    expect(result).toContain('Presentations');
+    expect(result).not.toContain('[[');
+  });
+
+  it('applies sort in specified direction', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      views: [{
+        type: 'table',
+        name: 'T',
+        order: ['file.name'],
+        sort: [{ property: 'file.name', direction: 'ASC' }],
+      }],
+    });
+    const fa = makeFile('notes/alpha.md');
+    const fz = makeFile('notes/zeta.md');
+    const caches = new Map([[fa.path, makeCache()], [fz.path, makeCache()]]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [fz, fa], caches }); // intentionally reversed
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/doc.md'));
+
+    const alphaPos = result.indexOf('alpha');
+    const zetaPos = result.indexOf('zeta');
+    expect(alphaPos).toBeLessThan(zetaPos);
+  });
+
+  it('emits Notice for unsupported filter expression and still queries', async () => {
+    const { parseYaml } = require('obsidian');
+    const noticeSpy = jest.spyOn(require('obsidian'), 'Notice');
+    parseYaml.mockReturnValue({
+      filters: 'unsupported.function("xyz")',
+      views: [{ type: 'table', name: 'T', order: ['file.name'] }],
+    });
+    const f = makeFile('notes/doc.md');
+    const caches = new Map([[f.path, makeCache()]]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [f], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/source.md'));
+
+    expect(noticeSpy).toHaveBeenCalledWith(expect.stringContaining('Unsupported filter'));
+    expect(result).toContain('doc');
+    noticeSpy.mockRestore();
+  });
+});

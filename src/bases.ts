@@ -174,13 +174,17 @@ function evaluateFilter(
   return true;
 }
 
+function stripLinks(value: string): string {
+  return value.replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, '$1');
+}
+
 function cellValue(col: string, file: TFile, cache: CachedMetadata): string {
   const fm: FrontMatterCache = cache.frontmatter ?? {};
   if (col === 'file.name') return file.basename;
   if (col === 'file.path') return file.path;
   if (col === 'file.ext') return file.extension;
   if (col.startsWith('file.')) return '';
-  return String(fm[col] ?? '');
+  return stripLinks(String(fm[col] ?? ''));
 }
 
 async function queryView(
@@ -207,6 +211,18 @@ async function queryView(
       row[col] = cellValue(col, file, cache);
     }
     rows.push(row);
+  }
+
+  if (view.sort && view.sort.length > 0) {
+    rows.sort((a, b) => {
+      for (const { property, direction } of view.sort!) {
+        const av = a[property] ?? '';
+        const bv = b[property] ?? '';
+        const cmp = av.localeCompare(bv);
+        if (cmp !== 0) return direction === 'DESC' ? -cmp : cmp;
+      }
+      return 0;
+    });
   }
 
   return { rows, skippedFilters };
