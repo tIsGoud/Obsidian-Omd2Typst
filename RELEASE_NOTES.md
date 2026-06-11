@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.8.20 — Obsidian Bases support
+
+Notes that embed an Obsidian Bases view (`![[file.base]]` or `![[file.base#view-name]]`)
+now render the query results as a table in exported PDFs and `.typ` files.
+
+- Results are queried from Obsidian's in-memory metadata cache — no extra tools required.
+- Supported filter operations: `file.ext`, `file.name.startsWith()`, `file.path.startsWith()`,
+  `file.tags.contains()`, `file.tags.containsAny()`, property equality/inequality,
+  `link()` comparisons, `and`/`or`/`!` boolean operators.
+- Column headers and display names are read from the `.base` file's `properties` section.
+- Only `table` view types are supported; `cards`, `calendar`, and `gallery` views are skipped
+  with a notice.
+- Unsupported filter expressions are skipped (treated as matching all files) with a notice.
+- Use `![[file.base#view-name]]` to select a specific named view; defaults to the first view.
+
+---
+
 ## v0.8.19 — Fix mermaid SVG cleanup for .typ export
 
 - Mermaid SVG files are now kept alongside the note when exporting to `.typ` — they are needed when compiling the `.typ` file manually with `typst compile`.
