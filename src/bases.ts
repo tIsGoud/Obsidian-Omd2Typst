@@ -1,5 +1,4 @@
 import { App, Notice, TFile, parseYaml } from 'obsidian';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { CachedMetadata, FrontMatterCache } from 'obsidian';
 
 // ---------------------------------------------------------------------------
@@ -77,25 +76,140 @@ function columnHeader(col: string, base: BaseDefinition): string {
 }
 
 // ---------------------------------------------------------------------------
-// Stubs — replaced in Tasks 2 and 3
+// Filter evaluation
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function evaluateFilter(_filter: BaseFilter, _file: TFile, _cache: CachedMetadata, _skipped: Set<string>): boolean {
+function normalizePropertyName(prop: string): string {
+  const bracketMatch = /^note\["([^"]+)"\]$/.exec(prop);
+  if (bracketMatch) return bracketMatch[1];
+  if (prop.startsWith('note.')) return prop.slice(5);
+  return prop;
+}
+
+function evaluateLeaf(
+  expr: string,
+  file: TFile,
+  cache: CachedMetadata,
+  skipped: Set<string>,
+): boolean {
+  const fm: FrontMatterCache = cache.frontmatter ?? {};
+  const tags = (cache.tags ?? []).map(t => t.tag.replace(/^#/, ''));
+  let m: RegExpExecArray | null;
+
+  m = /^file\.name\.startsWith\("([^"]+)"\)$/.exec(expr);
+  if (m) return file.basename.startsWith(m[1]);
+
+  m = /^file\.ext\s*(==|!=)\s*"([^"]+)"$/.exec(expr);
+  if (m) return m[1] === '==' ? file.extension === m[2] : file.extension !== m[2];
+
+  m = /^file\.path\.startsWith\("([^"]+)"\)$/.exec(expr);
+  if (m) return file.path.startsWith(m[1]);
+
+  m = /^file\.tags\.contains\("([^"]+)"\)$/.exec(expr);
+  if (m) return tags.includes(m[1]);
+
+  m = /^file\.tags\.containsAny\("([^"]+)"\)$/.exec(expr);
+  if (m) {
+    const target = m[1];
+    return tags.some(t => t === target || t.startsWith(target + '/'));
+  }
+
+  m = /^(.+?)\s*==\s*(true|false)$/.exec(expr);
+  if (m) {
+    const prop = normalizePropertyName(m[1].trim());
+    const val = m[2] === 'true';
+    return fm[prop] === val || fm[prop] === String(val);
+  }
+
+  m = /^(.+?)\s*!=\s*(true|false)$/.exec(expr);
+  if (m) {
+    const prop = normalizePropertyName(m[1].trim());
+    const val = m[2] === 'true';
+    return fm[prop] !== val && fm[prop] !== String(val);
+  }
+
+  m = /^(.+?)\s*==\s*link\("([^"]+)"\)$/.exec(expr);
+  if (m) {
+    const prop = normalizePropertyName(m[1].trim());
+    const linkName = m[2];
+    const val: unknown = fm[prop];
+    const containsLink = (s: string) =>
+      s.includes(`[[${linkName}]]`) || s.includes(`[[${linkName}|`);
+    if (typeof val === 'string') return containsLink(val);
+    if (Array.isArray(val)) return val.some(v => typeof v === 'string' && containsLink(v));
+    return false;
+  }
+
+  m = /^(.+?)\s*==\s*"([^"]*)"$/.exec(expr);
+  if (m) {
+    const prop = normalizePropertyName(m[1].trim());
+    return String(fm[prop] ?? '') === m[2];
+  }
+
+  m = /^(.+?)\s*!=\s*"([^"]*)"$/.exec(expr);
+  if (m) {
+    const prop = normalizePropertyName(m[1].trim());
+    return String(fm[prop] ?? '') !== m[2];
+  }
+
+  skipped.add(expr);
   return true;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function cellValue(_col: string, _file: TFile, _cache: CachedMetadata): string {
-  return '';
+function evaluateFilter(
+  filter: BaseFilter,
+  file: TFile,
+  cache: CachedMetadata,
+  skipped: Set<string>,
+): boolean {
+  if (typeof filter === 'string') {
+    const expr = filter.startsWith('!') ? filter.slice(1).trim() : filter;
+    const result = evaluateLeaf(expr, file, cache, skipped);
+    return filter.startsWith('!') ? !result : result;
+  }
+  const node = filter;
+  if (node.and) return node.and.every(f => evaluateFilter(f, file, cache, skipped));
+  if (node.or) return node.or.some(f => evaluateFilter(f, file, cache, skipped));
+  skipped.add(JSON.stringify(filter));
+  return true;
+}
+
+function cellValue(col: string, file: TFile, cache: CachedMetadata): string {
+  const fm: FrontMatterCache = cache.frontmatter ?? {};
+  if (col === 'file.name') return file.basename;
+  if (col === 'file.path') return file.path;
+  if (col === 'file.ext') return file.extension;
+  if (col.startsWith('file.')) return '';
+  return String(fm[col] ?? '');
 }
 
 async function queryView(
-  _base: BaseDefinition,
-  _view: BaseView,
-  _app: App,
+  base: BaseDefinition,
+  view: BaseView,
+  app: App,
 ): Promise<{ rows: Record<string, string>[]; skippedFilters: Set<string> }> {
-  return { rows: [], skippedFilters: new Set() };
+  const skippedFilters = new Set<string>();
+  const allFiles: TFile[] = app.vault.getMarkdownFiles();
+  const columns = view.order ?? ['file.name'];
+
+  const rows: Record<string, string>[] = [];
+  for (const file of allFiles) {
+    const cache: CachedMetadata = app.metadataCache.getFileCache(file) ?? { frontmatter: {} };
+
+    const globalFilter = base.filters;
+    if (globalFilter && !evaluateFilter(globalFilter, file, cache, skippedFilters)) continue;
+
+    const viewFilter = view.filters;
+    if (viewFilter && !evaluateFilter(viewFilter, file, cache, skippedFilters)) continue;
+
+    const row: Record<string, string> = {};
+    for (const col of columns) {
+      row[col] = cellValue(col, file, cache);
+    }
+    rows.push(row);
+  }
+
+  return { rows, skippedFilters };
 }
 
 function buildMarkdownTable(

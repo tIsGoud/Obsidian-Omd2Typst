@@ -86,8 +86,8 @@ describe('renderBaseEmbeds — embed detection', () => {
 
     const result = await renderBaseEmbeds('![[MyBase.base#second]]', app as any, file);
 
-    // Should use 'second' view (file.name column)
-    expect(result).toContain('*No results.*');
+    // Should use 'second' view (file.name column) and return the file row
+    expect(result).toContain('a');
   });
 
   it('shows Notice and uses first view when named view not found', async () => {
@@ -150,5 +150,209 @@ describe('renderBaseEmbeds — embed detection', () => {
     expect(result).toBe('');
     expect(noticeSpy).toHaveBeenCalledWith(expect.stringContaining("not supported"));
     noticeSpy.mockRestore();
+  });
+});
+
+function makeFilterApp(
+  filterExpr: string | object,
+  mdFiles: TFile[],
+  caches: Map<string, CachedMetadata>,
+) {
+  const { parseYaml } = require('obsidian');
+  parseYaml.mockReturnValue({
+    filters: filterExpr,
+    views: [{ type: 'table', name: 'T', order: ['file.name'] }],
+  });
+  const baseFile = makeFile('base/Test.base');
+  return makeApp({ baseFile, mdFiles, caches });
+}
+
+describe('filter evaluation — file properties', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('file.ext == "md" includes only .md files', async () => {
+    const mdFile = makeFile('notes/hello.md');
+    const pngFile = makeFile('assets/img.png');
+    const caches = new Map([
+      [mdFile.path, makeCache()],
+      [pngFile.path, makeCache()],
+    ]);
+    const app = makeFilterApp('file.ext == "md"', [mdFile, pngFile], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('hello');
+    expect(result).not.toContain('img');
+  });
+
+  it('file.ext != "png" excludes .png files', async () => {
+    const mdFile = makeFile('notes/hello.md');
+    const pngFile = makeFile('assets/img.png');
+    const caches = new Map([
+      [mdFile.path, makeCache()],
+      [pngFile.path, makeCache()],
+    ]);
+    const app = makeFilterApp('file.ext != "png"', [mdFile, pngFile], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('hello');
+    expect(result).not.toContain('img');
+  });
+
+  it('file.name.startsWith("SAP-ADR-") matches by prefix', async () => {
+    const matching = makeFile('notes/SAP-ADR-001.md');
+    const nonMatching = makeFile('notes/other.md');
+    const caches = new Map([
+      [matching.path, makeCache()],
+      [nonMatching.path, makeCache()],
+    ]);
+    const app = makeFilterApp('file.name.startsWith("SAP-ADR-")', [matching, nonMatching], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('SAP-ADR-001');
+    expect(result).not.toContain('other');
+  });
+
+  it('file.path.startsWith("notes/") matches by path', async () => {
+    const inNotes = makeFile('notes/hello.md');
+    const inAssets = makeFile('assets/doc.md');
+    const caches = new Map([
+      [inNotes.path, makeCache()],
+      [inAssets.path, makeCache()],
+    ]);
+    const app = makeFilterApp('file.path.startsWith("notes/")', [inNotes, inAssets], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('hello');
+    expect(result).not.toContain('doc');
+  });
+
+  it('file.tags.contains("excalidraw") matches tagged notes', async () => {
+    const tagged = makeFile('notes/diagram.md');
+    const plain = makeFile('notes/plain.md');
+    const caches = new Map([
+      [tagged.path, makeCache({}, ['excalidraw'])],
+      [plain.path, makeCache()],
+    ]);
+    const app = makeFilterApp('file.tags.contains("excalidraw")', [tagged, plain], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('diagram');
+    expect(result).not.toContain('plain');
+  });
+
+  it('file.tags.containsAny("devnetnoord/speaker") matches by tag', async () => {
+    const tagged = makeFile('notes/venue.md');
+    const plain = makeFile('notes/other.md');
+    const caches = new Map([
+      [tagged.path, makeCache({}, ['devnetnoord/speaker'])],
+      [plain.path, makeCache()],
+    ]);
+    const app = makeFilterApp('file.tags.containsAny("devnetnoord/speaker")', [tagged, plain], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('venue');
+    expect(result).not.toContain('other');
+  });
+
+  it('!expr negation excludes matching files', async () => {
+    const tagged = makeFile('notes/diagram.md');
+    const plain = makeFile('notes/plain.md');
+    const caches = new Map([
+      [tagged.path, makeCache({}, ['excalidraw'])],
+      [plain.path, makeCache()],
+    ]);
+    const app = makeFilterApp('!file.tags.contains("excalidraw")', [tagged, plain], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).not.toContain('diagram');
+    expect(result).toContain('plain');
+  });
+});
+
+describe('filter evaluation — frontmatter properties', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('property == true matches notes with truthy boolean', async () => {
+    const published = makeFile('notes/pub.md');
+    const draft = makeFile('notes/draft.md');
+    const caches = new Map([
+      [published.path, makeCache({ gepubliceerd: true })],
+      [draft.path, makeCache({ gepubliceerd: false })],
+    ]);
+    const app = makeFilterApp('gepubliceerd == true', [published, draft], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('pub');
+    expect(result).not.toContain('draft');
+  });
+
+  it('property != true excludes notes with truthy boolean', async () => {
+    const published = makeFile('notes/pub.md');
+    const draft = makeFile('notes/draft.md');
+    const caches = new Map([
+      [published.path, makeCache({ gepubliceerd: true })],
+      [draft.path, makeCache({ gepubliceerd: false })],
+    ]);
+    const app = makeFilterApp('gepubliceerd != true', [published, draft], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).not.toContain('pub');
+    expect(result).toContain('draft');
+  });
+
+  it('property == "string" matches exact string value using note["prop"] syntax', async () => {
+    const wip = makeFile('notes/wip.md');
+    const done = makeFile('notes/done.md');
+    const caches = new Map([
+      [wip.path, makeCache({ 'progress-status': '🚧' })],
+      [done.path, makeCache({ 'progress-status': '✅' })],
+    ]);
+    const app = makeFilterApp('note["progress-status"] == "🚧"', [wip, done], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('wip');
+    expect(result).not.toContain('done');
+  });
+
+  it('property == link("Name") matches [[Name]] in frontmatter', async () => {
+    const pres = makeFile('notes/slides.md');
+    const other = makeFile('notes/other.md');
+    const caches = new Map([
+      [pres.path, makeCache({ categories: '[[Presentations]]' })],
+      [other.path, makeCache({ categories: '[[Tools]]' })],
+    ]);
+    const app = makeFilterApp('categories == link("Presentations")', [pres, other], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('slides');
+    expect(result).not.toContain('other');
+  });
+
+  it('and: [...] requires all conditions to match', async () => {
+    const both = makeFile('notes/SAP-ADR-001.md');
+    const nameOnly = makeFile('notes/SAP-ADR-002.md');
+    const tagOnly = makeFile('notes/other.md');
+    const caches = new Map([
+      [both.path, makeCache({ gepubliceerd: true })],
+      [nameOnly.path, makeCache({ gepubliceerd: false })],
+      [tagOnly.path, makeCache({ gepubliceerd: true })],
+    ]);
+    const app = makeFilterApp(
+      { and: ['file.name.startsWith("SAP-ADR-")', 'gepubliceerd == true'] },
+      [both, nameOnly, tagOnly],
+      caches,
+    );
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('SAP-ADR-001');
+    expect(result).not.toContain('SAP-ADR-002');
+    expect(result).not.toContain('other');
+  });
+
+  it('or: [...] requires at least one condition to match', async () => {
+    const svg = makeFile('assets/img.svg');
+    const png = makeFile('assets/img.png');
+    const md = makeFile('notes/doc.md');
+    const caches = new Map([
+      [svg.path, makeCache()],
+      [png.path, makeCache()],
+      [md.path, makeCache()],
+    ]);
+    const app = makeFilterApp(
+      { or: ['file.ext == "svg"', 'file.ext == "png"'] },
+      [svg, png, md],
+      caches,
+    );
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('img');
+    expect(result).not.toContain('doc');
   });
 });
