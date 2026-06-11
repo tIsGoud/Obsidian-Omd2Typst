@@ -87,7 +87,7 @@ describe('renderBaseEmbeds — embed detection', () => {
     const result = await renderBaseEmbeds('![[MyBase.base#second]]', app as any, file);
 
     // Should use 'second' view (file.name column)
-    expect(result).toContain('a');
+    expect(result).toContain('*No results.*');
   });
 
   it('shows Notice and uses first view when named view not found', async () => {

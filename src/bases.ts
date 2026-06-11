@@ -103,16 +103,13 @@ function buildMarkdownTable(
   columns: string[],
   base: BaseDefinition,
 ): string {
+  if (rows.length === 0) return '*No results.*';
   const headers = columns.map(c => columnHeader(c, base));
   const separator = columns.map(() => '----');
-  const headerRows = [
-    `| ${headers.join(' | ')} |`,
-    `| ${separator.join(' | ')} |`,
-  ];
-  if (rows.length === 0) return [...headerRows, '*No results.*'].join('\n');
   const dataRows = rows.map(row => columns.map(c => row[c] ?? ''));
   return [
-    ...headerRows,
+    `| ${headers.join(' | ')} |`,
+    `| ${separator.join(' | ')} |`,
     ...dataRows.map(r => `| ${r.join(' | ')} |`),
   ].join('\n');
 }
