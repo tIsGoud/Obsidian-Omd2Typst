@@ -183,8 +183,12 @@ function cellValue(col: string, file: TFile, cache: CachedMetadata): string {
   if (col === 'file.name') return file.basename;
   if (col === 'file.path') return file.path;
   if (col === 'file.ext') return file.extension;
-  if (col.startsWith('file.')) return '';
-  return stripLinks(String(fm[col] ?? ''));
+  if (col === 'file.tags') return (cache.tags ?? []).map(t => t.tag.replace(/^#/, '')).join(', ');
+  const prop = normalizePropertyName(col);
+  const val: unknown = fm[prop];
+  if (val === null || val === undefined) return '';
+  if (Array.isArray(val)) return val.map(v => stripLinks(String(v))).join(', ');
+  return stripLinks(String(fm[prop] ?? ''));
 }
 
 async function queryView(
