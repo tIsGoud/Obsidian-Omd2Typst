@@ -188,7 +188,8 @@ function cellValue(col: string, file: TFile, cache: CachedMetadata): string {
   const val: unknown = fm[prop];
   if (val === null || val === undefined) return '';
   if (Array.isArray(val)) return val.map(v => stripLinks(String(v))).join(', ');
-  return stripLinks(String(fm[prop] ?? ''));
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  return stripLinks(String(val));
 }
 
 async function queryView(
@@ -291,6 +292,12 @@ export async function renderBaseEmbeds(
     }
 
     const view = resolveView(base, baseName, embed.viewName);
+
+    if (!view) {
+      new Notice(`First view in ${baseName} is invalid`);
+      replacements.set(i, '');
+      continue;
+    }
 
     if (view.type !== 'table') {
       new Notice(`View type '${view.type}' in ${baseName} is not supported — only table views are exported`);
