@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.8.21 — Bases output now matches Obsidian's display
+
+Two fixes to align the rendered base table with what Obsidian shows on screen:
+
+- `file.*` column headers now render as `file name`, `file path`, `file ext`, `file tags` (matching Obsidian's labels) instead of `name`, `path`, etc.
+- Columns whose values are empty for every matching row are now dropped from the output, mirroring Obsidian's UI behaviour of hiding columns with no data.
+
+---
+
 ## v0.8.20 — Obsidian Bases support
 
 Notes that embed an Obsidian Bases view (`![[file.base]]` or `![[file.base#view-name]]`)

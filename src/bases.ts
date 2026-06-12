@@ -72,7 +72,8 @@ function resolveView(
 function columnHeader(col: string, base: BaseDefinition): string {
   const displayName = base.properties?.[col]?.displayName;
   if (displayName) return displayName;
-  return col.startsWith('file.') ? col.slice(5) : col;
+  if (col.startsWith('file.')) return 'file ' + col.slice(5);
+  return col;
 }
 
 // ---------------------------------------------------------------------------
@@ -308,7 +309,12 @@ export async function renderBaseEmbeds(
     const { rows, skippedFilters } = await queryView(base, view, app);
     skippedFilters.forEach(s => allSkipped.add(s));
 
-    const columns = view.order ?? ['file.name'];
+    // Match Obsidian's display: drop columns whose values are empty across every row.
+    const allColumns = view.order ?? ['file.name'];
+    const nonEmpty = allColumns.filter(col =>
+      rows.some(row => row[col] !== undefined && row[col] !== ''),
+    );
+    const columns = nonEmpty.length > 0 ? nonEmpty : allColumns;
     replacements.set(i, buildMarkdownTable(rows, columns, base));
   }
 

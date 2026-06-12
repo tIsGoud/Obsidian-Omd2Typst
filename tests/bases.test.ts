@@ -375,7 +375,7 @@ describe('table building', () => {
     const app = makeApp({ baseFile, mdFiles: [f1, f2], caches });
     const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/doc.md'));
 
-    expect(result).toContain('| name | title | date |');
+    expect(result).toContain('| file name | title | date |');
     expect(result).toContain('| report | Annual Report | 2024-01-01 |');
     expect(result).toContain('| memo | Quick Memo | 2024-02-01 |');
   });
@@ -464,5 +464,57 @@ describe('table building', () => {
     expect(noticeSpy).toHaveBeenCalledWith(expect.stringContaining('Unsupported filter'));
     expect(result).toContain('doc');
     noticeSpy.mockRestore();
+  });
+
+  it('renders file.* column headers with "file " prefix (lowercase, space)', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      views: [{ type: 'table', name: 'T', order: ['file.name', 'file.path', 'file.ext'] }],
+    });
+    const f = makeFile('notes/doc.md');
+    const caches = new Map([[f.path, makeCache()]]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [f], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/source.md'));
+
+    expect(result).toContain('| file name | file path | file ext |');
+  });
+
+  it('drops columns whose values are empty across every row', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      views: [{ type: 'table', name: 'T', order: ['file.name', 'status', 'published'] }],
+    });
+    const f1 = makeFile('notes/a.md');
+    const f2 = makeFile('notes/b.md');
+    const caches = new Map([
+      [f1.path, makeCache({ status: 'geaccepteerd' })],
+      [f2.path, makeCache({ status: 'geaccepteerd' })],
+    ]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [f1, f2], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/doc.md'));
+
+    expect(result).toContain('| file name | status |');
+    expect(result).not.toContain('published');
+  });
+
+  it('keeps a column when at least one row has a value', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      views: [{ type: 'table', name: 'T', order: ['file.name', 'date'] }],
+    });
+    const f1 = makeFile('notes/a.md');
+    const f2 = makeFile('notes/b.md');
+    const caches = new Map([
+      [f1.path, makeCache({ date: '2024-01-01' })],
+      [f2.path, makeCache()],
+    ]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [f1, f2], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/doc.md'));
+
+    expect(result).toContain('| file name | date |');
+    expect(result).toContain('2024-01-01');
   });
 });
