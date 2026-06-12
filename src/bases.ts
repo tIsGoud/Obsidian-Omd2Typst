@@ -189,7 +189,7 @@ function cellValue(col: string, file: TFile, cache: CachedMetadata): string {
   const val: unknown = fm[prop];
   if (val === null || val === undefined) return '';
   if (Array.isArray(val)) return val.map(v => stripLinks(String(v))).join(', ');
-  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string -- frontmatter scalars (string/number/boolean/date) produce sensible strings via String(); null/undefined and arrays handled above
   return stripLinks(String(val));
 }
 

@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.8.22 — Fix Obsidian review warning: eslint-disable directive without description
+
+Added a description to the `@typescript-eslint/no-base-to-string` suppression in `cellValue` so the Obsidian community store review bot accepts it. No functional change.
+
+---
+
 ## v0.8.21 — Bases output now matches Obsidian's display
 
 Two fixes to align the rendered base table with what Obsidian shows on screen:
