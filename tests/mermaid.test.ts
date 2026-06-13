@@ -52,7 +52,7 @@ describe('renderMermaidBlocks', () => {
 
     const { markdown, cleanup } = await renderMermaidBlocks(md, app as any, file);
 
-    expect(markdown).toContain('![](notes/doc-mermaid-0.svg)');
+    expect(markdown).toContain('![](<notes/doc-mermaid-0.svg>)');
     expect(markdown).not.toContain('```mermaid');
     expect(app.vault.adapter.write).toHaveBeenCalledWith(
       'notes/doc-mermaid-0.svg',
@@ -70,8 +70,8 @@ describe('renderMermaidBlocks', () => {
 
     const { markdown } = await renderMermaidBlocks(md, app as any, file);
 
-    expect(markdown).toContain('![](notes/doc-mermaid-0.svg)');
-    expect(markdown).toContain('![](notes/doc-mermaid-1.svg)');
+    expect(markdown).toContain('![](<notes/doc-mermaid-0.svg>)');
+    expect(markdown).toContain('![](<notes/doc-mermaid-1.svg>)');
     expect(app.vault.adapter.write).toHaveBeenCalledTimes(2);
   });
 
@@ -106,10 +106,26 @@ describe('renderMermaidBlocks', () => {
     const { markdown } = await renderMermaidBlocks(md, app as any, file);
 
     expect(markdown).toContain('```mermaid\nbad diagram\n```');
-    expect(markdown).toContain('![](notes/doc-mermaid-1.svg)');
+    expect(markdown).toContain('![](<notes/doc-mermaid-1.svg>)');
     expect(noticeSpy).toHaveBeenCalledWith(
       expect.stringContaining('diagram 1 could not be rendered'),
     );
     noticeSpy.mockRestore();
+  });
+
+  it('wraps image path in angle brackets so spaces in note titles parse correctly', async () => {
+    const md = '```mermaid\ngraph TD\n  A-->B\n```\n';
+    const app = makeApp();
+    const file = makeFile('input/mimimal mermaid.md');
+    (global as any).window.mermaid = makeMermaid();
+
+    const { markdown } = await renderMermaidBlocks(md, app as any, file);
+
+    // Path has a space, so the markdown image ref must use angle-bracket form.
+    expect(markdown).toContain('![](<input/mimimal mermaid-mermaid-0.svg>)');
+    expect(app.vault.adapter.write).toHaveBeenCalledWith(
+      'input/mimimal mermaid-mermaid-0.svg',
+      '<svg>diagram</svg>',
+    );
   });
 });

@@ -56,7 +56,9 @@ export async function renderMermaidBlocks(
       const { svg } = await mermaid.render(`omd2typst-mermaid-${i}`, blocks[i].source);
       await app.vault.adapter.write(svgPath, svg);
       writtenPaths.push(svgPath);
-      replacements[i] = `![](${svgPath})`;
+      // Wrap path in angle brackets so CommonMark accepts spaces and other
+       // special characters (note titles can contain anything).
+      replacements[i] = `![](<${svgPath}>)`;
     } catch (err) {
       new Notice(
         `Mermaid diagram ${i + 1} could not be rendered: ${(err as Error).message}.`,

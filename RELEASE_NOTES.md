@@ -1,5 +1,18 @@
 # Release Notes
 
+## v0.8.27 — Fix mermaid rendering for notes with spaces in the title
+
+Mermaid diagrams now render correctly in PDFs even when the note title (or its
+folder path) contains a space. The generated image reference is now wrapped in
+angle brackets — `![](<path with space.svg>)` — which is the standard CommonMark
+way to encode special characters in URLs.
+
+Before this fix, the literal markdown text `![](path with space.svg)` was
+passed straight to the PDF because the WASM markdown parser doesn't accept
+spaces in unbracketed URLs.
+
+---
+
 ## v0.8.26 — Remove accidentally committed scratch files
 
 The v0.8.25 commit accidentally included `app.js` and `mermaid.min.js` extracted
