@@ -51,7 +51,11 @@ export async function exportNote(
 ): Promise<void> {
   // Step 1: Read and pre-process the note
   const rawMarkdown = await app.vault.read(file);
-  const markdownAfterBases = await renderBaseEmbeds(rawMarkdown, app, file, parent);
+  // NOTE: v0.8.23 attempted to render bases via Obsidian's MarkdownRenderer
+  // (Path A); it caused binary garbage to leak into the Typst output. The
+  // `parent` parameter is now ignored; bases use the internal evaluator only.
+  void parent;
+  const markdownAfterBases = await renderBaseEmbeds(rawMarkdown, app, file);
   const { markdown, cleanup } = await renderMermaidBlocks(markdownAfterBases, app, file);
   try {
     // Step 2: Resolve template path for #import (verify file exists; null → built-in).

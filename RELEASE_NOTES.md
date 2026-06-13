@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.8.24 — Disable Path A: revert to the internal evaluator
+
+The v0.8.23 Path A prototype (rendering bases via Obsidian's MarkdownRenderer)
+caused binary garbage to leak into the Typst source on some notes, breaking
+PDF compilation. Path A is now disabled; bases are queried by the internal
+evaluator only — same behaviour as v0.8.22.
+
+The Path A code remains in `src/bases.ts` (dormant) so it can be investigated
+behind a feature flag in a future release.
+
+---
+
 ## v0.8.23 — Bases: render via Obsidian's own engine (Path A prototype)
 
 Each `![[file.base]]` embed is now rendered through Obsidian's `MarkdownRenderer` into a hidden DOM element; the resulting `<table>` is read back as a Markdown table. This gives full filter-language support — every operator Obsidian's Bases supports works automatically because Obsidian itself is doing the query.
