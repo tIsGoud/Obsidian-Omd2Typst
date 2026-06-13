@@ -6,3 +6,8 @@ dist/
 src/wasm/omd2typst-pkg/
 .superpowers/
 *.zip
+
+# Scratch / extracted-for-investigation files
+/app.js
+/mermaid.min.js
+/obsidian-extract/

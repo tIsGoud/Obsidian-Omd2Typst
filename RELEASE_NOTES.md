@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.8.26 — Remove accidentally committed scratch files
+
+The v0.8.25 commit accidentally included `app.js` and `mermaid.min.js` extracted
+from Obsidian's ASAR during investigation. These are removed and ignored via
+`.gitignore`. No functional change.
+
+---
+
 ## v0.8.25 — Remove unused styles.css
 
 The `styles.css` file added in v0.8.23 for Path A is no longer needed (Path A
