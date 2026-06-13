@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.8.25 — Remove unused styles.css
+
+The `styles.css` file added in v0.8.23 for Path A is no longer needed (Path A
+is disabled). The file is removed to silence Obsidian's 404 in the console
+when the plugin loads.
+
+---
+
 ## v0.8.24 — Disable Path A: revert to the internal evaluator
 
 The v0.8.23 Path A prototype (rendering bases via Obsidian's MarkdownRenderer)
