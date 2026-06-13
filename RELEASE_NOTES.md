@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.8.23 — Bases: render via Obsidian's own engine (Path A prototype)
+
+Each `![[file.base]]` embed is now rendered through Obsidian's `MarkdownRenderer` into a hidden DOM element; the resulting `<table>` is read back as a Markdown table. This gives full filter-language support — every operator Obsidian's Bases supports works automatically because Obsidian itself is doing the query.
+
+The internal evaluator from v0.8.20–v0.8.22 remains as a fallback: if the headless render fails or times out (5s), the old code path kicks in.
+
+Trade-off: rendering depends on Obsidian's UI being able to draw the table off-screen; behaviour during fast-fire exports has not yet been stress-tested.
+
+---
+
 ## v0.8.22 — Fix Obsidian review warning: eslint-disable directive without description
 
 Added a description to the `@typescript-eslint/no-base-to-string` suppression in `cellValue` so the Obsidian community store review bot accepts it. No functional change.

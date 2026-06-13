@@ -1,4 +1,4 @@
-import { Notice, TFile, App, FileSystemAdapter } from 'obsidian';
+import { Notice, TFile, App, Component, FileSystemAdapter } from 'obsidian';
 import type { OutputFormat, TemplateEntry, Omd2TypstSettings } from './settings';
 import { checkLanguageCompatibility } from './template';
 import { resolveOutputPath } from './output';
@@ -47,10 +47,11 @@ export async function exportNote(
   template: TemplateEntry | null,
   settings: Omd2TypstSettings,
   app: App,
+  parent?: Component,
 ): Promise<void> {
   // Step 1: Read and pre-process the note
   const rawMarkdown = await app.vault.read(file);
-  const markdownAfterBases = await renderBaseEmbeds(rawMarkdown, app, file);
+  const markdownAfterBases = await renderBaseEmbeds(rawMarkdown, app, file, parent);
   const { markdown, cleanup } = await renderMermaidBlocks(markdownAfterBases, app, file);
   try {
     // Step 2: Resolve template path for #import (verify file exists; null → built-in).

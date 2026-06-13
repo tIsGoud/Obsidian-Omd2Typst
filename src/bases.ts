@@ -1,4 +1,4 @@
-import { App, Notice, TFile, parseYaml } from 'obsidian';
+import { App, Component, MarkdownRenderer, Notice, TFile, parseYaml } from 'obsidian';
 import type { CachedMetadata, FrontMatterCache } from 'obsidian';
 
 // ---------------------------------------------------------------------------
@@ -251,6 +251,84 @@ function buildMarkdownTable(
 }
 
 // ---------------------------------------------------------------------------
+// Path A: render the embed via Obsidian's own engine, then read the DOM table
+// ---------------------------------------------------------------------------
+
+/**
+ * Render a single `![[file.base#view]]` embed through Obsidian's MarkdownRenderer
+ * into a detached DOM element, wait for Obsidian's query engine to populate the
+ * table, and return the headers + rows captured from the rendered `<table>`.
+ *
+ * Returns null on failure (timeout, no table produced, exception). Callers should
+ * fall back to the local evaluator.
+ */
+async function tryRenderViaObsidian(
+  app: App,
+  noteFile: TFile,
+  embedPath: string,
+  viewName: string | undefined,
+  parent: Component,
+): Promise<{ headers: string[]; rows: string[][] } | null> {
+  const hiddenEl = activeDocument.createElement('div');
+  hiddenEl.addClass('omd2typst-bases-headless');
+  activeDocument.body.appendChild(hiddenEl);
+
+  const tmpComp = new Component();
+  parent.addChild(tmpComp);
+
+  try {
+    const subpath = viewName ? `#${viewName}` : '';
+    const embedMd = `![[${embedPath}${subpath}]]`;
+    await MarkdownRenderer.render(app, embedMd, hiddenEl, noteFile.path, tmpComp);
+
+    // Bases queries are async + batched. Poll for a populated <table> with a
+    // short stable-state window so we don't read mid-render.
+    const deadline = Date.now() + 5000;
+    let lastSignature = '';
+    let stableCount = 0;
+    let table: HTMLTableElement | null = null;
+
+    while (Date.now() < deadline) {
+      table = hiddenEl.querySelector('table');
+      const sig = table ? `${table.rows.length}:${table.textContent?.length ?? 0}` : '';
+      if (sig && sig === lastSignature) {
+        stableCount++;
+        if (stableCount >= 3) break; // ~150ms stable
+      } else {
+        stableCount = 0;
+        lastSignature = sig;
+      }
+      await new Promise(r => window.setTimeout(r, 50));
+    }
+
+    if (!table || table.rows.length === 0) return null;
+
+    const headerCells = Array.from(table.rows[0].cells);
+    const headers = headerCells.map(c => (c.textContent ?? '').trim());
+    const rows = Array.from(table.rows).slice(1).map(row =>
+      Array.from(row.cells).map(c => (c.textContent ?? '').trim()),
+    );
+    return { headers, rows };
+  } catch (err) {
+    console.error('[omd2typst] tryRenderViaObsidian failed:', err);
+    return null;
+  } finally {
+    parent.removeChild(tmpComp);
+    hiddenEl.remove();
+  }
+}
+
+function buildTableFromHeaders(headers: string[], rows: string[][]): string {
+  if (rows.length === 0) return '*No results.*';
+  const separator = headers.map(() => '----');
+  return [
+    `| ${headers.join(' | ')} |`,
+    `| ${separator.join(' | ')} |`,
+    ...rows.map(r => `| ${r.join(' | ')} |`),
+  ].join('\n');
+}
+
+// ---------------------------------------------------------------------------
 // Main exported function
 // ---------------------------------------------------------------------------
 
@@ -258,6 +336,7 @@ export async function renderBaseEmbeds(
   markdown: string,
   app: App,
   noteFile: TFile,
+  parent?: Component,
 ): Promise<string> {
   const embeds = detectBaseEmbeds(markdown);
   if (embeds.length === 0) return markdown;
@@ -274,6 +353,17 @@ export async function renderBaseEmbeds(
       new Notice(`Base not found: ${baseName}`);
       replacements.set(i, '');
       continue;
+    }
+
+    // Path A: try Obsidian's own renderer first. Captures the rendered <table>
+    // so we get full filter-language support for free.
+    if (parent) {
+      const captured = await tryRenderViaObsidian(app, noteFile, embed.path, embed.viewName, parent);
+      if (captured) {
+        replacements.set(i, buildTableFromHeaders(captured.headers, captured.rows));
+        continue;
+      }
+      // Falls through to the local evaluator on failure.
     }
 
     let base: BaseDefinition;

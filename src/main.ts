@@ -145,7 +145,7 @@ export default class Omd2TypstPlugin extends Plugin {
   private async exportFile(file: TFile, format: OutputFormat, templateOverride?: TemplateEntry | null) {
     try {
       const template = templateOverride !== undefined ? templateOverride : resolveDefaultTemplate(this.settings);
-      await exportNote(file, format, template, this.settings, this.app);
+      await exportNote(file, format, template, this.settings, this.app, this);
       new Notice(`Exported: ${file.basename}.${format === 'pdf' ? 'pdf' : 'typ'}`);
     } catch (err) {
       console.error('[omd2typst] Export failed:', err);
