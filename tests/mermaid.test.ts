@@ -1,4 +1,4 @@
-import { renderMermaidBlocks } from '../src/mermaid';
+import { renderMermaidBlocks, extractMermaidTitle } from '../src/mermaid';
 import type { TFile } from 'obsidian';
 
 function makeFile(path: string): TFile {
@@ -127,5 +127,67 @@ describe('renderMermaidBlocks', () => {
       'input/mimimal mermaid-mermaid-0.svg',
       '<svg>diagram</svg>',
     );
+  });
+
+  it('uses mermaid title frontmatter as image alt (becomes Typst caption)', async () => {
+    const md = '```mermaid\n---\ntitle: GitGraph example\n---\ngitGraph\n  commit\n```\n';
+    const app = makeApp();
+    const file = makeFile('notes/doc.md');
+    const renderFn = jest.fn().mockResolvedValue({ svg: '<svg>x</svg>' });
+    (global as any).window.mermaid = makeMermaid(renderFn);
+
+    const { markdown } = await renderMermaidBlocks(md, app as any, file);
+
+    // Image ref carries the title as alt text → Typst figure caption.
+    expect(markdown).toContain('![GitGraph example](<notes/doc-mermaid-0.svg>)');
+    // The source sent to mermaid had the title frontmatter stripped.
+    expect(renderFn).toHaveBeenCalledWith(
+      expect.any(String),
+      'gitGraph\n  commit\n',
+    );
+  });
+
+  it('emits empty alt when no mermaid title is present', async () => {
+    const md = '```mermaid\ngraph TD\n  A-->B\n```\n';
+    const app = makeApp();
+    const file = makeFile('notes/doc.md');
+    (global as any).window.mermaid = makeMermaid();
+
+    const { markdown } = await renderMermaidBlocks(md, app as any, file);
+
+    expect(markdown).toContain('![](<notes/doc-mermaid-0.svg>)');
+  });
+});
+
+describe('extractMermaidTitle', () => {
+  it('returns null title and unchanged source when no frontmatter present', () => {
+    const src = 'graph TD\n  A-->B\n';
+    expect(extractMermaidTitle(src)).toEqual({ title: null, cleanSource: src });
+  });
+
+  it('extracts title and strips the entire frontmatter when title is the only key', () => {
+    const src = '---\ntitle: My title\n---\ngraph TD\n  A-->B\n';
+    expect(extractMermaidTitle(src)).toEqual({
+      title: 'My title',
+      cleanSource: 'graph TD\n  A-->B\n',
+    });
+  });
+
+  it('preserves other frontmatter keys, removing only the title line', () => {
+    const src = '---\ntitle: My title\nconfig:\n  theme: dark\n---\ngraph TD\n  A-->B\n';
+    expect(extractMermaidTitle(src)).toEqual({
+      title: 'My title',
+      cleanSource: '---\nconfig:\n  theme: dark\n---\ngraph TD\n  A-->B\n',
+    });
+  });
+
+  it('treats an empty title as no title (and leaves source unchanged)', () => {
+    const src = '---\ntitle: \n---\ngraph TD\n';
+    expect(extractMermaidTitle(src)).toEqual({ title: null, cleanSource: src });
+  });
+
+  it('returns null title (but leaves source unchanged) when frontmatter has no title key', () => {
+    const src = '---\nconfig:\n  theme: dark\n---\ngraph TD\n';
+    expect(extractMermaidTitle(src)).toEqual({ title: null, cleanSource: src });
   });
 });

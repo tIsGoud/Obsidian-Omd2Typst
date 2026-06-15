@@ -13,6 +13,43 @@ function getMermaid(): MermaidApi | undefined {
 
 let mermaidInitialized = false;
 
+/**
+ * Extract a leading mermaid frontmatter `title:` and strip it from the source
+ * so mermaid doesn't also render it inside the SVG. Returns the (unescaped)
+ * title and the cleaned source. Other frontmatter keys (e.g. `config:`) are
+ * preserved.
+ */
+export function extractMermaidTitle(source: string): { title: string | null; cleanSource: string } {
+  const fmRe = /^---\n([\s\S]*?)\n---\n/;
+  const m = fmRe.exec(source);
+  if (!m) return { title: null, cleanSource: source };
+
+  const fmContent = m[1];
+  const titleLineRe = /^title:\s*(.+?)\s*$/m;
+  const titleMatch = titleLineRe.exec(fmContent);
+  if (!titleMatch) return { title: null, cleanSource: source };
+
+  const title = titleMatch[1].trim();
+  if (!title) return { title: null, cleanSource: source };
+
+  const remainingLines = fmContent.split('\n').filter(line => !/^title:\s*/.test(line));
+  const remaining = remainingLines.join('\n').trim();
+  const cleanSource = remaining === ''
+    ? source.slice(m[0].length)
+    : `---\n${remaining}\n---\n` + source.slice(m[0].length);
+
+  return { title, cleanSource };
+}
+
+/** Escape Markdown special characters in image alt text. */
+function escapeMarkdownAlt(s: string): string {
+  return s
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\\/g, '\\\\')
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]');
+}
+
 export async function renderMermaidBlocks(
   markdown: string,
   app: App,
@@ -52,13 +89,19 @@ export async function renderMermaidBlocks(
 
   for (let i = 0; i < blocks.length; i++) {
     const svgPath = `${dir}${noteFile.basename}-mermaid-${i}.svg`;
+    // Extract `title:` from the mermaid frontmatter (if present) so we can use
+    // it as the Typst figure caption. Strip it from the source we send to
+    // mermaid so the title isn't ALSO baked into the SVG.
+    const { title, cleanSource } = extractMermaidTitle(blocks[i].source);
     try {
-      const { svg } = await mermaid.render(`omd2typst-mermaid-${i}`, blocks[i].source);
+      const { svg } = await mermaid.render(`omd2typst-mermaid-${i}`, cleanSource);
       await app.vault.adapter.write(svgPath, svg);
       writtenPaths.push(svgPath);
       // Wrap path in angle brackets so CommonMark accepts spaces and other
-       // special characters (note titles can contain anything).
-      replacements[i] = `![](<${svgPath}>)`;
+      // special characters (note titles can contain anything). Use the
+      // extracted mermaid title as alt text → becomes the Typst caption.
+      const alt = title ? escapeMarkdownAlt(title) : '';
+      replacements[i] = `![${alt}](<${svgPath}>)`;
     } catch (err) {
       new Notice(
         `Mermaid diagram ${i + 1} could not be rendered: ${(err as Error).message}.`,

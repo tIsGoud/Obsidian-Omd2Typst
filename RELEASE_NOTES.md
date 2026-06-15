@@ -1,5 +1,30 @@
 # Release Notes
 
+## v0.8.32 — Mermaid: use diagram title as Typst figure caption
+
+Mermaid diagrams that declare a `title:` in their frontmatter now get a proper
+Typst figure caption underneath, which also appears in any auto-generated list
+of figures:
+
+```
+\`\`\`mermaid
+---
+title: GitGraph example
+---
+gitGraph
+  commit
+\`\`\`
+```
+
+The title is extracted from the mermaid source, stripped from the source sent
+to `mermaid.render` (so it doesn't ALSO get baked into the SVG itself), and
+used as the markdown image's alt text — which `omd2typst` already maps to the
+Typst figure caption. Other frontmatter keys (e.g. `config:`) are preserved.
+
+Diagrams without a title behave as before — empty caption.
+
+---
+
 ## v0.8.31 — Bases: hide all-empty columns; treat NullValue as empty
 
 Matches Obsidian's UI behaviour of auto-hiding columns whose cells are null
