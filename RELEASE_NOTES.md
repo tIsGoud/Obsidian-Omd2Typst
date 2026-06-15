@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.8.33 — Mermaid: render flowchart labels as SVG text (Typst-compatible)
+
+Flowchart text labels were missing from exported PDFs because mermaid renders
+them as `<foreignObject>` containing HTML — a format Typst's SVG renderer
+(`resvg`) cannot draw. Mermaid is now initialised with
+`flowchart: { htmlLabels: false }` so flowchart labels become plain SVG
+`<text>` elements, which Typst handles correctly.
+
+Side effect: Obsidian's editor preview also uses this setting until the app is
+restarted, so flowchart labels in the preview will use SVG text (slightly
+different wrapping behaviour) for the remainder of the session.
+
+Diagram types that already used SVG text (`gitGraph`, `mindmap`, `sequenceDiagram`,
+etc.) are unaffected.
+
+---
+
 ## v0.8.32 — Mermaid: use diagram title as Typst figure caption
 
 Mermaid diagrams that declare a `title:` in their frontmatter now get a proper

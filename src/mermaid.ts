@@ -78,7 +78,16 @@ export async function renderMermaidBlocks(
   }
 
   if (!mermaidInitialized) {
-    mermaid.initialize({ startOnLoad: false });
+    // `flowchart.htmlLabels: false` makes mermaid emit SVG <text> elements for
+    // flowchart labels instead of <foreignObject>-wrapped HTML. resvg (used by
+    // Typst for image()) can't render <foreignObject>, so without this setting
+    // every flowchart in the PDF would be blank boxes with no text.
+    // Side effect: also changes how Obsidian's editor preview renders
+    // flowcharts until the app is restarted.
+    mermaid.initialize({
+      startOnLoad: false,
+      flowchart: { htmlLabels: false },
+    });
     mermaidInitialized = true;
   }
 
