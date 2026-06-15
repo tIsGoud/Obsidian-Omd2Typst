@@ -1,4 +1,4 @@
-import { renderMermaidBlocks, extractMermaidTitle } from '../src/mermaid';
+import { renderMermaidBlocks, extractMermaidTitle, inlineForeignObjectLabels } from '../src/mermaid';
 import type { TFile } from 'obsidian';
 
 function makeFile(path: string): TFile {
@@ -189,5 +189,57 @@ describe('extractMermaidTitle', () => {
   it('returns null title (but leaves source unchanged) when frontmatter has no title key', () => {
     const src = '---\nconfig:\n  theme: dark\n---\ngraph TD\n';
     expect(extractMermaidTitle(src)).toEqual({ title: null, cleanSource: src });
+  });
+});
+
+describe('inlineForeignObjectLabels', () => {
+  it('returns SVG unchanged when no foreignObject is present', () => {
+    const svg = '<svg><text>edge label</text></svg>';
+    expect(inlineForeignObjectLabels(svg)).toBe(svg);
+  });
+
+  it('replaces a foreignObject containing nested HTML with an SVG text element', () => {
+    const svg = '<svg><foreignObject height="24" width="80">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml">'
+      + '<span class="nodeLabel"><p>Christmas</p></span></div></foreignObject></svg>';
+    const out = inlineForeignObjectLabels(svg);
+    expect(out).not.toContain('foreignObject');
+    expect(out).toContain('<text');
+    expect(out).toContain('>Christmas<');
+    // Centred at the box midpoint
+    expect(out).toContain('x="40"');
+    expect(out).toContain('y="12"');
+    expect(out).toContain('text-anchor="middle"');
+  });
+
+  it('drops empty foreignObjects entirely', () => {
+    const svg = '<svg>'
+      + '<foreignObject height="20" width="40"><div xmlns="http://www.w3.org/1999/xhtml"></div></foreignObject>'
+      + '<text>kept</text></svg>';
+    const out = inlineForeignObjectLabels(svg);
+    expect(out).not.toContain('foreignObject');
+    expect(out).not.toContain('<text x=');
+    expect(out).toContain('<text>kept</text>');
+  });
+
+  it('escapes XML special characters in the extracted text', () => {
+    const svg = '<svg><foreignObject height="24" width="80">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml">'
+      + '<span class="nodeLabel"><p>A &amp; B &lt; C</p></span></div></foreignObject></svg>';
+    const out = inlineForeignObjectLabels(svg);
+    expect(out).toContain('A &amp; B &lt; C');
+    expect(out).not.toContain('foreignObject');
+  });
+
+  it('handles multiple foreignObject elements in one SVG', () => {
+    const svg = '<svg>'
+      + '<foreignObject height="24" width="80"><div xmlns="http://www.w3.org/1999/xhtml"><p>One</p></div></foreignObject>'
+      + '<path d="M 0 0"/>'
+      + '<foreignObject height="24" width="80"><div xmlns="http://www.w3.org/1999/xhtml"><p>Two</p></div></foreignObject>'
+      + '</svg>';
+    const out = inlineForeignObjectLabels(svg);
+    expect(out).not.toContain('foreignObject');
+    expect(out).toContain('>One<');
+    expect(out).toContain('>Two<');
   });
 });

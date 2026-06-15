@@ -1,5 +1,25 @@
 # Release Notes
 
+## v0.8.34 — Mermaid: post-process flowchart SVG to remove foreignObject
+
+The flowchart node labels were still missing in v0.8.33 because mermaid v11's
+`flowchart-v2` renderer (used in Obsidian) emits node labels as `<foreignObject>`
+containing HTML *regardless of* the `htmlLabels: false` config — that setting
+only affects edges. resvg (Typst's SVG renderer) ignores `<foreignObject>`, so
+even with v0.8.33 the boxes appeared empty.
+
+This release adds a post-processing pass on the SVG returned by `mermaid.render`:
+each `<foreignObject>` is replaced with an SVG `<text>` element positioned at
+the centre of the foreignObject's box. The inner HTML is stripped to plain text
+(so `<i class="fa fa-car"></i> Car` becomes `Car`). Empty foreignObjects (e.g.
+placeholder edge labels) are removed entirely.
+
+Verified end-to-end: `typst compile` now emits no `image contains foreign object`
+warning, and all flowchart node text — `Christmas`, `Go shopping`, `Let me think`,
+`Laptop`, `iPhone`, `Car` — appears in the rendered PDF.
+
+---
+
 ## v0.8.33 — Mermaid: render flowchart labels as SVG text (Typst-compatible)
 
 Flowchart text labels were missing from exported PDFs because mermaid renders

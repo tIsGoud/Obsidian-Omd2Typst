@@ -50,6 +50,46 @@ function escapeMarkdownAlt(s: string): string {
     .replace(/\]/g, '\\]');
 }
 
+/**
+ * Replace each `<foreignObject>…</foreignObject>` in the SVG with an SVG
+ * `<text>` element positioned at the centre of the foreignObject's box.
+ *
+ * Mermaid's `flowchart-v2` renderer (used in mermaid v11+) emits node labels
+ * as foreignObject-wrapped HTML *regardless* of the `htmlLabels: false`
+ * config setting — that setting only affects edges. resvg (the SVG renderer
+ * Typst uses for `image()`) does not support foreignObject, so without this
+ * pass every flowchart node in the exported PDF would be an empty box.
+ *
+ * The inner HTML is stripped to plain text. Empty foreignObjects (e.g. the
+ * placeholder edge-label between two siblings) are removed entirely.
+ */
+export function inlineForeignObjectLabels(svg: string): string {
+  const re = /<foreignObject([^>]*?)>([\s\S]*?)<\/foreignObject>/g;
+  return svg.replace(re, (_match, attrs: string, content: string) => {
+    const widthMatch = /width="([\d.]+)"/.exec(attrs);
+    const heightMatch = /height="([\d.]+)"/.exec(attrs);
+    const width = widthMatch ? parseFloat(widthMatch[1]) : 0;
+    const height = heightMatch ? parseFloat(heightMatch[1]) : 0;
+
+    const text = content
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!text) return '';
+
+    const escaped = text
+      .replace(/&(?!\w+;)/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    return `<text x="${width / 2}" y="${height / 2}" text-anchor="middle" `
+      + `dominant-baseline="central" font-family="sans-serif" font-size="14" `
+      + `fill="#333">${escaped}</text>`;
+  });
+}
+
 export async function renderMermaidBlocks(
   markdown: string,
   app: App,
@@ -104,7 +144,11 @@ export async function renderMermaidBlocks(
     const { title, cleanSource } = extractMermaidTitle(blocks[i].source);
     try {
       const { svg } = await mermaid.render(`omd2typst-mermaid-${i}`, cleanSource);
-      await app.vault.adapter.write(svgPath, svg);
+      // Replace foreignObject node labels (flowchart-v2) with SVG <text> so
+      // resvg / Typst can render them — without this, flowchart node boxes
+      // appear blank in the PDF.
+      const cleanedSvg = inlineForeignObjectLabels(svg);
+      await app.vault.adapter.write(svgPath, cleanedSvg);
       writtenPaths.push(svgPath);
       // Wrap path in angle brackets so CommonMark accepts spaces and other
       // special characters (note titles can contain anything). Use the
