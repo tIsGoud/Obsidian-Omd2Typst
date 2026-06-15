@@ -26,6 +26,8 @@ const BASE_SETTINGS: Omd2TypstSettings = {
   showBuiltinInPicker: false,
 };
 
+const noopComponent = { addChild: jest.fn(), removeChild: jest.fn() } as any;
+
 /** Create a minimal TFile-like object for testing. */
 function makeTFile(path: string): TFile {
   const parts = path.split('/');
@@ -65,7 +67,7 @@ describe('exportNote — Typst export', () => {
     const file = makeTFile('notes/hello.md');
     const app = makeApp();
 
-    await exportNote(file, 'typ', null, BASE_SETTINGS, app as any);
+    await exportNote(file, 'typ', null, BASE_SETTINGS, app as any, noopComponent);
 
     expect(app.vault.adapter.write).toHaveBeenCalledWith(
       'exports/hello.typ',
@@ -79,7 +81,7 @@ describe('exportNote — PDF export', () => {
     const file = makeTFile('notes/hello.md');
     const app = makeApp();
 
-    await exportNote(file, 'pdf', null, BASE_SETTINGS, app as any);
+    await exportNote(file, 'pdf', null, BASE_SETTINGS, app as any, noopComponent);
 
     // compileToPdfViaCli receives the Typst source directly (no vault write for .typ)
     const { compileToPdfViaCli } = require('../src/typst-cli');
@@ -118,7 +120,7 @@ describe('exportNote — language mismatch', () => {
     // Spy on Notice constructor
     const noticeMock = jest.spyOn(require('obsidian'), 'Notice');
 
-    await exportNote(file, 'typ', template, BASE_SETTINGS, app as any);
+    await exportNote(file, 'typ', template, BASE_SETTINGS, app as any, noopComponent);
 
     // Notice should have been called with a string mentioning 'nl' and 'en'
     expect(noticeMock).toHaveBeenCalled();

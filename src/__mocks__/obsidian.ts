@@ -58,5 +58,3 @@ export class Setting {
   addButton = jest.fn().mockReturnThis();
   addTextArea = jest.fn().mockReturnThis();
 }
-
-export const parseYaml = jest.fn();

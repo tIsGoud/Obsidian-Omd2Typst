@@ -1,5 +1,28 @@
 # Release Notes
 
+## v0.8.29 — Bases: rewritten on top of Obsidian's own query engine
+
+The internal regex evaluator (v0.8.20–v0.8.28) is gone. It only supported a
+handful of filter operators and quietly produced wrong results on anything else
+(a 323-page PDF on one test base because broad filters silently matched every
+file in the vault).
+
+The new implementation drives Obsidian's own bases engine: each `![[file.base]]`
+embed is loaded through Obsidian's embed registry, off-screen, in a temporary
+`Component`. Once the query result is ready we read it via the public types
+(`BasesViewConfig.getOrder` / `getDisplayName`, `BasesEntry.getValue`,
+`Value.toString`) and emit a Markdown pipe table. The full filter language
+(string, list, math, date, file, link, tag, formulas — about 50 operators) is
+supported automatically because Obsidian is doing the evaluation.
+
+If Obsidian's engine isn't available (older versions, or the query fails to
+complete in 5 s), a placeholder line is emitted instead of guessed data:
+`*[Base view 'name.base' not rendered]*`.
+
+Requires the Obsidian Bases plugin to be enabled (built into Obsidian 1.10+).
+
+---
+
 ## v0.8.28 — Bases: support endsWith / contains; safer unsupported handling; default sort
 
 Three fixes to the internal bases evaluator:
