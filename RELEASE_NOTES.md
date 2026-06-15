@@ -1,5 +1,26 @@
 # Release Notes
 
+## v0.8.35 — Add bottom spacing to figures (built-in template + omd2typst v0.10.7)
+
+Two consecutive figures (e.g. mermaid diagrams or images) and the text
+between them used to sit very tight against each other in the PDF. The
+built-in template (bundled in the omd2typst WASM) and both shipped templates
+(`purple-template`, `tig-template`) now declare:
+
+```typst
+#show figure: set block(below: 1.5em)
+```
+
+This adds 1.5em of vertical space *below* each figure block. The top of the
+block is unchanged.
+
+Built on omd2typst v0.10.7 (core/wasm 0.5.4).
+
+Users with custom templates can add the same `show` rule to their templates
+if they want matching behaviour.
+
+---
+
 ## v0.8.34 — Mermaid: post-process flowchart SVG to remove foreignObject
 
 The flowchart node labels were still missing in v0.8.33 because mermaid v11's
