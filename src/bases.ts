@@ -1,11 +1,11 @@
 import { App, Component, Notice, TFile } from 'obsidian';
-import type {
-  BasesEntry,
-  BasesPropertyId,
-  BasesQueryResult,
-  BasesViewConfig,
-  Value,
-} from 'obsidian';
+
+// The Bases API (Obsidian 1.10+) is not declared via Obsidian's public types here:
+// the linter rule `obsidianmd/no-unsupported-api` would flag calls on those types
+// because our `minAppVersion` is 1.7.2. We reach the bases engine only at runtime,
+// after the embed is successfully created, so the API is guaranteed to exist.
+// Local structural interfaces mirror the shapes we use without importing the
+// typed classes.
 
 // ---------------------------------------------------------------------------
 // Embed detection
@@ -45,9 +45,26 @@ function detectBaseEmbeds(markdown: string): BaseEmbed[] {
 // `Value`) are all public.
 // ---------------------------------------------------------------------------
 
+interface BasesValueLike {
+  toString(): string;
+}
+
+interface BasesEntryLike {
+  getValue(propertyId: string): BasesValueLike | null;
+}
+
+interface BasesViewConfigLike {
+  getOrder(): string[];
+  getDisplayName(propertyId: string): string;
+}
+
+interface BasesQueryResultLike {
+  data: BasesEntryLike[];
+}
+
 interface BasesViewInternal {
-  config: BasesViewConfig;
-  data: BasesQueryResult;
+  config: BasesViewConfigLike;
+  data: BasesQueryResultLike;
 }
 
 interface BasesControllerInternal {
@@ -129,17 +146,12 @@ async function queryBase(
         await new Promise(r => window.setTimeout(r, 150));
 
         const config = view.config;
-        // eslint-disable-next-line obsidianmd/no-unsupported-api -- runtime-guarded; reached only when Obsidian's bases embed produced a controller, which means the user is on 1.10.0+
-        const columns: BasesPropertyId[] = config.getOrder();
-        // eslint-disable-next-line obsidianmd/no-unsupported-api -- runtime-guarded; reached only when Obsidian's bases embed produced a controller, which means the user is on 1.10.0+
+        const columns = config.getOrder();
         const headers = columns.map(c => config.getDisplayName(c));
-        // eslint-disable-next-line obsidianmd/no-unsupported-api -- runtime-guarded; reached only when Obsidian's bases embed produced a controller, which means the user is on 1.10.0+
-        const entries: BasesEntry[] = view.data.data;
+        const entries = view.data.data;
         const rows = entries.map(entry =>
           columns.map(c => {
-            // eslint-disable-next-line obsidianmd/no-unsupported-api -- runtime-guarded; reached only when Obsidian's bases embed produced a controller, which means the user is on 1.10.0+
-            const v: Value | null = entry.getValue(c);
-            // eslint-disable-next-line obsidianmd/no-unsupported-api -- runtime-guarded; reached only when Obsidian's bases embed produced a controller, which means the user is on 1.10.0+
+            const v = entry.getValue(c);
             return v ? v.toString() : '';
           }),
         );

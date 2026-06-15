@@ -1,5 +1,19 @@
 # Release Notes
 
+## v0.8.30 — Fix Obsidian review: drop unsupported-API suppressions
+
+`obsidianmd/no-unsupported-api` can't be suppressed with `eslint-disable`
+(the review bot rejects it). The bases module now declares local structural
+interfaces (`BasesViewConfigLike`, `BasesEntryLike`, …) instead of importing
+Obsidian's typed Bases classes, so the linter no longer flags 1.10-era API
+calls. Functionally identical to v0.8.29.
+
+`minAppVersion` stays at 1.7.2: users on older Obsidian can still install for
+mermaid / template-picker features; base embeds render the placeholder line
+on those versions since the bases engine isn't present.
+
+---
+
 ## v0.8.29 — Bases: rewritten on top of Obsidian's own query engine
 
 The internal regex evaluator (v0.8.20–v0.8.28) is gone. It only supported a
