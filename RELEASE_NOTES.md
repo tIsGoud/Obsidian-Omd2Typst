@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.8.28 — Bases: support endsWith / contains; safer unsupported handling; default sort
+
+Three fixes to the internal bases evaluator:
+
+- **`file.name.endsWith()`, `file.name.contains()`, `file.path.endsWith()`, `file.path.contains()`** are now recognised. This is what unblocked the
+  common `!file.name.endsWith(".pdf")` exclusion filter.
+- **Unsupported filter expressions no longer silently exclude every file when negated.** Before, `!unknown.func()` evaluated to `false` and the
+  entire base returned zero results. Unsupported expressions now match-all
+  whether negated or not.
+- **Tables without an explicit `sort` now default to ASC by their first column**, matching Obsidian's own table-view default. Previously rows
+  appeared in vault scan order (often descending mtime).
+
+Also: `file.name.startsWith` now uses the full filename (including extension),
+matching Obsidian's convention. No effect on existing prefix matches.
+
+---
+
 ## v0.8.27 — Fix mermaid rendering for notes with spaces in the title
 
 Mermaid diagrams now render correctly in PDFs even when the note title (or its

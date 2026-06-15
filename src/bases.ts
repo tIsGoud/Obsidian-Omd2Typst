@@ -97,14 +97,29 @@ function evaluateLeaf(
   const tags = (cache.tags ?? []).map(t => t.tag.replace(/^#/, ''));
   let m: RegExpExecArray | null;
 
+  // file.name / file.path use the full filename (with extension), matching
+  // Obsidian's Bases convention.
+
   m = /^file\.name\.startsWith\("([^"]+)"\)$/.exec(expr);
-  if (m) return file.basename.startsWith(m[1]);
+  if (m) return file.name.startsWith(m[1]);
+
+  m = /^file\.name\.endsWith\("([^"]+)"\)$/.exec(expr);
+  if (m) return file.name.endsWith(m[1]);
+
+  m = /^file\.name\.contains\("([^"]+)"\)$/.exec(expr);
+  if (m) return file.name.includes(m[1]);
 
   m = /^file\.ext\s*(==|!=)\s*"([^"]+)"$/.exec(expr);
   if (m) return m[1] === '==' ? file.extension === m[2] : file.extension !== m[2];
 
   m = /^file\.path\.startsWith\("([^"]+)"\)$/.exec(expr);
   if (m) return file.path.startsWith(m[1]);
+
+  m = /^file\.path\.endsWith\("([^"]+)"\)$/.exec(expr);
+  if (m) return file.path.endsWith(m[1]);
+
+  m = /^file\.path\.contains\("([^"]+)"\)$/.exec(expr);
+  if (m) return file.path.includes(m[1]);
 
   m = /^file\.tags\.contains\("([^"]+)"\)$/.exec(expr);
   if (m) return tags.includes(m[1]);
@@ -164,9 +179,15 @@ function evaluateFilter(
   skipped: Set<string>,
 ): boolean {
   if (typeof filter === 'string') {
-    const expr = filter.startsWith('!') ? filter.slice(1).trim() : filter;
+    const negated = filter.startsWith('!');
+    const expr = negated ? filter.slice(1).trim() : filter;
     const result = evaluateLeaf(expr, file, cache, skipped);
-    return filter.startsWith('!') ? !result : result;
+    // Unsupported expression: treat as match-all in BOTH positive and negative
+    // form. Without this guard `!unsupported` would silently exclude every
+    // file (the previous bug), which is the worst possible default. We can't
+    // use a size delta because Set.add is idempotent across iterations.
+    if (skipped.has(expr)) return true;
+    return negated ? !result : result;
   }
   const node = filter;
   if (node.and) return node.and.every(f => evaluateFilter(f, file, cache, skipped));
@@ -229,6 +250,11 @@ async function queryView(
       }
       return 0;
     });
+  } else {
+    // No explicit sort: default to ASC by the first column, matching Obsidian's
+    // table-view default. Without this rows would appear in vault scan order.
+    const firstCol = (view.order ?? ['file.name'])[0];
+    rows.sort((a, b) => (a[firstCol] ?? '').localeCompare(b[firstCol] ?? ''));
   }
 
   return { rows, skippedFilters };

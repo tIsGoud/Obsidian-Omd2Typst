@@ -517,4 +517,62 @@ describe('table building', () => {
     expect(result).toContain('| file name | date |');
     expect(result).toContain('2024-01-01');
   });
+
+  it('file.name.endsWith excludes files that end with the suffix', async () => {
+    // basenames differ so we can tell them apart in the cell output (which shows basename, not full name)
+    const md = makeFile('notes/report.md');
+    const pdf = makeFile('notes/photo.pdf');
+    const caches = new Map([[md.path, makeCache()], [pdf.path, makeCache()]]);
+    const app = makeFilterApp('!file.name.endsWith(".pdf")', [md, pdf], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('report');
+    expect(result).not.toContain('photo');
+  });
+
+  it('file.name.contains matches a substring of the name', async () => {
+    const a = makeFile('notes/SAP-ADR-001.md');
+    const b = makeFile('notes/other.md');
+    const caches = new Map([[a.path, makeCache()], [b.path, makeCache()]]);
+    const app = makeFilterApp('file.name.contains("ADR")', [a, b], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('SAP-ADR-001');
+    expect(result).not.toContain('other');
+  });
+
+  it('file.path.endsWith and .contains both work', async () => {
+    const a = makeFile('notes/work/widget.md');
+    const b = makeFile('notes/home/y.md');
+    const caches = new Map([[a.path, makeCache()], [b.path, makeCache()]]);
+    const appEnds = makeFilterApp('file.path.endsWith("widget.md")', [a, b], caches);
+    expect(await renderBaseEmbeds('![[Test.base]]', appEnds as any, makeFile('notes/doc.md'))).toContain('widget');
+    const appContains = makeFilterApp('file.path.contains("work")', [a, b], caches);
+    expect(await renderBaseEmbeds('![[Test.base]]', appContains as any, makeFile('notes/doc.md'))).toContain('widget');
+  });
+
+  it('!<unsupported> does not exclude every file (match-all in either form)', async () => {
+    const a = makeFile('notes/alpha.md');
+    const b = makeFile('notes/beta.md');
+    const caches = new Map([[a.path, makeCache()], [b.path, makeCache()]]);
+    // 'totally.unknown.func()' is not a recognised pattern; negating it must
+    // still let every file through, not exclude every file.
+    const app = makeFilterApp('!totally.unknown.func()', [a, b], caches);
+    const result = await renderBaseEmbeds('![[Test.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result).toContain('alpha');
+    expect(result).toContain('beta');
+  });
+
+  it('defaults to ASC sort by first column when view has no sort', async () => {
+    const { parseYaml } = require('obsidian');
+    parseYaml.mockReturnValue({
+      views: [{ type: 'table', name: 'T', order: ['file.name'] }],
+    });
+    // Intentionally provide reversed scan order; default sort must rearrange.
+    const fz = makeFile('notes/zeta.md');
+    const fa = makeFile('notes/alpha.md');
+    const caches = new Map([[fz.path, makeCache()], [fa.path, makeCache()]]);
+    const baseFile = makeFile('base/T.base');
+    const app = makeApp({ baseFile, mdFiles: [fz, fa], caches });
+    const result = await renderBaseEmbeds('![[T.base]]', app as any, makeFile('notes/doc.md'));
+    expect(result.indexOf('alpha')).toBeLessThan(result.indexOf('zeta'));
+  });
 });
