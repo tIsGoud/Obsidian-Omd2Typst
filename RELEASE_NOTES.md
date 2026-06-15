@@ -1,5 +1,18 @@
 # Release Notes
 
+## v0.8.31 — Bases: hide all-empty columns; treat NullValue as empty
+
+Matches Obsidian's UI behaviour of auto-hiding columns whose cells are null
+across every row. Previously the PDF showed e.g. a `published` column full of
+the literal text "null" even though Obsidian didn't display it.
+
+Implementation: each cell is checked via `Value.isTruthy()` — a missing
+property (`getValue` returns null) and a `NullValue` (which would
+`toString()` to "null") are both treated as empty. Columns whose every cell
+ends up empty are dropped before the Markdown table is emitted.
+
+---
+
 ## v0.8.30 — Fix Obsidian review: drop unsupported-API suppressions
 
 `obsidianmd/no-unsupported-api` can't be suppressed with `eslint-disable`

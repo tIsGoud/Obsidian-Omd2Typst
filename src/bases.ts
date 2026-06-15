@@ -47,6 +47,7 @@ function detectBaseEmbeds(markdown: string): BaseEmbed[] {
 
 interface BasesValueLike {
   toString(): string;
+  isTruthy(): boolean;
 }
 
 interface BasesEntryLike {
@@ -147,14 +148,28 @@ async function queryBase(
 
         const config = view.config;
         const columns = config.getOrder();
-        const headers = columns.map(c => config.getDisplayName(c));
+        const allHeaders = columns.map(c => config.getDisplayName(c));
         const entries = view.data.data;
-        const rows = entries.map(entry =>
+        // Empty-cell semantics: a missing property (`getValue` returns null) and
+        // a `NullValue` (which would `toString()` to the literal "null") are
+        // both treated as empty. `Value.isTruthy()` reliably distinguishes
+        // these from real data.
+        const allRows = entries.map(entry =>
           columns.map(c => {
             const v = entry.getValue(c);
-            return v ? v.toString() : '';
+            if (!v || !v.isTruthy()) return '';
+            return v.toString();
           }),
         );
+        // Match Obsidian's UI auto-hide: drop columns whose cells are empty in
+        // every row. Falls back to all columns if filtering would leave none.
+        const visibleIdx: number[] = [];
+        columns.forEach((_, idx) => {
+          if (allRows.some(row => row[idx] !== '')) visibleIdx.push(idx);
+        });
+        const useIdx = visibleIdx.length > 0 ? visibleIdx : columns.map((_, i) => i);
+        const headers = useIdx.map(i => allHeaders[i]);
+        const rows = allRows.map(row => useIdx.map(i => row[i]));
         return { headers, rows };
       }
       await new Promise(r => window.setTimeout(r, 50));
