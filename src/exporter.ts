@@ -94,7 +94,9 @@ export async function exportNote(
       if (bin) {
         const adapter = app.vault.adapter;
         const vaultBase = adapter instanceof FileSystemAdapter ? adapter.getBasePath() : '';
-        const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase);
+        // Normalise: TFile.parent.path is "" or "/" for vault-root notes.
+        const noteFolder = (file.parent?.path ?? '').replace(/^\/+|\/+$/g, '');
+        const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase, noteFolder);
         await app.vault.adapter.writeBinary(outputPath, pdfBytes.buffer as ArrayBuffer);
       } else {
         // No system typst — export .typ so the user has something useful.

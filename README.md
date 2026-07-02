@@ -158,6 +158,8 @@ Full coverage of standard Markdown plus the most-used Obsidian extensions:
 | Superscript `<sup>` / subscript `<sub>` | HTML inline tags |
 | Obsidian wikilink images `![[…]]` | Converted automatically |
 | Thematic breaks `---` | Full-width rule |
+| Mermaid diagrams | Rendered via Obsidian's Mermaid; embedded as SVG. **Emoji codepoints in labels are stripped** — resvg (Typst's SVG renderer) can't render color-emoji glyphs cleanly (they either show as tofu or overflow the node boundary), so the plugin removes them and keeps the surrounding text. Example: `Foo 📊 Bar` → `Foo Bar`. |
+| Obsidian Bases embeds `![[file.base]]` | Rendered via Obsidian's embed registry as a Markdown table |
 
 For the complete feature reference including YAML frontmatter keys, callout icon colours, and checkbox meanings, see the [omd2typst README](https://github.com/tIsGoud/Omd2Typst#readme).
 

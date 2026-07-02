@@ -71,9 +71,18 @@ export function inlineForeignObjectLabels(svg: string): string {
     const width = widthMatch ? parseFloat(widthMatch[1]) : 0;
     const height = heightMatch ? parseFloat(heightMatch[1]) : 0;
 
+    // Strip emoji codepoints (base pictographs, modifiers, ZWJ, VS16) from the
+    // label. resvg (Typst's SVG renderer) can't render them cleanly and any
+    // font fallback we tried either produced tofu or overflowed the node
+    // boundary that mermaid had sized via browser-side measurement — dropping
+    // the glyphs and keeping the surrounding text is the least-bad option.
     const text = content
       .replace(/<[^>]*>/g, ' ')
       .replace(/&nbsp;/g, ' ')
+      // Strip base pictographs, skin-tone modifiers, plus ZWJ (U+200D)
+      // and VS16 (U+FE0F, emoji presentation selector) — otherwise these
+      // invisible joiners remain after the pictographs they bound to are gone.
+      .replace(/\p{Extended_Pictographic}|\p{Emoji_Modifier}|\u200D|\uFE0F/gu, '')
       .replace(/\s+/g, ' ')
       .trim();
 
@@ -137,7 +146,8 @@ export async function renderMermaidBlocks(
   const replacements: string[] = blocks.map(b => markdown.slice(b.start, b.end));
 
   for (let i = 0; i < blocks.length; i++) {
-    const svgPath = `${dir}${noteFile.basename}-mermaid-${i}.svg`;
+    const svgName = `${noteFile.basename}-mermaid-${i}.svg`;
+    const svgPath = `${dir}${svgName}`;
     // Extract `title:` from the mermaid frontmatter (if present) so we can use
     // it as the Typst figure caption. Strip it from the source we send to
     // mermaid so the title isn't ALSO baked into the SVG.
@@ -150,11 +160,13 @@ export async function renderMermaidBlocks(
       const cleanedSvg = inlineForeignObjectLabels(svg);
       await app.vault.adapter.write(svgPath, cleanedSvg);
       writtenPaths.push(svgPath);
-      // Wrap path in angle brackets so CommonMark accepts spaces and other
-      // special characters (note titles can contain anything). Use the
-      // extracted mermaid title as alt text → becomes the Typst caption.
+      // The temp .typ is written next to the note (see typst-cli.ts), so the
+      // image ref is the bare filename — Typst resolves relative paths from
+      // the .typ file's directory. Wrap in angle brackets so CommonMark
+      // accepts spaces in the note basename. Use the extracted mermaid title
+      // as alt text → becomes the Typst caption.
       const alt = title ? escapeMarkdownAlt(title) : '';
-      replacements[i] = `![${alt}](<${svgPath}>)`;
+      replacements[i] = `![${alt}](<${svgName}>)`;
     } catch (err) {
       new Notice(
         `Mermaid diagram ${i + 1} could not be rendered: ${(err as Error).message}.`,

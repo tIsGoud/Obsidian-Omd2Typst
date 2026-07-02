@@ -66,13 +66,22 @@ export function checkTypstInstalled(): string {
 
 /**
  * Compile Typst source to PDF using the system typst CLI.
- * Writes a temp .typ file directly via Node fs (bypassing Obsidian's vault
- * watcher) at the vault root so vault-relative image paths resolve correctly.
  *
- * typstSrc  — Typst source string
- * vaultBase — absolute vault root on the filesystem
+ * The temp .typ is written next to the note (via Node fs, bypassing Obsidian's
+ * vault watcher). This makes folder-relative image references in the source —
+ * `./_assets/foo.svg`, bare filenames — resolve the way Obsidian previews them,
+ * because Typst resolves relative paths from the .typ file's directory.
+ * Vault-root-absolute paths (leading `/`) still work via `--root <vaultBase>`.
+ *
+ * typstSrc   — Typst source string
+ * vaultBase  — absolute vault root on the filesystem
+ * noteFolder — vault-root-relative folder of the note; "" for vault-root notes
  */
-export async function compileToPdfViaCli(typstSrc: string, vaultBase: string): Promise<Uint8Array> {
+export async function compileToPdfViaCli(
+  typstSrc: string,
+  vaultBase: string,
+  noteFolder: string,
+): Promise<Uint8Array> {
   if (!nodeFs || !nodePath) throw new Error('CLI requires Electron/Node environment');
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
   const cp = require('child_process') as typeof import('child_process');
@@ -82,7 +91,8 @@ export async function compileToPdfViaCli(typstSrc: string, vaultBase: string): P
 
   // Use Node fs directly — bypasses Obsidian's vault watcher so the temp file
   // is never indexed and the ENOENT from async vault reads doesn't occur.
-  const tmpBase = nodePath.join(vaultBase, `__omd2typst_${Date.now()}`);
+  const typFolder = noteFolder ? nodePath.join(vaultBase, noteFolder) : vaultBase;
+  const tmpBase = nodePath.join(typFolder, `__omd2typst_${Date.now()}`);
   const realTypPath = `${tmpBase}.typ`;
   const realPdfPath = `${tmpBase}.pdf`;
 

@@ -83,9 +83,10 @@ describe('exportNote — PDF export', () => {
 
     await exportNote(file, 'pdf', null, BASE_SETTINGS, app as any, noopComponent);
 
-    // compileToPdfViaCli receives the Typst source directly (no vault write for .typ)
+    // compileToPdfViaCli receives (typstSrc, vaultBase, noteFolder). The note
+    // lives at notes/hello.md so the folder is "notes".
     const { compileToPdfViaCli } = require('../src/typst-cli');
-    expect(compileToPdfViaCli).toHaveBeenCalledWith('#heading[Hello]', expect.any(String));
+    expect(compileToPdfViaCli).toHaveBeenCalledWith('#heading[Hello]', expect.any(String), 'notes');
 
     // PDF is written via writeBinary; write should not be called
     expect((app.vault.adapter.write as jest.Mock).mock.calls.length).toBe(0);

@@ -44,7 +44,7 @@ describe('renderMermaidBlocks', () => {
     expect(app.vault.adapter.remove).not.toHaveBeenCalled();
   });
 
-  it('replaces a single mermaid block with a vault-relative image reference', async () => {
+  it('emits a bare-filename image reference (SVG is written next to the note)', async () => {
     const md = '# Doc\n\n```mermaid\ngraph TD\n  A --> B\n```\n\nEnd\n';
     const app = makeApp();
     const file = makeFile('notes/doc.md');
@@ -52,8 +52,11 @@ describe('renderMermaidBlocks', () => {
 
     const { markdown, cleanup } = await renderMermaidBlocks(md, app as any, file);
 
-    expect(markdown).toContain('![](<notes/doc-mermaid-0.svg>)');
+    // Image ref is a bare filename — Typst resolves relative paths from the
+    // .typ file's directory, which is the note's folder.
+    expect(markdown).toContain('![](<doc-mermaid-0.svg>)');
     expect(markdown).not.toContain('```mermaid');
+    // The SVG is still written to the note's folder via the vault adapter.
     expect(app.vault.adapter.write).toHaveBeenCalledWith(
       'notes/doc-mermaid-0.svg',
       '<svg>diagram</svg>',
@@ -70,8 +73,8 @@ describe('renderMermaidBlocks', () => {
 
     const { markdown } = await renderMermaidBlocks(md, app as any, file);
 
-    expect(markdown).toContain('![](<notes/doc-mermaid-0.svg>)');
-    expect(markdown).toContain('![](<notes/doc-mermaid-1.svg>)');
+    expect(markdown).toContain('![](<doc-mermaid-0.svg>)');
+    expect(markdown).toContain('![](<doc-mermaid-1.svg>)');
     expect(app.vault.adapter.write).toHaveBeenCalledTimes(2);
   });
 
@@ -106,7 +109,7 @@ describe('renderMermaidBlocks', () => {
     const { markdown } = await renderMermaidBlocks(md, app as any, file);
 
     expect(markdown).toContain('```mermaid\nbad diagram\n```');
-    expect(markdown).toContain('![](<notes/doc-mermaid-1.svg>)');
+    expect(markdown).toContain('![](<doc-mermaid-1.svg>)');
     expect(noticeSpy).toHaveBeenCalledWith(
       expect.stringContaining('diagram 1 could not be rendered'),
     );
@@ -121,8 +124,8 @@ describe('renderMermaidBlocks', () => {
 
     const { markdown } = await renderMermaidBlocks(md, app as any, file);
 
-    // Path has a space, so the markdown image ref must use angle-bracket form.
-    expect(markdown).toContain('![](<input/mimimal mermaid-mermaid-0.svg>)');
+    // Basename has a space, so the markdown image ref must use angle-bracket form.
+    expect(markdown).toContain('![](<mimimal mermaid-mermaid-0.svg>)');
     expect(app.vault.adapter.write).toHaveBeenCalledWith(
       'input/mimimal mermaid-mermaid-0.svg',
       '<svg>diagram</svg>',
@@ -139,7 +142,7 @@ describe('renderMermaidBlocks', () => {
     const { markdown } = await renderMermaidBlocks(md, app as any, file);
 
     // Image ref carries the title as alt text → Typst figure caption.
-    expect(markdown).toContain('![GitGraph example](<notes/doc-mermaid-0.svg>)');
+    expect(markdown).toContain('![GitGraph example](<doc-mermaid-0.svg>)');
     // The source sent to mermaid had the title frontmatter stripped.
     expect(renderFn).toHaveBeenCalledWith(
       expect.any(String),
@@ -155,7 +158,7 @@ describe('renderMermaidBlocks', () => {
 
     const { markdown } = await renderMermaidBlocks(md, app as any, file);
 
-    expect(markdown).toContain('![](<notes/doc-mermaid-0.svg>)');
+    expect(markdown).toContain('![](<doc-mermaid-0.svg>)');
   });
 });
 
@@ -229,6 +232,16 @@ describe('inlineForeignObjectLabels', () => {
     const out = inlineForeignObjectLabels(svg);
     expect(out).toContain('A &amp; B &lt; C');
     expect(out).not.toContain('foreignObject');
+  });
+
+  it('strips emoji codepoints from the label, keeping surrounding text', () => {
+    const svg = '<svg><foreignObject height="24" width="120">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml">'
+      + '<span class="nodeLabel"><p>Foo 📊 Bar</p></span></div></foreignObject></svg>';
+    const out = inlineForeignObjectLabels(svg);
+    // Emoji removed, single-space between the two words (whitespace collapsed).
+    expect(out).toContain('>Foo Bar<');
+    expect(out).not.toMatch(/\p{Extended_Pictographic}/u);
   });
 
   it('handles multiple foreignObject elements in one SVG', () => {
