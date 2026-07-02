@@ -1,5 +1,35 @@
 # Release Notes
 
+## v0.8.36 — Folder-relative image paths in PDF; strip emojis from mermaid labels
+
+### Bug fix — folder-relative image paths now resolve in PDF export
+
+Notes with folder-relative image references — e.g. `![](./_assets/foo.svg)`,
+which is what Obsidian's editor produces for images stored next to a note —
+no longer fail with `file not found` during PDF export.
+
+The plugin used to write the transient `.typ` at the vault root before
+invoking `typst compile`. Typst resolves relative image paths from the `.typ`
+file's directory, so `./_assets/foo.svg` looked in `<vault>/_assets/foo.svg`
+instead of alongside the note. The temp `.typ` is now written inside the
+note's own folder, so folder-relative paths resolve as Obsidian previews them.
+
+Vault-root-absolute paths (`/Attachments/foo.svg`) continue to work via
+`--root <vault>`. Unprefixed vault-root paths (`Attachments/foo.svg` meaning
+`<vault>/Attachments/foo.svg`) — which Obsidian's editor does not generate —
+need a leading `/` after this change.
+
+### Change — emoji codepoints in mermaid labels are stripped
+
+resvg (the SVG renderer Typst uses to embed mermaid diagrams) can't render
+color-emoji glyphs cleanly: labels either show as tofu (`□`) or overflow the
+node boundary that mermaid sized via browser-side measurement. The plugin
+now removes emoji codepoints (Extended Pictographic, emoji modifiers, ZWJ,
+VS16) from mermaid labels before embedding, keeping the surrounding text.
+Example: `Foo 📊 Bar` → `Foo Bar`. Documented in the README.
+
+---
+
 ## v0.8.35 — Add bottom spacing to figures (built-in template + omd2typst v0.10.7)
 
 Two consecutive figures (e.g. mermaid diagrams or images) and the text
