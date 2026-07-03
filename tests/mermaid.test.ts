@@ -226,12 +226,47 @@ describe('inlineForeignObjectLabels', () => {
   });
 
   it('escapes XML special characters in the extracted text', () => {
-    const svg = '<svg><foreignObject height="24" width="80">'
+    // Wide box so the label fits on a single line — this test's intent is
+    // escaping, not wrapping.
+    const svg = '<svg><foreignObject height="24" width="200">'
       + '<div xmlns="http://www.w3.org/1999/xhtml">'
       + '<span class="nodeLabel"><p>A &amp; B &lt; C</p></span></div></foreignObject></svg>';
     const out = inlineForeignObjectLabels(svg);
     expect(out).toContain('A &amp; B &lt; C');
     expect(out).not.toContain('foreignObject');
+  });
+
+  it('splits an explicit <br> into one <tspan> per line', () => {
+    const svg = '<svg><foreignObject height="40" width="200">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml">'
+      + '<span class="nodeLabel"><p>Line one<br>Line two</p></span></div></foreignObject></svg>';
+    const out = inlineForeignObjectLabels(svg);
+    expect(out).toMatch(/<tspan[^>]*>Line one<\/tspan>/);
+    expect(out).toMatch(/<tspan[^>]*>Line two<\/tspan>/);
+    // Two lines centred on the box: first tspan shifts up by 0.6em.
+    expect(out).toContain('dy="-0.6em"');
+    expect(out).toContain('dy="1.2em"');
+  });
+
+  it('auto-wraps a single line that overflows the foreignObject width', () => {
+    // Box ~200px wide fits ~25 sans-serif chars at 14pt in our estimator;
+    // "Not compliant but Management accepts risk" is 41 chars → wraps.
+    const svg = '<svg><foreignObject height="40" width="200">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml">'
+      + '<span class="nodeLabel"><p>Not compliant but Management accepts risk</p></span></div></foreignObject></svg>';
+    const out = inlineForeignObjectLabels(svg);
+    // Wrap point matches Obsidian's rendering of the same label.
+    expect(out).toMatch(/<tspan[^>]*>Not compliant but<\/tspan>/);
+    expect(out).toMatch(/<tspan[^>]*>Management accepts risk<\/tspan>/);
+  });
+
+  it('keeps a short line on a single <text> (no tspans, no wrap)', () => {
+    const svg = '<svg><foreignObject height="24" width="80">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml">'
+      + '<span class="nodeLabel"><p>Hi</p></span></div></foreignObject></svg>';
+    const out = inlineForeignObjectLabels(svg);
+    expect(out).toContain('>Hi</text>');
+    expect(out).not.toContain('<tspan');
   });
 
   it('strips emoji codepoints from the label, keeping surrounding text', () => {

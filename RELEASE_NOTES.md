@@ -1,5 +1,28 @@
 # Release Notes
 
+## v0.8.37 — Mermaid: honour `<br>` and auto-wrap long labels
+
+Mermaid labels that Obsidian wrapped across multiple lines used to render as
+a single overflowing line in the PDF, because `<foreignObject>` HTML labels
+wrap via CSS in the browser but SVG `<text>` does not auto-wrap.
+
+The plugin now emits one `<tspan>` per line inside the SVG `<text>`:
+
+- Explicit `<br>` in the mermaid source becomes a hard line break.
+- A single long line is auto-wrapped at word boundaries to fit the
+  foreignObject's width. The wrap point matches Obsidian's preview to about
+  ±1 word (character-width estimation is approximate).
+- The `<text>` output for single-line labels is unchanged.
+
+Common HTML entities (`&lt;`, `&gt;`, `&quot;`, `&amp;`, `&#39;`, `&apos;`)
+are decoded before measuring wrap width so labels like `A &amp; B` count as
+5 visible characters, not 10.
+
+Emojis in mermaid labels remain stripped (unchanged from v0.8.36) —
+FontAwesome icons in mermaid labels are still unsupported.
+
+---
+
 ## v0.8.36 — Folder-relative image paths in PDF; strip emojis from mermaid labels
 
 ### Bug fix — folder-relative image paths now resolve in PDF export

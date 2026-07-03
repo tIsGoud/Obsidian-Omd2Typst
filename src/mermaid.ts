@@ -50,6 +50,94 @@ function escapeMarkdownAlt(s: string): string {
     .replace(/\]/g, '\\]');
 }
 
+/** Font size used in the emitted SVG `<text>`. Also drives width estimates. */
+const LABEL_FONT_SIZE = 14;
+/** Line height as a multiple of the em-box, matching typical CSS defaults. */
+const LABEL_LINE_HEIGHT_EM = 1.2;
+/**
+ * Average glyph advance for sans-serif, expressed as a fraction of font size.
+ * Approximate — actual metrics depend on the specific font resvg picks.
+ */
+const AVG_CHAR_WIDTH_FACTOR = 0.55;
+
+/** Escape XML special characters for embedding in SVG text content. */
+function escapeSvgText(s: string): string {
+  return s
+    .replace(/&(?!\w+;)/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Decode the common named XML/HTML entities so wrap-width measurement counts
+ * visible characters, not encoded byte length. `&amp;` must be replaced last
+ * to avoid unmasking a downstream `&…;`.
+ */
+function decodeCommonEntities(s: string): string {
+  return s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+/**
+ * Wrap a single line of text into multiple lines that each fit within the
+ * given box width, splitting at word boundaries. A word wider than the box
+ * is kept intact (it will overflow — inevitable without breaking a word).
+ */
+export function wrapLabelLine(text: string, boxWidth: number): string[] {
+  if (boxWidth <= 0) return [text];
+  const maxChars = Math.max(1, Math.floor(boxWidth / (LABEL_FONT_SIZE * AVG_CHAR_WIDTH_FACTOR)));
+  if (text.length <= maxChars) return [text];
+
+  const lines: string[] = [];
+  let current = '';
+  for (const word of text.split(' ')) {
+    if (current === '') {
+      current = word;
+    } else if (current.length + 1 + word.length <= maxChars) {
+      current += ' ' + word;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  if (current !== '') lines.push(current);
+  return lines;
+}
+
+/**
+ * Extract visible text lines from a `<foreignObject>` HTML payload.
+ *
+ *  1. Explicit `<br>` tags in the source become hard line breaks.
+ *  2. All other HTML tags are stripped to whitespace.
+ *  3. `&nbsp;` becomes a space; emoji codepoints (base pictographs,
+ *     modifiers, ZWJ, VS16) are removed — resvg can't render them cleanly.
+ *  4. Whitespace is collapsed per line; empty lines are dropped.
+ *  5. If step 1 produced multiple lines they are honoured as-is; otherwise
+ *     the single line is auto-wrapped to fit `boxWidth`.
+ */
+export function extractLabelLines(content: string, boxWidth: number): string[] {
+  const cleaned = content
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\p{Extended_Pictographic}|\p{Emoji_Modifier}|‍|️/gu, '');
+
+  const rawLines = cleaned.split('\n');
+  const explicitBreak = rawLines.length > 1;
+  const lines = rawLines
+    .map(l => decodeCommonEntities(l).replace(/\s+/g, ' ').trim())
+    .filter(l => l.length > 0);
+
+  if (lines.length === 0) return [];
+  if (explicitBreak) return lines;
+  return wrapLabelLine(lines[0], boxWidth);
+}
+
 /**
  * Replace each `<foreignObject>…</foreignObject>` in the SVG with an SVG
  * `<text>` element positioned at the centre of the foreignObject's box.
@@ -60,8 +148,10 @@ function escapeMarkdownAlt(s: string): string {
  * Typst uses for `image()`) does not support foreignObject, so without this
  * pass every flowchart node in the exported PDF would be an empty box.
  *
- * The inner HTML is stripped to plain text. Empty foreignObjects (e.g. the
- * placeholder edge-label between two siblings) are removed entirely.
+ * Multi-line output uses one `<tspan>` per line, so labels mermaid wrapped
+ * in the browser (via CSS on the HTML label) also wrap in the PDF. Empty
+ * foreignObjects (e.g. the placeholder edge label between siblings) are
+ * removed entirely.
  */
 export function inlineForeignObjectLabels(svg: string): string {
   const re = /<foreignObject([^>]*?)>([\s\S]*?)<\/foreignObject>/g;
@@ -71,31 +161,29 @@ export function inlineForeignObjectLabels(svg: string): string {
     const width = widthMatch ? parseFloat(widthMatch[1]) : 0;
     const height = heightMatch ? parseFloat(heightMatch[1]) : 0;
 
-    // Strip emoji codepoints (base pictographs, modifiers, ZWJ, VS16) from the
-    // label. resvg (Typst's SVG renderer) can't render them cleanly and any
-    // font fallback we tried either produced tofu or overflowed the node
-    // boundary that mermaid had sized via browser-side measurement — dropping
-    // the glyphs and keeping the surrounding text is the least-bad option.
-    const text = content
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/&nbsp;/g, ' ')
-      // Strip base pictographs, skin-tone modifiers, plus ZWJ (U+200D)
-      // and VS16 (U+FE0F, emoji presentation selector) — otherwise these
-      // invisible joiners remain after the pictographs they bound to are gone.
-      .replace(/\p{Extended_Pictographic}|\p{Emoji_Modifier}|\u200D|\uFE0F/gu, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const lines = extractLabelLines(content, width);
+    if (lines.length === 0) return '';
 
-    if (!text) return '';
+    const cx = width / 2;
+    const cy = height / 2;
+    const commonAttrs = `x="${cx}" y="${cy}" text-anchor="middle" `
+      + `dominant-baseline="central" font-family="sans-serif" `
+      + `font-size="${LABEL_FONT_SIZE}" fill="#333"`;
 
-    const escaped = text
-      .replace(/&(?!\w+;)/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    if (lines.length === 1) {
+      return `<text ${commonAttrs}>${escapeSvgText(lines[0])}</text>`;
+    }
 
-    return `<text x="${width / 2}" y="${height / 2}" text-anchor="middle" `
-      + `dominant-baseline="central" font-family="sans-serif" font-size="14" `
-      + `fill="#333">${escaped}</text>`;
+    // Vertically centre N lines around the box centre: shift the first line
+    // up by (N-1)/2 line-heights, then each subsequent line down by one full
+    // line-height via `dy`. `x` on each tspan resets the horizontal origin.
+    const firstDy = -((lines.length - 1) / 2) * LABEL_LINE_HEIGHT_EM;
+    const tspans = lines.map((line, i) => {
+      const dy = i === 0 ? `${firstDy}em` : `${LABEL_LINE_HEIGHT_EM}em`;
+      return `<tspan x="${cx}" dy="${dy}">${escapeSvgText(line)}</tspan>`;
+    }).join('');
+
+    return `<text ${commonAttrs}>${tspans}</text>`;
   });
 }
 
