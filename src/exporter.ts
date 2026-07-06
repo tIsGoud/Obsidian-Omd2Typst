@@ -6,6 +6,7 @@ import { renderToTypst } from './wasm/omd2typst';
 import { findTypstBinary, compileToPdfViaCli } from './typst-cli';
 import { renderMermaidBlocks } from './mermaid';
 import { renderBaseEmbeds } from './bases';
+import { resolveImagePaths } from './image-paths';
 
 /**
  * Extract the value of a YAML key from the frontmatter block.
@@ -52,7 +53,10 @@ export async function exportNote(
   // Step 1: Read and pre-process the note
   const rawMarkdown = await app.vault.read(file);
   const markdownAfterBases = await renderBaseEmbeds(rawMarkdown, app, file, parent);
-  const { markdown, cleanup } = await renderMermaidBlocks(markdownAfterBases, app, file);
+  // Resolve image links to /-absolute vault paths BEFORE mermaid, which emits
+  // its own bare-filename references that must not be resolved here (ADR 0012).
+  const markdownAfterImages = resolveImagePaths(markdownAfterBases, app, file);
+  const { markdown, cleanup } = await renderMermaidBlocks(markdownAfterImages, app, file);
   try {
     // Step 2: Resolve template path for #import (verify file exists; null → built-in).
     // Prefixing with / makes the path vault-root-relative; typst resolves it from --root.

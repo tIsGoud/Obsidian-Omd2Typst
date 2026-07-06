@@ -1,5 +1,30 @@
 # Release Notes
 
+## v0.8.38 — Image links resolve regardless of Obsidian's link format
+
+Exporting a note whose images used Obsidian's **"Absolute path in vault"**
+link format (Settings → Files & links → New link format) failed with
+`error: file not found`. The image path — a vault-root path with no leading
+slash, e.g. `04-Personal/…/_assets/laptop.png` — was resolved relative to the
+note's folder and ended up doubled (`…/input/04-Personal/…/input/_assets/…`).
+
+The plugin now resolves **every** image reference the way Obsidian's own
+preview does and rewrites it to a vault-root-absolute path before export:
+
+- Markdown images (`![](…)`) and wikilink embeds (`![[…]]`) are both handled.
+- All of Obsidian's link formats work — relative, shortest path (bare
+  filename), and absolute-in-vault — as do `./`, `../`, and paths with spaces.
+- External URLs and already-absolute paths are left untouched.
+- Image syntax inside code blocks and inline code is **not** rewritten, so
+  documentation that shows `![](…)` as an example is preserved.
+
+Only references that resolve to a real image file in the vault are rewritten;
+anything else is left exactly as written.
+
+See ADR 0013. This closes the regression documented in ADR 0012.
+
+---
+
 ## v0.8.37 — Mermaid: honour `<br>` and auto-wrap long labels
 
 Mermaid labels that Obsidian wrapped across multiple lines used to render as
