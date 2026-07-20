@@ -1,5 +1,30 @@
 # Release Notes
 
+## v0.9.0 — Appendix headings, page breaks, tables & embed safety
+
+Built on the omd2typst 0.11.0 engine.
+
+- **Appendix headings.** Add `appendix-from: "<chapter title>"` to a note's
+  frontmatter to turn that chapter — and every chapter after it — into
+  appendices, numbered `Appendix A - <title>` with letter sub-numbering
+  (`A.1`, `A.1.1`). The prefix is localized: Bijlage (nl), Appendix (en),
+  Anhang (de), Apéndice (es), Appendice (fr). Supported by the bundled tig and
+  purple templates; other templates simply ignore the key.
+- **Each chapter starts on a new page** in the tig and purple templates
+  (appendices included).
+- **Table layout.** Cells are left-aligned (no longer stretched/justified) and
+  hyphenate, so a long word wraps within its column instead of overflowing into
+  the neighbouring one.
+- **Non-image embeds no longer break PDF export.** A `.pdf`, audio/video, or
+  note-transclusion embed now renders a visible "not supported" placeholder
+  instead of failing Typst compilation.
+
+Internal: removed the dormant pdf-wasm PDF-compiler tooling (PDF export uses a
+locally-installed Typst binary) and bumped the engine submodule to
+omd2typst 0.11.0.
+
+---
+
 ## v0.8.38 — Image links resolve regardless of Obsidian's link format
 
 Exporting a note whose images used Obsidian's **"Absolute path in vault"**

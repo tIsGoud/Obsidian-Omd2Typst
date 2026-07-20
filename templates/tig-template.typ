@@ -303,6 +303,7 @@
 #let _lang_strings = (
   "nl": (
     toc:      "Inhoudsopgave",
+    appendix: "Bijlage",
     figures:  "Lijst van figuren",
     summary:  "Samenvatting",
     version:  "Versie",
@@ -316,6 +317,7 @@
   ),
   "en": (
     toc:      "Table of Contents",
+    appendix: "Appendix",
     figures:  "List of Figures",
     summary:  "Summary",
     version:  "Version",
@@ -329,6 +331,7 @@
   ),
   "de": (
     toc:      "Inhaltsverzeichnis",
+    appendix: "Anhang",
     figures:  "Abbildungsverzeichnis",
     summary:  "Zusammenfassung",
     version:  "Version",
@@ -342,6 +345,7 @@
   ),
   "es": (
     toc:      "Tabla de contenidos",
+    appendix: "Apéndice",
     figures:  "Lista de figuras",
     summary:  "Resumen",
     version:  "Versión",
@@ -355,6 +359,7 @@
   ),
   "fr": (
     toc:      "Table des matières",
+    appendix: "Appendice",
     figures:  "Liste des figures",
     summary:  "Résumé",
     version:  "Version",
@@ -388,6 +393,10 @@
   let summary  = fm.at("summary",  default: "")
   let _lang    = fm.at("language", default: "nl")
   let _t       = _lang_strings.at(_lang, default: _lang_strings.at("nl"))
+
+  // Register the localized "Appendix" label so the engine's appendix numbering
+  // switch (emitted at `appendix-from`) renders e.g. "Bijlage A - …".
+  state("omd-appendix-label").update(_t.at("appendix", default: "Appendix"))
 
   // ── Page layout ─────────────────────────────────────────────
   set page(
@@ -425,18 +434,18 @@
   set heading(numbering: "1.1.")
 
   show heading.where(level: 1): it => {
-    v(1.4em)
-    text(size: 17pt, weight: "bold", fill: accent, it.body)
+    pagebreak(weak: true)   // each chapter starts on a new page
+    text(size: 17pt, weight: "bold", fill: accent, it)
     v(0.5em)
   }
   show heading.where(level: 2): it => {
     v(1.0em)
-    text(size: 13pt, weight: "bold", fill: accent, it.body)
+    text(size: 13pt, weight: "bold", fill: accent, it)
     v(0.3em)
   }
   show heading.where(level: 3): it => {
     v(0.8em)
-    text(size: 11pt, weight: "bold", fill: rgb("#333333"), it.body)
+    text(size: 11pt, weight: "bold", fill: rgb("#333333"), it)
     v(0.2em)
   }
 
@@ -468,6 +477,9 @@
     width: 100%,
     it.body,
   )
+
+  // ── Figure spacing ───────────────────────────────────────────
+  show figure: set block(below: 1.5em)
 
   // ── Cover page ───────────────────────────────────────────────
   page(
