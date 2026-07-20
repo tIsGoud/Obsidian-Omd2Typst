@@ -5,7 +5,6 @@
   "private": true,
   "scripts": {
     "build:wasm": "bash scripts/build-wasm.sh",
-    "build:pdf-wasm": "bash scripts/build-pdf-wasm.sh",
     "build": "node esbuild.config.mjs production",
     "dev": "node esbuild.config.mjs",
     "test": "jest",
