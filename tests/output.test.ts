@@ -7,6 +7,7 @@ const BASE: Omd2TypstSettings = {
   defaultLanguage: 'en', frontmatterTemplateMode: 'inline',
   frontmatterInline: '', frontmatterFilePath: '',
   showContextMenu: true, showBuiltinInPicker: false,
+  customPath: '',
 };
 
 describe('resolveOutputPath (same-folder)', () => {

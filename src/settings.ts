@@ -1,5 +1,6 @@
 import { App, AbstractInputSuggest, Plugin, TFile, TFolder, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import { parseTemplateLanguages } from './template';
+import { detectSystemTypst } from './typst-cli';
 import type { TypstStatus } from './typst-cli';
 
 // ---------------------------------------------------------------------------
@@ -107,7 +108,7 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
 // ---------------------------------------------------------------------------
 
 export type OutputFormat = 'typ' | 'pdf';
-export type OutputMode  = 'same-folder' | 'fixed-folder' | 'ask';
+export type OutputMode = 'same-folder' | 'fixed-folder' | 'ask';
 export type FrontmatterTemplateMode = 'inline' | 'file' | 'user-defined';
 
 export interface TemplateEntry {
@@ -137,6 +138,8 @@ export interface Omd2TypstSettings {
   showContextMenu: boolean;
   /** Include the built-in template in the "Export with template" picker. */
   showBuiltinInPicker: boolean;
+  /** Custom path to the typst binary, e.g. "wsl:" or "/usr/local/bin/typst". */
+  customPath: string;
 }
 
 export const DEFAULT_SETTINGS: Omd2TypstSettings = {
@@ -163,6 +166,7 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
   frontmatterFilePath: '',
   showContextMenu: true,
   showBuiltinInPicker: false,
+  customPath: '',
 };
 
 // ---------------------------------------------------------------------------
@@ -171,6 +175,7 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
 
 interface PluginHost extends Plugin {
   settings: Omd2TypstSettings;
+  typstStatus: TypstStatus;
   saveSettings(): Promise<void>;
 }
 
@@ -225,7 +230,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           btn.setButtonText('Remove')
             .onClick(async () => {
               this.plugin.settings.templates = (
-                this.plugin.settings.templates              ).filter(t => t.name !== tpl.name);
+                this.plugin.settings.templates).filter(t => t.name !== tpl.name);
               if (this.plugin.settings.defaultTemplate === tpl.name) {
                 this.plugin.settings.defaultTemplate = 'built-in';
               }
@@ -319,9 +324,33 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
       typstDesc = 'PDF export falls back to .typ — install Typst from typst.app to enable PDF.';
     }
 
-    new Setting(containerEl)
+    const statusSetting = new Setting(containerEl)
       .setName(typstLabel)
       .setDesc(typstDesc);
+
+    new Setting(containerEl)
+      .setName('Custom typst path')
+      .setDesc('Configure a custom path to the typst executable. On Windows, prefix with "wsl:" to run typst in wsl (e.g. "wsl:" or "wsl:/usr/bin/typst"). Leave empty to auto-detect.')
+      .addText(text =>
+        text.setPlaceholder('E.g. /usr/local/bin/typst or wsl:')
+          .setValue(this.plugin.settings.customPath)
+          .onChange(async v => {
+            this.plugin.settings.customPath = v.trim();
+            await this.plugin.saveSettings();
+            // Re-detect
+            this.plugin.typstStatus = detectSystemTypst(this.plugin.settings.customPath);
+
+            // Dynamically update the status row details without redrawing the container
+            const newStatus = this.plugin.typstStatus;
+            if (newStatus.source === 'system') {
+              statusSetting.setName(`Typst ${newStatus.version} (system)`);
+              statusSetting.setDesc(newStatus.path ? `System binary: ${newStatus.path}` : 'Found in PATH');
+            } else {
+              statusSetting.setName('Typst not found');
+              statusSetting.setDesc('PDF export falls back to .typ — install Typst from typst.app to enable PDF.');
+            }
+          })
+      );
 
     new Setting(containerEl)
       .setName('Default output format')
