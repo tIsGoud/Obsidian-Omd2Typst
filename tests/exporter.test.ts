@@ -8,7 +8,7 @@ jest.mock('../src/wasm/omd2typst', () => ({
   renderToTypst: jest.fn().mockResolvedValue('#heading[Hello]'),
 }));
 jest.mock('../src/typst-cli', () => ({
-  findTypstBinary: jest.fn().mockReturnValue('/usr/local/bin/typst'),
+  findTypstBinary: jest.fn().mockReturnValue({ mode: 'native', command: '/usr/local/bin/typst', args: [] }),
   compileToPdfViaCli: jest.fn().mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
 }));
 
@@ -24,6 +24,7 @@ const BASE_SETTINGS: Omd2TypstSettings = {
   frontmatterFilePath: '',
   showContextMenu: true,
   showBuiltinInPicker: false,
+  customPath: '',
 };
 
 const noopComponent = { addChild: jest.fn(), removeChild: jest.fn() } as any;
@@ -86,7 +87,7 @@ describe('exportNote — PDF export', () => {
     // compileToPdfViaCli receives (typstSrc, vaultBase, noteFolder). The note
     // lives at notes/hello.md so the folder is "notes".
     const { compileToPdfViaCli } = require('../src/typst-cli');
-    expect(compileToPdfViaCli).toHaveBeenCalledWith('#heading[Hello]', expect.any(String), 'notes');
+    expect(compileToPdfViaCli).toHaveBeenCalledWith('#heading[Hello]', expect.any(String), 'notes', '');
 
     // PDF is written via writeBinary; write should not be called
     expect((app.vault.adapter.write as jest.Mock).mock.calls.length).toBe(0);

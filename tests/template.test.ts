@@ -18,6 +18,7 @@ const SETTINGS_BASE: Omd2TypstSettings = {
   frontmatterFilePath: '',
   showContextMenu: true,
   showBuiltinInPicker: false,
+  customPath: '',
 };
 
 describe('parseTemplateLanguages', () => {

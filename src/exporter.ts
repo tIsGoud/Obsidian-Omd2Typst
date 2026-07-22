@@ -93,14 +93,14 @@ export async function exportNote(
       await app.vault.adapter.write(outputPath, typstSrc);
     } else {
       // PDF: requires system typst CLI. Fall back to .typ if not installed.
-      const bin = findTypstBinary();
+      const bin = findTypstBinary(settings.customPath);
 
       if (bin) {
         const adapter = app.vault.adapter;
         const vaultBase = adapter instanceof FileSystemAdapter ? adapter.getBasePath() : '';
         // Normalise: TFile.parent.path is "" or "/" for vault-root notes.
         const noteFolder = (file.parent?.path ?? '').replace(/^\/+|\/+$/g, '');
-        const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase, noteFolder);
+        const pdfBytes = await compileToPdfViaCli(typstSrc, vaultBase, noteFolder, settings.customPath);
         await app.vault.adapter.writeBinary(outputPath, pdfBytes.buffer as ArrayBuffer);
       } else {
         // No system typst — export .typ so the user has something useful.

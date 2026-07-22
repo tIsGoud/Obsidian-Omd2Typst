@@ -9,7 +9,7 @@ import { TemplateSuggestModal } from './template-picker';
 
 export default class Omd2TypstPlugin extends Plugin {
   settings: Omd2TypstSettings = DEFAULT_SETTINGS;
-  typstStatus: TypstStatus = { source: 'none', version: '' };
+  typstStatus: TypstStatus = { source: 'none', version: '', mode: 'none' };
   private cmdExportPdf: Command | undefined;
   private cmdExportTyp: Command | undefined;
 
@@ -17,7 +17,7 @@ export default class Omd2TypstPlugin extends Plugin {
     await this.loadSettings();
 
     // Detect system typst binary.
-    this.typstStatus = detectSystemTypst();
+    this.typstStatus = detectSystemTypst(this.settings.customPath);
 
 
     // Register 4 commands
