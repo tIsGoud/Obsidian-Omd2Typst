@@ -1,5 +1,34 @@
 # Release Notes
 
+## v0.9.1 — Mermaid diagrams work again on Obsidian 1.15+
+
+Obsidian 1.15 replaced its Mermaid renderer with **Pele**, which broke Mermaid
+export in three ways. All three are fixed.
+
+- **Diagrams are rendered again.** Pele only exposes `window.mermaid` after
+  `loadMermaid()` has been called, so the plugin found no renderer and left the
+  Mermaid block out of the PDF. The plugin now loads Mermaid through Obsidian's
+  `loadMermaid()` (the global is still used as a fallback on older versions).
+- **No more black shapes.** Pele colours diagrams with CSS variables
+  (`fill="var(--_s)"`), which Typst's SVG renderer does not support, so every
+  shape came out solid black. The variables are now resolved to Pele's default
+  light palette — suited to print — and rounded corners are kept.
+- **No more question marks in labels.** Emoji in node or edge labels were drawn
+  as `?` boxes. They are now removed from diagram text (Typst has no colour-emoji
+  font), as already happened with the older label format.
+
+Internal, for the community-store review:
+
+- `typst-cli.ts` uses typed `import`s for `fs`, `path`, `os` and
+  `child_process` instead of `require()`, runs Typst with `execFileSync` and an
+  argument array (no shell string), and no longer reads environment variables
+  to find the cargo `typst` binary.
+- Settings suggestion lists use `createDiv`.
+- Development dependencies updated: `obsidian` 1.14.4 typings and
+  `eslint-plugin-obsidianmd` 0.5.1.
+
+---
+
 ## v0.9.0 — Appendix headings, page breaks, tables & embed safety
 
 Built on the omd2typst 0.11.0 engine.

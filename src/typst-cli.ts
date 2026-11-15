@@ -1,8 +1,8 @@
-// Node.js modules — available in Electron (Obsidian's runtime).
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- Node.js built-in, not available via ESM in Electron
-const nodeFs   = typeof require !== 'undefined' ? require('fs')   as typeof import('fs')   : null;
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- Node.js built-in, not available via ESM in Electron
-const nodePath = typeof require !== 'undefined' ? require('path') as typeof import('path') : null;
+// Node.js built-ins — available in Electron (Obsidian's runtime, desktop only).
+import { execFileSync } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 export interface TypstStatus {
   /** Whether a system typst binary was found. */
@@ -21,13 +21,10 @@ export function detectSystemTypst(): TypstStatus {
   const bin = findTypstBinary();
   if (!bin) return { source: 'none', version: '' };
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
-    const cp = require('child_process') as typeof import('child_process');
-    const raw = cp.execSync(`"${bin}" --version`, { stdio: 'pipe' }).toString().trim();
+    const raw = execFileSync(bin, ['--version'], { stdio: 'pipe' }).toString().trim();
     const match = raw.match(/(\d+\.\d+\.\d+)/);
     const version = match ? match[1] : raw;
-    const path = bin === 'typst' ? undefined : bin;
-    return { source: 'system', version, path };
+    return { source: 'system', version, path: bin === 'typst' ? undefined : bin };
   } catch {
     return { source: 'none', version: '' };
   }
@@ -35,18 +32,15 @@ export function detectSystemTypst(): TypstStatus {
 
 /** Return the absolute path of the typst binary, or null if not found. */
 export function findTypstBinary(): string | null {
-  if (!nodeFs) return null;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
-  const cp = require('child_process') as typeof import('child_process');
-  try { cp.execSync('typst --version', { stdio: 'pipe' }); return 'typst'; } catch { /* fall through */ }
+  try { execFileSync('typst', ['--version'], { stdio: 'pipe' }); return 'typst'; } catch { /* fall through */ }
   const candidates = [
     '/opt/homebrew/bin/typst',   // macOS ARM Homebrew
     '/usr/local/bin/typst',       // macOS Intel Homebrew / manual install
     '/usr/bin/typst',             // Linux distro package
-    process.env.HOME ? `${process.env.HOME}/.cargo/bin/typst` : '',
+    path.join(os.homedir(), '.cargo', 'bin', 'typst'),  // cargo install
   ];
   for (const p of candidates) {
-    if (p && nodeFs.existsSync(p)) return p;
+    if (fs.existsSync(p)) return p;
   }
   return null;
 }
@@ -56,12 +50,9 @@ export function findTypstBinary(): string | null {
  * Throws if not found or not executable.
  */
 export function checkTypstInstalled(): string {
-  if (!nodeFs) throw new Error('Not running in Electron/Node environment');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
-  const cp = require('child_process') as typeof import('child_process');
   const bin = findTypstBinary();
   if (!bin) throw new Error('typst not found. Install from https://typst.app or add to PATH.');
-  return cp.execSync(`"${bin}" --version`, { stdio: 'pipe' }).toString().trim();
+  return execFileSync(bin, ['--version'], { stdio: 'pipe' }).toString().trim();
 }
 
 /**
@@ -82,36 +73,28 @@ export async function compileToPdfViaCli(
   vaultBase: string,
   noteFolder: string,
 ): Promise<Uint8Array> {
-  if (!nodeFs || !nodePath) throw new Error('CLI requires Electron/Node environment');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- child_process not available via ESM in Electron
-  const cp = require('child_process') as typeof import('child_process');
-
   const bin = findTypstBinary();
   if (!bin) throw new Error('typst CLI not found. Install it from https://typst.app or add it to PATH.');
 
   // Use Node fs directly — bypasses Obsidian's vault watcher so the temp file
   // is never indexed and the ENOENT from async vault reads doesn't occur.
-  const typFolder = noteFolder ? nodePath.join(vaultBase, noteFolder) : vaultBase;
-  const tmpBase = nodePath.join(typFolder, `__omd2typst_${Date.now()}`);
+  const typFolder = noteFolder ? path.join(vaultBase, noteFolder) : vaultBase;
+  const tmpBase = path.join(typFolder, `__omd2typst_${Date.now()}`);
   const realTypPath = `${tmpBase}.typ`;
   const realPdfPath = `${tmpBase}.pdf`;
 
-  nodeFs.writeFileSync(realTypPath, typstSrc, 'utf8');
-
-  const cmd = [
-    `"${bin}"`,
-    'compile',
-    `"${realTypPath}"`,
-    `"${realPdfPath}"`,
-    `--root "${vaultBase}"`,
-  ].join(' ');
+  fs.writeFileSync(realTypPath, typstSrc, 'utf8');
 
   try {
-    cp.execSync(cmd, { timeout: 120_000, stdio: 'pipe' });
-    const buf = nodeFs.readFileSync(realPdfPath);
+    execFileSync(
+      bin,
+      ['compile', realTypPath, realPdfPath, '--root', vaultBase],
+      { timeout: 120_000, stdio: 'pipe' },
+    );
+    const buf = fs.readFileSync(realPdfPath);
     return new Uint8Array(buf);
   } finally {
-    try { nodeFs.unlinkSync(realTypPath); } catch { /* best-effort cleanup */ }
-    try { nodeFs.unlinkSync(realPdfPath); } catch { /* best-effort cleanup */ }
+    try { fs.unlinkSync(realTypPath); } catch { /* best-effort cleanup */ }
+    try { fs.unlinkSync(realPdfPath); } catch { /* best-effort cleanup */ }
   }
 }

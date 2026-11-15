@@ -25,7 +25,7 @@ class TypFileSuggest extends AbstractInputSuggest<TFile> {
   }
 
   renderSuggestion(file: TFile, el: HTMLElement): void {
-    el.createEl('div', { text: file.basename });
+    el.createDiv({ text: file.basename });
     el.createEl('small', { text: file.path });
   }
 
@@ -55,7 +55,7 @@ class MdFileSuggest extends AbstractInputSuggest<TFile> {
   }
 
   renderSuggestion(file: TFile, el: HTMLElement): void {
-    el.createEl('div', { text: file.basename });
+    el.createDiv({ text: file.basename });
     el.createEl('small', { text: file.path });
   }
 
@@ -92,7 +92,7 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
   }
 
   renderSuggestion(folder: TFolder, el: HTMLElement): void {
-    el.createEl('div', { text: folder.path || '/ (vault root)' });
+    el.createDiv({ text: folder.path || '/ (vault root)' });
   }
 
   selectSuggestion(folder: TFolder): void {

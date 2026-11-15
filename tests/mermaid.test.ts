@@ -1,4 +1,5 @@
-import { renderMermaidBlocks, extractMermaidTitle, inlineForeignObjectLabels } from '../src/mermaid';
+import { renderMermaidBlocks, extractMermaidTitle, inlineForeignObjectLabels, resolveCssVariables, stripEmojiFromSvgText } from '../src/mermaid';
+import { loadMermaid } from 'obsidian';
 import type { TFile } from 'obsidian';
 
 function makeFile(path: string): TFile {
@@ -42,6 +43,18 @@ describe('renderMermaidBlocks', () => {
     expect(app.vault.adapter.write).not.toHaveBeenCalled();
     await cleanup();
     expect(app.vault.adapter.remove).not.toHaveBeenCalled();
+  });
+
+  it('renders via loadMermaid() when window.mermaid is not yet set (Obsidian 1.15+ / Pele)', async () => {
+    const md = '```mermaid\ngraph TD\n  A --> B\n```\n';
+    const app = makeApp();
+    const mermaid = makeMermaid();
+    (loadMermaid as jest.Mock).mockResolvedValueOnce(mermaid);
+
+    const { markdown } = await renderMermaidBlocks(md, app as any, makeFile('doc.md'));
+
+    expect(mermaid.render).toHaveBeenCalled();
+    expect(markdown).toContain('![](<doc-mermaid-0.svg>)');
   });
 
   it('emits a bare-filename image reference (SVG is written next to the note)', async () => {
@@ -289,5 +302,45 @@ describe('inlineForeignObjectLabels', () => {
     expect(out).not.toContain('foreignObject');
     expect(out).toContain('>One<');
     expect(out).toContain('>Two<');
+  });
+});
+
+describe('resolveCssVariables (Pele output)', () => {
+  const peleSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" style="max-width:100%;--_s:var(--pele-surface,#f3f3f3);'
+    + '--_b:var(--pele-border,#8a8a8a);--_r:var(--pele-radius,4px);font-family:var(--pele-font,sans-serif)">'
+    + '<rect fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/></svg>';
+
+  it('replaces var() in attributes with the root declaration fallbacks', () => {
+    const out = resolveCssVariables(peleSvg);
+    expect(out).not.toContain('var(');
+    expect(out).toContain('fill="#f3f3f3"');
+    expect(out).toContain('stroke="#8a8a8a"');
+  });
+
+  it('turns the CSS rx into an rx attribute', () => {
+    expect(resolveCssVariables(peleSvg)).toContain('<rect fill="#f3f3f3" stroke="#8a8a8a" rx="4"/>');
+  });
+
+  it('leaves SVG without variables untouched', () => {
+    const plain = '<svg xmlns="http://www.w3.org/2000/svg"><rect fill="#fff"/></svg>';
+    expect(resolveCssVariables(plain)).toBe(plain);
+  });
+});
+
+describe('stripEmojiFromSvgText', () => {
+  it('removes emoji from <text> and tidies the leftover space', () => {
+    const svg = '<svg><text x="0">🚀 Launch ✅</text><text>Plain</text></svg>';
+    expect(stripEmojiFromSvgText(svg)).toBe('<svg><text x="0">Launch</text><text>Plain</text></svg>');
+  });
+
+  it('handles tspans, ZWJ sequences and variation selectors', () => {
+    const svg = '<svg><text><tspan x="1">👨\u200d👩 Family</tspan><tspan x="1">⚠\ufe0f Warn</tspan></text></svg>';
+    expect(stripEmojiFromSvgText(svg)).toBe('<svg><text><tspan x="1">Family</tspan><tspan x="1">Warn</tspan></text></svg>');
+  });
+
+  it('leaves SVG without emoji unchanged', () => {
+    const svg = '<svg><text>Hello</text></svg>';
+    expect(stripEmojiFromSvgText(svg)).toBe(svg);
   });
 });

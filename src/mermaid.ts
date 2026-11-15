@@ -1,11 +1,21 @@
-import { App, Notice, TFile } from 'obsidian';
+import { App, Notice, TFile, loadMermaid } from 'obsidian';
 
 interface MermaidApi {
   initialize: (config: Record<string, unknown>) => void;
   render: (id: string, definition: string) => Promise<{ svg: string }>;
 }
 
-function getMermaid(): MermaidApi | undefined {
+/**
+ * Obsidian 1.15+ renders Mermaid with Pele and only sets `window.mermaid`
+ * lazily, inside `loadMermaid()`. Reading the global alone finds nothing until
+ * a diagram has been shown, so always go through `loadMermaid()` first and
+ * keep the global as a fallback for older versions.
+ */
+async function getMermaid(): Promise<MermaidApi | undefined> {
+  try {
+    const loaded = (await loadMermaid()) as MermaidApi | undefined;
+    if (loaded) return loaded;
+  } catch { /* fall through to the global */ }
   if (typeof window === 'undefined') return undefined;
   const w = window as unknown as Record<string, unknown>;
   return w['mermaid'] as MermaidApi | undefined;
@@ -59,6 +69,12 @@ const LABEL_LINE_HEIGHT_EM = 1.2;
  * Approximate — actual metrics depend on the specific font resvg picks.
  */
 const AVG_CHAR_WIDTH_FACTOR = 0.55;
+
+/**
+ * Emoji codepoints (base pictographs, modifiers, ZWJ, VS16). resvg has no
+ * colour-emoji font, so they render as tofu / question marks in the PDF.
+ */
+const EMOJI_RE = /\p{Extended_Pictographic}|\p{Emoji_Modifier}|\u200d|\ufe0f/gu;
 
 /** Escape XML special characters for embedding in SVG text content. */
 function escapeSvgText(s: string): string {
@@ -125,7 +141,7 @@ export function extractLabelLines(content: string, boxWidth: number): string[] {
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/g, ' ')
-    .replace(/\p{Extended_Pictographic}|\p{Emoji_Modifier}|‍|️/gu, '');
+    .replace(EMOJI_RE, '');
 
   const rawLines = cleaned.split('\n');
   const explicitBreak = rawLines.length > 1;
@@ -136,6 +152,62 @@ export function extractLabelLines(content: string, boxWidth: number): string[] {
   if (lines.length === 0) return [];
   if (explicitBreak) return lines;
   return wrapLabelLine(lines[0], boxWidth);
+}
+
+/**
+ * Replace CSS custom properties with their literal values.
+ *
+ * Obsidian 1.15+ renders Mermaid with Pele, which colours shapes through
+ * variables — `fill="var(--_s)"` — declared on the root `<svg style="--_s:
+ * var(--pele-surface,#f3f3f3);…">`. resvg (Typst's SVG renderer) does not
+ * support `var()`, so every fill and stroke falls back to black. We resolve
+ * each `var(--name[, fallback])` using the root declarations (and fallbacks),
+ * which yields Pele's default light palette — appropriate for print.
+ *
+ * `style="rx:<len>"` is also converted to an `rx` attribute: Pele sets corner
+ * radius through CSS, which resvg ignores.
+ */
+export function resolveCssVariables(svg: string): string {
+  const rootStyle = /<svg\b[^>]*?\sstyle="([^"]*)"/.exec(svg)?.[1];
+  if (!rootStyle || !svg.includes('var(--')) return svg;
+
+  const decls = new Map<string, string>();
+  for (const part of rootStyle.split(';')) {
+    const m = /^\s*(--[\w-]+)\s*:\s*([\s\S]+?)\s*$/.exec(part);
+    if (m) decls.set(m[1], m[2]);
+  }
+
+  const varRe = /var\(\s*(--[\w-]+)\s*(?:,\s*([^()]*?))?\s*\)/g;
+  const resolve = (value: string, depth = 0): string =>
+    depth > 8
+      ? value
+      : value.replace(varRe, (_m, name: string, fallback?: string) => {
+          const declared = decls.get(name);
+          if (declared !== undefined) return resolve(declared, depth + 1);
+          return fallback !== undefined ? resolve(fallback, depth + 1) : '';
+        });
+
+  return resolve(svg)
+    .replace(/\sstyle="rx:([\d.]+)(?:px)?"/g, ' rx="$1"');
+}
+
+/**
+ * Remove emoji from the text nodes of every SVG `<text>` element.
+ *
+ * Pele (Obsidian 1.15+) emits labels as plain `<text>`, so — unlike the
+ * foreignObject path in `extractLabelLines` — nothing else strips emoji, and
+ * resvg draws them as question marks. Whitespace left behind is collapsed and
+ * trimmed per text node so centred labels stay centred.
+ */
+export function stripEmojiFromSvgText(svg: string): string {
+  return svg.replace(/(<text\b[^>]*>)([\s\S]*?)(<\/text>)/g, (_m, open: string, body: string, close: string) => {
+    const cleaned = body
+      .replace(EMOJI_RE, '')
+      .replace(/(^|>)\s+/g, '$1')
+      .replace(/\s+(?=<|$)/g, '')
+      .replace(/ {2,}/g, ' ');
+    return open + cleaned + close;
+  });
 }
 
 /**
@@ -206,7 +278,7 @@ export async function renderMermaidBlocks(
     return { markdown, cleanup: noop };
   }
 
-  const mermaid = getMermaid();
+  const mermaid = await getMermaid();
   if (!mermaid) {
     new Notice(
       "Mermaid diagrams not rendered — Obsidian's Mermaid library was not found. Restart Obsidian and try again.",
@@ -245,7 +317,7 @@ export async function renderMermaidBlocks(
       // Replace foreignObject node labels (flowchart-v2) with SVG <text> so
       // resvg / Typst can render them — without this, flowchart node boxes
       // appear blank in the PDF.
-      const cleanedSvg = inlineForeignObjectLabels(svg);
+      const cleanedSvg = inlineForeignObjectLabels(stripEmojiFromSvgText(resolveCssVariables(svg)));
       await app.vault.adapter.write(svgPath, cleanedSvg);
       writtenPaths.push(svgPath);
       // The temp .typ is written next to the note (see typst-cli.ts), so the
