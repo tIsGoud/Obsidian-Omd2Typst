@@ -1,4 +1,5 @@
-import { App, AbstractInputSuggest, Plugin, TFile, TFolder, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+import { App, AbstractInputSuggest, Plugin, TFile, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+import type { SettingDefinitionItem } from 'obsidian';
 import { parseTemplateLanguages } from './template';
 import type { TypstStatus } from './typst-cli';
 
@@ -33,72 +34,6 @@ class TypFileSuggest extends AbstractInputSuggest<TFile> {
     this.el.value = file.path;
     this.close();
     this.onPick(file);
-  }
-}
-
-class MdFileSuggest extends AbstractInputSuggest<TFile> {
-  private onPick: (file: TFile) => void | Promise<void>;
-  private el: HTMLInputElement;
-
-  constructor(app: App, inputEl: HTMLInputElement, onPick: (file: TFile) => void | Promise<void>) {
-    super(app, inputEl);
-    this.el = inputEl;
-    this.onPick = onPick;
-  }
-
-  getSuggestions(query: string): TFile[] {
-    const q = query.toLowerCase();
-    return this.app.vault
-      .getFiles()
-      .filter(f => f.extension === 'md' && f.path.toLowerCase().includes(q))
-      .sort((a, b) => a.path.localeCompare(b.path));
-  }
-
-  renderSuggestion(file: TFile, el: HTMLElement): void {
-    el.createDiv({ text: file.basename });
-    el.createEl('small', { text: file.path });
-  }
-
-  selectSuggestion(file: TFile): void {
-    this.el.value = file.path;
-    this.close();
-    void this.onPick(file);
-  }
-}
-
-class FolderSuggest extends AbstractInputSuggest<TFolder> {
-  private onPick: (folder: TFolder) => void | Promise<void>;
-  private el: HTMLInputElement;
-
-  constructor(app: App, inputEl: HTMLInputElement, onPick: (folder: TFolder) => void | Promise<void>) {
-    super(app, inputEl);
-    this.el = inputEl;
-    this.onPick = onPick;
-  }
-
-  getSuggestions(query: string): TFolder[] {
-    const q = query.toLowerCase();
-    const folders: TFolder[] = [];
-    const collect = (folder: TFolder) => {
-      folders.push(folder);
-      for (const child of folder.children) {
-        if (child instanceof TFolder) collect(child);
-      }
-    };
-    collect(this.app.vault.getRoot());
-    return folders
-      .filter(f => f.path.toLowerCase().includes(q))
-      .sort((a, b) => a.path.localeCompare(b.path));
-  }
-
-  renderSuggestion(folder: TFolder, el: HTMLElement): void {
-    el.createDiv({ text: folder.path || '/ (vault root)' });
-  }
-
-  selectSuggestion(folder: TFolder): void {
-    this.el.value = folder.path;
-    this.close();
-    void this.onPick(folder);
   }
 }
 
@@ -174,6 +109,21 @@ interface PluginHost extends Plugin {
   saveSettings(): Promise<void>;
 }
 
+const ALL_LANGUAGES: Record<string, string> = {
+  en: 'English (en)',
+  nl: 'Nederlands (nl)',
+  de: 'Deutsch (de)',
+  es: 'Español (es)',
+  fr: 'Français (fr)',
+};
+
+/**
+ * Settings whose value changes the *structure* of the tab (which items exist,
+ * which options a dropdown offers), so the definitions must be re-read.
+ * Everything else only needs the `visible` predicates re-evaluated.
+ */
+const STRUCTURAL_KEYS = new Set<string>(['defaultTemplate', 'outputMode', 'frontmatterTemplateMode']);
+
 export class Omd2TypstSettingTab extends PluginSettingTab {
   private plugin: PluginHost;
   private getTypstStatus: () => TypstStatus;
@@ -182,6 +132,14 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     super(app, plugin);
     this.plugin = plugin;
     this.getTypstStatus = getTypstStatus;
+  }
+
+  /** Persist through the plugin so live command names stay in sync. */
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    (this.plugin.settings as unknown as Record<string, unknown>)[key] = value;
+    await this.plugin.saveSettings();
+    if (STRUCTURAL_KEYS.has(key)) this.update();
+    else this.refreshDomState();
   }
 
   private async refreshTemplateLanguages(): Promise<void> {
@@ -200,49 +158,44 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     }
     if (changed) {
       await this.plugin.saveSettings();
-      this.display();
+      this.update();
     }
   }
 
-  display(): void {
-    const { containerEl } = this;
-    containerEl.empty();
-
-    void this.refreshTemplateLanguages();
-
-    // ── Typst Templates ──────────────────────────────────────────────────────
-    new Setting(containerEl).setName('Typst templates').setHeading();
-
-    // List existing templates
-    for (const tpl of this.plugin.settings.templates) {
-      const langBadge = tpl.languages.length > 0
-        ? `${tpl.path}  ·  ${tpl.languages.join(', ')}`
-        : tpl.path;
-      new Setting(containerEl)
-        .setName(tpl.name)
-        .setDesc(langBadge)
-        .addButton(btn =>
-          btn.setButtonText('Remove')
-            .onClick(async () => {
-              this.plugin.settings.templates = (
-                this.plugin.settings.templates              ).filter(t => t.name !== tpl.name);
-              if (this.plugin.settings.defaultTemplate === tpl.name) {
-                this.plugin.settings.defaultTemplate = 'built-in';
-              }
-              await this.plugin.saveSettings();
-              this.display();
-            })
-        );
+  private async addTemplate(name: string, path: string): Promise<void> {
+    if (!path) return;
+    const finalName = name || path.split('/').pop()?.replace(/\.typ$/, '') || path;
+    if (this.plugin.settings.templates.some(t => t.name === finalName)) return;
+    let languages: string[] = [];
+    const file = this.app.vault.getAbstractFileByPath(path);
+    if (file instanceof TFile) {
+      try {
+        languages = parseTemplateLanguages(await this.app.vault.read(file));
+      } catch { /* leave empty if unreadable */ }
     }
+    this.plugin.settings.templates.push({ name: finalName, path, languages });
+    await this.plugin.saveSettings();
+    this.update();
+  }
 
-    // Add template — file picker with autocomplete + optional name override
+  private async removeTemplate(index: number): Promise<void> {
+    const removed = this.plugin.settings.templates[index];
+    if (!removed) return;
+    this.plugin.settings.templates.splice(index, 1);
+    if (this.plugin.settings.defaultTemplate === removed.name) {
+      this.plugin.settings.defaultTemplate = 'built-in';
+    }
+    await this.plugin.saveSettings();
+    this.update();
+  }
+
+  /** Add-template row: optional name + .typ file search + Add button. */
+  private renderAddTemplate(setting: Setting): void {
     let newName = '';
     let newPath = '';
     let nameComp: TextComponent;
 
-    new Setting(containerEl)
-      .setName('Add template')
-      .setDesc('Select a .typ file from the vault. Name is derived from the filename.')
+    setting
       .addText(text => {
         nameComp = text;
         text.setPlaceholder('Name (optional)')
@@ -262,225 +215,172 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
       .addButton(btn =>
         btn.setButtonText('Add')
           .setCta()
-          .onClick(async () => {
-            if (!newPath) return;
-            const name = newName || newPath.split('/').pop()?.replace(/\.typ$/, '') || newPath;
-            const already = this.plugin.settings.templates
-              .some(t => t.name === name);
-            if (already) return;
-            let languages: string[] = [];
-            const file = this.app.vault.getAbstractFileByPath(newPath);
-            if (file instanceof TFile) {
-              try {
-                const content = await this.app.vault.read(file);
-                languages = parseTemplateLanguages(content);
-              } catch { /* leave empty if unreadable */ }
-            }
-            this.plugin.settings.templates.push({
-              name,
-              path: newPath,
-              languages,
-            });
-            await this.plugin.saveSettings();
-            this.display();
-          })
+          .onClick(() => { void this.addTemplate(newName, newPath); })
       );
+  }
 
-    // Default template selector
-    new Setting(containerEl)
-      .setName('Default template')
-      .setDesc('Template used when exporting without a specific template selected.')
-      .addDropdown(dd => {
-        dd.addOption('built-in', 'Built-in template');
-        for (const tpl of this.plugin.settings.templates) {
-          dd.addOption(tpl.name, tpl.name);
-        }
-        dd.setValue(this.plugin.settings.defaultTemplate)
-          .onChange(async v => {
-            this.plugin.settings.defaultTemplate = v;
-            await this.plugin.saveSettings();
-            this.display();
-          });
-      });
-
-    // ── Export ───────────────────────────────────────────────────────────────
-    new Setting(containerEl).setName('Export').setHeading();
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    const settings = this.plugin.settings;
+    void this.refreshTemplateLanguages();
 
     // Typst compiler info row
     const status = this.getTypstStatus();
-    let typstLabel: string;
-    let typstDesc: string;
+    const typstLabel = status.source === 'system'
+      ? `Typst ${status.version} (system)`
+      : 'Typst not found';
+    const typstDesc = status.source === 'system'
+      ? (status.path ? `System binary: ${status.path}` : 'Found in PATH')
+      : 'PDF export falls back to .typ — install Typst from typst.app to enable PDF.';
 
-    if (status.source === 'system') {
-      typstLabel = `Typst ${status.version} (system)`;
-      typstDesc = status.path ? `System binary: ${status.path}` : 'Found in PATH';
-    } else {
-      typstLabel = 'Typst not found';
-      typstDesc = 'PDF export falls back to .typ — install Typst from typst.app to enable PDF.';
-    }
+    const templateOptions: Record<string, string> = { 'built-in': 'Built-in template' };
+    for (const tpl of settings.templates) templateOptions[tpl.name] = tpl.name;
 
-    new Setting(containerEl)
-      .setName(typstLabel)
-      .setDesc(typstDesc);
-
-    new Setting(containerEl)
-      .setName('Default output format')
-      .setDesc('Format used by the palette commands.')
-      .addDropdown(dd =>
-        dd.addOption('pdf', 'PDF')
-          .addOption('typ', 'Typst source (.typ)')
-          .setValue(this.plugin.settings.defaultOutputFormat)
-          .onChange(async v => {
-            this.plugin.settings.defaultOutputFormat = v as OutputFormat;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName('Output location')
-      .setDesc('Where to save exported files.')
-      .addDropdown(dd =>
-        dd.addOption('same-folder', 'Same folder as note')
-          .addOption('fixed-folder', 'Fixed folder')
-          .addOption('ask', 'Ask every time')
-          .setValue(this.plugin.settings.outputMode)
-          .onChange(async v => {
-            this.plugin.settings.outputMode = v as OutputMode;
-            await this.plugin.saveSettings();
-            this.display();
-          })
-      );
-
-    if (this.plugin.settings.outputMode === 'fixed-folder') {
-      new Setting(containerEl)
-        .setName('Output folder')
-        .setDesc('Vault folder where exported files are saved.')
-        .addText(text => {
-          text.setPlaceholder('Search folders…')
-            .setValue(this.plugin.settings.outputFolder)
-            .onChange(async v => {
-              this.plugin.settings.outputFolder = v;
-              await this.plugin.saveSettings();
-            });
-          new FolderSuggest(this.app, text.inputEl, async (folder: TFolder) => {
-            this.plugin.settings.outputFolder = folder.path;
-            await this.plugin.saveSettings();
-          });
-        });
-    }
-
-    new Setting(containerEl)
-      .setName('Show context menu items')
-      .setDesc('Show omd2typst export options in the right-click file menu.')
-      .addToggle(toggle =>
-        toggle.setValue(this.plugin.settings.showContextMenu)
-          .onChange(async v => {
-            this.plugin.settings.showContextMenu = v;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName('Show built-in template in picker')
-      .setDesc('Include the built-in template in the "export with template" list.')
-      .addToggle(toggle =>
-        toggle.setValue(this.plugin.settings.showBuiltinInPicker)
-          .onChange(async v => {
-            this.plugin.settings.showBuiltinInPicker = v;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    // ── Document defaults ────────────────────────────────────────────────────
-    new Setting(containerEl).setName('Document defaults').setHeading();
-
-    const allLanguages: Record<string, string> = {
-      en: 'English (en)',
-      nl: 'Nederlands (nl)',
-      de: 'Deutsch (de)',
-      es: 'Español (es)',
-      fr: 'Français (fr)',
-    };
-    const activeTpl = this.plugin.settings.templates
-      .find(t => t.name === this.plugin.settings.defaultTemplate);
+    // Languages offered depend on the selected default template.
+    const activeTpl = settings.templates.find(t => t.name === settings.defaultTemplate);
     const availableLanguages = (activeTpl && activeTpl.languages.length > 0)
       ? activeTpl.languages
-      : Object.keys(allLanguages);
+      : Object.keys(ALL_LANGUAGES);
+    const languageOptions: Record<string, string> = {};
+    for (const code of availableLanguages) languageOptions[code] = ALL_LANGUAGES[code] ?? code;
 
     // Auto-correct stored language if no longer in the available set
-    if (!availableLanguages.includes(this.plugin.settings.defaultLanguage)) {
-      this.plugin.settings.defaultLanguage = availableLanguages[0];
+    if (!availableLanguages.includes(settings.defaultLanguage)) {
+      settings.defaultLanguage = availableLanguages[0];
       void this.plugin.saveSettings();
     }
-
     const langDesc = activeTpl && activeTpl.languages.length > 0
       ? 'Languages supported by the selected template.'
       : 'Used when the note has no language: frontmatter key.';
 
-    new Setting(containerEl)
-      .setName('Default language')
-      .setDesc(langDesc)
-      .addDropdown(dd => {
-        for (const code of availableLanguages) {
-          dd.addOption(code, allLanguages[code] ?? code);
-        }
-        dd.setValue(this.plugin.settings.defaultLanguage)
-          .onChange(async v => {
-            this.plugin.settings.defaultLanguage = v;
-            await this.plugin.saveSettings();
-          });
-      });
-
-    new Setting(containerEl)
-      .setName('Frontmatter template source')
-      .setDesc('How the "insert omd2typst frontmatter" command obtains the list of keys to insert.')
-      .addDropdown(dd =>
-        dd.addOption('inline', 'Inline editor')
-          .addOption('file', 'Template file')
-          .addOption('user-defined', 'User defined')
-          .setValue(this.plugin.settings.frontmatterTemplateMode)
-          .onChange(async v => {
-            this.plugin.settings.frontmatterTemplateMode = v as FrontmatterTemplateMode;
-            await this.plugin.saveSettings();
-            this.display();
-          })
-      );
-
-    if (this.plugin.settings.frontmatterTemplateMode === 'inline') {
-      new Setting(containerEl)
-        .setName('Default frontmatter')
-        .setDesc('YAML keys to insert into the active note. Existing keys are never overwritten.')
-        .addTextArea(ta =>
-          ta.setValue(this.plugin.settings.frontmatterInline)
-            .onChange(async v => {
-              this.plugin.settings.frontmatterInline = v;
-              await this.plugin.saveSettings();
-            })
-        );
-    }
-
-    if (this.plugin.settings.frontmatterTemplateMode === 'file') {
-      new Setting(containerEl)
-        .setName('Frontmatter template file')
-        .setDesc('Markdown file whose frontmatter keys are inserted into the active note. Existing keys are never overwritten.')
-        .addText(text => {
-          text.setPlaceholder('Search .md files…')
-            .setValue(this.plugin.settings.frontmatterFilePath)
-            .onChange(async v => {
-              this.plugin.settings.frontmatterFilePath = v;
-              await this.plugin.saveSettings();
-            });
-          new MdFileSuggest(this.app, text.inputEl, async (file: TFile) => {
-            this.plugin.settings.frontmatterFilePath = file.path;
-            await this.plugin.saveSettings();
-          });
-        });
-    }
-
-    if (this.plugin.settings.frontmatterTemplateMode === 'user-defined') {
-      new Setting(containerEl)
-        .setName('User defined')
-        .setDesc('The built-in frontmatter command is disabled. Use templater, the templates core plugin, or any other tool to manage frontmatter.');
-    }
+    return [
+      {
+        type: 'list',
+        heading: 'Typst templates',
+        emptyState: 'No templates added. The built-in template is used.',
+        onDelete: (index: number) => { void this.removeTemplate(index); },
+        items: settings.templates.map(tpl => ({
+          name: tpl.name,
+          desc: tpl.languages.length > 0
+            ? `${tpl.path}  ·  ${tpl.languages.join(', ')}`
+            : tpl.path,
+        })),
+      },
+      {
+        type: 'group',
+        items: [
+          {
+            name: 'Add template',
+            desc: 'Select a .typ file from the vault. Name is derived from the filename.',
+            render: (setting: Setting) => this.renderAddTemplate(setting),
+          },
+          {
+            name: 'Default template',
+            desc: 'Template used when exporting without a specific template selected.',
+            control: {
+              type: 'dropdown',
+              key: 'defaultTemplate',
+              options: templateOptions,
+              defaultValue: 'built-in',
+            },
+          },
+        ],
+      },
+      {
+        type: 'group',
+        heading: 'Export',
+        items: [
+          { name: typstLabel, desc: typstDesc },
+          {
+            name: 'Default output format',
+            desc: 'Format used by the palette commands.',
+            control: {
+              type: 'dropdown',
+              key: 'defaultOutputFormat',
+              options: { pdf: 'PDF', typ: 'Typst source (.typ)' },
+            },
+          },
+          {
+            name: 'Output location',
+            desc: 'Where to save exported files.',
+            control: {
+              type: 'dropdown',
+              key: 'outputMode',
+              options: {
+                'same-folder': 'Same folder as note',
+                'fixed-folder': 'Fixed folder',
+                'ask': 'Ask every time',
+              },
+            },
+          },
+          {
+            name: 'Output folder',
+            desc: 'Vault folder where exported files are saved.',
+            visible: () => settings.outputMode === 'fixed-folder',
+            control: {
+              type: 'folder',
+              key: 'outputFolder',
+              placeholder: 'Search folders…',
+              includeRoot: true,
+            },
+          },
+          {
+            name: 'Show context menu items',
+            desc: 'Show omd2typst export options in the right-click file menu.',
+            control: { type: 'toggle', key: 'showContextMenu' },
+          },
+          {
+            name: 'Show built-in template in picker',
+            desc: 'Include the built-in template in the "export with template" list.',
+            control: { type: 'toggle', key: 'showBuiltinInPicker' },
+          },
+        ],
+      },
+      {
+        type: 'group',
+        heading: 'Document defaults',
+        items: [
+          {
+            name: 'Default language',
+            desc: langDesc,
+            control: { type: 'dropdown', key: 'defaultLanguage', options: languageOptions },
+          },
+          {
+            name: 'Frontmatter template source',
+            desc: 'How the "insert omd2typst frontmatter" command obtains the list of keys to insert.',
+            control: {
+              type: 'dropdown',
+              key: 'frontmatterTemplateMode',
+              options: {
+                inline: 'Inline editor',
+                file: 'Template file',
+                'user-defined': 'User defined',
+              },
+            },
+          },
+          {
+            name: 'Default frontmatter',
+            desc: 'YAML keys to insert into the active note. Existing keys are never overwritten.',
+            visible: () => settings.frontmatterTemplateMode === 'inline',
+            control: { type: 'textarea', key: 'frontmatterInline' },
+          },
+          {
+            name: 'Frontmatter template file',
+            desc: 'Markdown file whose frontmatter keys are inserted into the active note. Existing keys are never overwritten.',
+            visible: () => settings.frontmatterTemplateMode === 'file',
+            control: {
+              type: 'file',
+              key: 'frontmatterFilePath',
+              placeholder: 'Search .md files…',
+              filter: (file: TFile) => file.extension === 'md',
+            },
+          },
+          {
+            name: 'User defined',
+            desc: 'The built-in frontmatter command is disabled. Use templater, the templates core plugin, or any other tool to manage frontmatter.',
+            visible: () => settings.frontmatterTemplateMode === 'user-defined',
+          },
+        ],
+      },
+    ];
   }
 }

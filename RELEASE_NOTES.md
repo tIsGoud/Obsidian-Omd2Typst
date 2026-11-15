@@ -1,5 +1,23 @@
 # Release Notes
 
+## v0.9.4 — Declarative settings tab; release matches a clean build
+
+- **Requires Obsidian 1.13.0 or later** (`minAppVersion` was 1.7.2). The settings
+  tab now uses Obsidian's declarative settings API, so every Omd2Typst setting
+  appears in Obsidian's settings search. Behaviour is unchanged: template list
+  with remove, add-template row (optional name + `.typ` file search), default
+  template/language, output format and location, context-menu toggles and the
+  frontmatter source options.
+- **Releases are built from the committed engine WASM.** The release and CI
+  workflows no longer rebuild the engine with whatever Rust/wasm-pack is latest;
+  they run `npm ci && npm run build` on the committed
+  `src/wasm/omd2typst-pkg/`. The released `main.js` now matches a clean build
+  from source, which the community-store build verification checks.
+  After bumping the engine submodule, run `npm run build:wasm` locally and
+  commit the result.
+
+---
+
 ## v0.9.3 — Store-review fix for the bundled engine package
 
 - The committed engine package (`src/wasm/omd2typst-pkg/`) now contains only the

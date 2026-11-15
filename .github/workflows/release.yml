@@ -17,25 +17,18 @@ jobs:
       attestations: write
     steps:
       - uses: actions/checkout@v6
-        with:
-          submodules: recursive
 
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Install wasm-pack
-        run: cargo install wasm-pack
-
-      - run: npm install
-      - run: npm run build:wasm
+      # The engine WASM (src/wasm/omd2typst-pkg/) is committed, so the release is
+      # built straight from the repo with the locked dependency versions — the
+      # same inputs the community-store build verification uses. Do not rebuild
+      # the WASM here: a different Rust/wasm-pack version yields different bytes
+      # and the released main.js would no longer match a clean build.
+      - run: npm ci
       - run: npm run build
 
       - name: Package examples

@@ -20,29 +20,21 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - run: npm install
+      - run: npm ci
       - run: npm test
 
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          submodules: recursive
 
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-
-      - run: cargo install wasm-pack
-
-      - run: npm install
-      - run: npm run build:wasm
+      # Uses the committed engine WASM (see release.yml).
+      - run: npm ci
       - run: npm run build
 
       - name: Package examples

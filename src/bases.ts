@@ -1,8 +1,9 @@
 import { App, Component, Notice, TFile } from 'obsidian';
 
 // The Bases API (Obsidian 1.10+) is not declared via Obsidian's public types here:
-// the linter rule `obsidianmd/no-unsupported-api` would flag calls on those types
-// because our `minAppVersion` is 1.7.2. We reach the bases engine only at runtime,
+// the bases embed internals are undocumented, and the linter rule
+// `obsidianmd/no-unsupported-api` flags calls on those types (see ADR 0005; this
+// predates `minAppVersion` moving to 1.13.0). We reach the bases engine only at runtime,
 // after the embed is successfully created, so the API is guaranteed to exist.
 // Local structural interfaces mirror the shapes we use without importing the
 // typed classes.
