@@ -1,8 +1,31 @@
 // Node.js built-ins — available in Electron (Obsidian's runtime, desktop only).
-import { execFileSync } from 'child_process';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
+// They are narrowed to the minimal interfaces below so this file type-checks
+// (and lints) identically whether or not `@types/node` resolves.
+import * as nodeChildProcess from 'child_process';
+import * as nodeFs from 'fs';
+import * as nodeOs from 'os';
+import * as nodePath from 'path';
+
+interface ChildProcessApi {
+  execFileSync(
+    file: string,
+    args: string[],
+    options: { stdio?: string; timeout?: number },
+  ): { toString(): string };
+}
+interface FsApi {
+  existsSync(p: string): boolean;
+  writeFileSync(p: string, data: string, encoding: string): void;
+  readFileSync(p: string): Uint8Array;
+  unlinkSync(p: string): void;
+}
+interface OsApi { homedir(): string }
+interface PathApi { join(...parts: string[]): string }
+
+const cp = nodeChildProcess as unknown as ChildProcessApi;
+const fs = nodeFs as unknown as FsApi;
+const os = nodeOs as unknown as OsApi;
+const path = nodePath as unknown as PathApi;
 
 export interface TypstStatus {
   /** Whether a system typst binary was found. */
@@ -21,7 +44,7 @@ export function detectSystemTypst(): TypstStatus {
   const bin = findTypstBinary();
   if (!bin) return { source: 'none', version: '' };
   try {
-    const raw = execFileSync(bin, ['--version'], { stdio: 'pipe' }).toString().trim();
+    const raw = cp.execFileSync(bin, ['--version'], { stdio: 'pipe' }).toString().trim();
     const match = raw.match(/(\d+\.\d+\.\d+)/);
     const version = match ? match[1] : raw;
     return { source: 'system', version, path: bin === 'typst' ? undefined : bin };
@@ -32,7 +55,7 @@ export function detectSystemTypst(): TypstStatus {
 
 /** Return the absolute path of the typst binary, or null if not found. */
 export function findTypstBinary(): string | null {
-  try { execFileSync('typst', ['--version'], { stdio: 'pipe' }); return 'typst'; } catch { /* fall through */ }
+  try { cp.execFileSync('typst', ['--version'], { stdio: 'pipe' }); return 'typst'; } catch { /* fall through */ }
   const candidates = [
     '/opt/homebrew/bin/typst',   // macOS ARM Homebrew
     '/usr/local/bin/typst',       // macOS Intel Homebrew / manual install
@@ -52,7 +75,7 @@ export function findTypstBinary(): string | null {
 export function checkTypstInstalled(): string {
   const bin = findTypstBinary();
   if (!bin) throw new Error('typst not found. Install from https://typst.app or add to PATH.');
-  return execFileSync(bin, ['--version'], { stdio: 'pipe' }).toString().trim();
+  return cp.execFileSync(bin, ['--version'], { stdio: 'pipe' }).toString().trim();
 }
 
 /**
@@ -86,7 +109,7 @@ export async function compileToPdfViaCli(
   fs.writeFileSync(realTypPath, typstSrc, 'utf8');
 
   try {
-    execFileSync(
+    cp.execFileSync(
       bin,
       ['compile', realTypPath, realPdfPath, '--root', vaultBase],
       { timeout: 120_000, stdio: 'pipe' },

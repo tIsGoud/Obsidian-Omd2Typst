@@ -1,0 +1,19 @@
+{
+  "name": "omd2typst-wasm",
+  "type": "module",
+  "description": "WASM bindings for omd2typst-core",
+  "version": "0.11.0",
+  "license": "AGPL-3.0-only",
+  "files": [
+    "omd2typst_wasm_bg.wasm",
+    "omd2typst_wasm.js",
+    "omd2typst_wasm_bg.js",
+    "omd2typst_wasm.d.ts"
+  ],
+  "main": "omd2typst_wasm.js",
+  "types": "omd2typst_wasm.d.ts",
+  "sideEffects": [
+    "./omd2typst_wasm.js",
+    "./snippets/*"
+  ]
+}

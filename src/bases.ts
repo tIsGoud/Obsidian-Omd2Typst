@@ -114,9 +114,8 @@ async function queryBase(
   const creator = registry.getEmbedCreator(baseFile);
   if (!creator) return null;
 
-  const hiddenEl = activeDocument.createElement('div');
+  const hiddenEl = activeDocument.body.createDiv();
   hiddenEl.setCssStyles(HIDDEN_STYLES);
-  activeDocument.body.appendChild(hiddenEl);
 
   const tmpComp = new Component();
   parent.addChild(tmpComp);

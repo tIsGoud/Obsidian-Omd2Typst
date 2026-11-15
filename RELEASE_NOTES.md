@@ -1,5 +1,20 @@
 # Release Notes
 
+## v0.9.2 — Clean-checkout build and store-review fixes
+
+- **The plugin now builds from a clean checkout.** The generated engine package
+  (`src/wasm/omd2typst-pkg/`) was git-ignored, so `npm run build` failed on any
+  fresh clone — including the community store's build check. The package is now
+  committed, and was rebuilt from the omd2typst 0.11.0 engine (the previous copy
+  predated it). `npm run build:wasm` regenerates it.
+- **Type-safe Node access.** `typst-cli.ts` narrows `child_process`, `fs`, `os`
+  and `path` to small local interfaces, so it type-checks and lints the same
+  whether or not `@types/node` is available (the store's linter runs without it).
+- Bases: the hidden off-screen container is created with `createDiv()` instead of
+  `document.createElement`.
+
+---
+
 ## v0.9.1 — Mermaid diagrams work again on Obsidian 1.15+
 
 Obsidian 1.15 replaced its Mermaid renderer with **Pele**, which broke Mermaid
