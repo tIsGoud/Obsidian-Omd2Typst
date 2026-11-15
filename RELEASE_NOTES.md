@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.9.3 — Store-review fix for the bundled engine package
+
+- The committed engine package (`src/wasm/omd2typst-pkg/`) now contains only the
+  files the plugin imports (`omd2typst_wasm_bg.js` and `omd2typst_wasm_bg.wasm`).
+  The generated `.d.ts` files carried blanket `eslint-disable` headers that the
+  community-store review rejects. `npm run build:wasm` now removes them.
+- No functional changes.
+
+---
+
 ## v0.9.2 — Clean-checkout build and store-review fixes
 
 - **The plugin now builds from a clean checkout.** The generated engine package
