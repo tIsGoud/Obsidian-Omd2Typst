@@ -1,5 +1,28 @@
 # Release Notes
 
+## v0.9.6 — `reading-guide` frontmatter key
+
+- **Reading guide page.** A new `reading-guide` frontmatter key names an H2
+  section (for example `reading-guide: Leeswijzer`). The section is taken out of
+  the numbered body and a template can show it as an unnumbered page of its own.
+  The DUO templates (`duo-template.typ`, `duo-template-no-ribbon.typ`) show it
+  right after the revision/approval page, before the table of contents.
+
+  ```yaml
+  reading-guide: Leeswijzer
+  ```
+
+  The value is the plain heading text, without `##`. A missing or empty value
+  changes nothing; a name that matches no `## ` section leaves the chapter in the
+  body (the plugin shows no warning for this; the CLI does).
+- **Only use it with a template that supports it.** A template that does not
+  render the reading guide (and the built-in template) drops the section from
+  the PDF, as it does for the revision and approval sections.
+- Bundles omd2typst engine v0.13.0. The `reading-guide`, `numbering-from` and
+  `appendix-from` keys are now listed in the example frontmatter template.
+
+---
+
 ## v0.9.5 — `numbering-from` frontmatter key
 
 - **Unnumbered front matter chapters.** A new `numbering-from` frontmatter key
