@@ -1,5 +1,25 @@
 # Release Notes
 
+## v0.9.5 — `numbering-from` frontmatter key
+
+- **Unnumbered front matter chapters.** A new `numbering-from` frontmatter key
+  names the first chapter that should be numbered. Top-level chapters before it
+  (for example a reading guide) render without a number but stay in the table of
+  contents; numbering restarts at 1 on the named chapter. An empty or missing
+  value numbers from the beginning, as before.
+
+  ```yaml
+  numbering-from: Introduction
+  ```
+
+  The value must match a top-level chapter. A name that matches nothing changes
+  nothing (the plugin shows no warning for this; the CLI does). Works with every
+  template, including the built-in one, and combines with `appendix-from`.
+- Bundles omd2typst engine v0.12.0. The key is also listed in the example
+  frontmatter template.
+
+---
+
 ## v0.9.4 — Declarative settings tab; release matches a clean build
 
 - **Requires Obsidian 1.13.0 or later** (`minAppVersion` was 1.7.2). The settings
