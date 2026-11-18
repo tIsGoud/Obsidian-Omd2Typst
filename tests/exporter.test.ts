@@ -19,6 +19,7 @@ const BASE_SETTINGS: Omd2TypstSettings = {
   outputMode: 'fixed-folder',
   outputFolder: 'exports',
   defaultLanguage: 'en',
+  wikilinkMode: 'text',
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',
@@ -58,6 +59,7 @@ function makeApp(overrides: {
       read,
       getAbstractFileByPath,
       adapter,
+      getName: () => 'My Vault',
     },
   };
 }
@@ -73,6 +75,29 @@ describe('exportNote — Typst export', () => {
       'exports/hello.typ',
       '#heading[Hello]',
     );
+  });
+});
+
+describe('exportNote — wikilink options', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { renderToTypst } = require('../src/wasm/omd2typst') as { renderToTypst: jest.Mock };
+
+  beforeEach(() => renderToTypst.mockClear());
+
+  it('passes the wikilink mode, and the vault name only in link mode', async () => {
+    const file = makeTFile('notes/hello.md');
+
+    await exportNote(file, 'typ', null, { ...BASE_SETTINGS, wikilinkMode: 'link' }, makeApp() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, {
+      wikilinks: 'link',
+      obsidianVault: 'My Vault',
+    });
+
+    await exportNote(file, 'typ', null, { ...BASE_SETTINGS, wikilinkMode: 'bold' }, makeApp() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, {
+      wikilinks: 'bold',
+      obsidianVault: undefined,
+    });
   });
 });
 

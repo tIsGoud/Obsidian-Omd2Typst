@@ -44,6 +44,7 @@ class TypFileSuggest extends AbstractInputSuggest<TFile> {
 export type OutputFormat = 'typ' | 'pdf';
 export type OutputMode  = 'same-folder' | 'fixed-folder' | 'ask';
 export type FrontmatterTemplateMode = 'inline' | 'file' | 'user-defined';
+export type WikilinkMode = 'text' | 'bold' | 'link' | 'keep';
 
 export interface TemplateEntry {
   name: string;
@@ -63,6 +64,8 @@ export interface Omd2TypstSettings {
   outputFolder: string;
   /** Applied when the note frontmatter has no 'language:' key. */
   defaultLanguage: string;
+  /** How [[wikilinks]] are rendered in the export. */
+  wikilinkMode: WikilinkMode;
   frontmatterTemplateMode: FrontmatterTemplateMode;
   /** YAML lines (no --- delimiters) used in inline mode. */
   frontmatterInline: string;
@@ -81,6 +84,7 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
   outputMode: 'same-folder',
   outputFolder: 'exports',
   defaultLanguage: 'en',
+  wikilinkMode: 'text',
   frontmatterTemplateMode: 'inline',
   frontmatterInline: [
     'title:',
@@ -321,6 +325,21 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
               key: 'outputFolder',
               placeholder: 'Search folders…',
               includeRoot: true,
+            },
+          },
+          {
+            name: 'Wikilinks',
+            desc: 'How [[wikilinks]] appear in the export. Link: headings in the same note become ' +
+              'links, and links to other notes open in Obsidian (the vault name is stored in the PDF).',
+            control: {
+              type: 'dropdown',
+              key: 'wikilinkMode',
+              options: {
+                text: 'Display text',
+                bold: 'Bold display text',
+                link: 'Links',
+                keep: 'Keep as typed',
+              },
             },
           },
           {

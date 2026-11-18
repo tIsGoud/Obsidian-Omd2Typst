@@ -4,7 +4,8 @@ import type { Omd2TypstSettings } from '../src/settings';
 const BASE: Omd2TypstSettings = {
   templates: [], defaultTemplate: 'built-in',
   defaultOutputFormat: 'pdf', outputMode: 'same-folder', outputFolder: 'exports',
-  defaultLanguage: 'en', frontmatterTemplateMode: 'inline',
+  defaultLanguage: 'en',
+  wikilinkMode: 'text', frontmatterTemplateMode: 'inline',
   frontmatterInline: '', frontmatterFilePath: '',
   showContextMenu: true, showBuiltinInPicker: false,
 };

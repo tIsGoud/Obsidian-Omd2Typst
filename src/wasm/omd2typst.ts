@@ -9,8 +9,20 @@ import wasmBytes from './omd2typst-pkg/omd2typst_wasm_bg.wasm';
 // The bg glue module exports are untyped (the .d.ts only covers raw wasm memory
 // signatures). Cast to the string-level function types that the JS glue exposes.
 const setWasm    = _setWasm          as unknown as (exports: WebAssembly.Exports) => void;
-const renderFn   = _renderToTypst    as unknown as (md: string, tpl?: string) => string;
+const renderFn   = _renderToTypst    as unknown as (
+  md: string,
+  tpl?: string,
+  wikilinks?: string,
+  vault?: string,
+) => string;
 const templateFn = _getBuiltinTemplate as unknown as () => string;
+
+export interface RenderToTypstOptions {
+  /** 'text' (default), 'bold', 'link' or 'keep'. */
+  wikilinks?: string;
+  /** Vault name for obsidian:// links to other notes (wikilinks: 'link'). */
+  obsidianVault?: string;
+}
 
 let initialised = false;
 
@@ -35,9 +47,10 @@ async function ensureInit(): Promise<void> {
 export async function renderToTypst(
   markdown: string,
   templateSrc: string | null,
+  options: RenderToTypstOptions = {},
 ): Promise<string> {
   await ensureInit();
-  return renderFn(markdown, templateSrc ?? undefined);
+  return renderFn(markdown, templateSrc ?? undefined, options.wikilinks, options.obsidianVault);
 }
 
 /** Return the built-in Typst template source. */

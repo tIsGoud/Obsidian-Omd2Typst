@@ -13,6 +13,7 @@ const SETTINGS_BASE: Omd2TypstSettings = {
   outputMode: 'same-folder',
   outputFolder: 'exports',
   defaultLanguage: 'en',
+  wikilinkMode: 'text',
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',

@@ -121,6 +121,7 @@ The top of the Export section shows the detected Typst version and path, or *"Ty
 |---|---|
 | **Default output format** | `PDF` or `Typst source (.typ)`. |
 | **Output location** | *Same folder as note* / *Fixed folder* (vault folder autocomplete) / *Ask every time*. |
+| **Wikilinks** | *Display text* (default) / *Bold display text* / *Links* / *Keep as typed*. *Links*: `[[#Heading]]` becomes a link to that heading in the PDF, and links to other notes become `obsidian://` links that open the note in Obsidian — the vault name is stored in the PDF. Links to headings that don't exist, or to other notes in non-link modes, show as plain text. |
 
 ### Document defaults
 
@@ -157,6 +158,7 @@ Full coverage of standard Markdown plus the most-used Obsidian extensions:
 | Footnotes `[^1]` | Rendered at page bottom |
 | Superscript `<sup>` / subscript `<sub>` | HTML inline tags |
 | Obsidian wikilink images `![[…]]` | Converted automatically |
+| Wikilinks `[[Note]]`, `[[Note\|alias]]`, `[[#Heading]]` | Rendered per the *Wikilinks* setting (display text by default) |
 | Thematic breaks `---` | Full-width rule |
 | Mermaid diagrams | Rendered via Obsidian's Mermaid; embedded as SVG. Multi-line labels are preserved: explicit `<br>` in the source becomes a hard break, and long labels are auto-wrapped at word boundaries to fit the node — the wrap point matches Obsidian's preview ± ~1 word. **Emoji codepoints in labels are stripped** — resvg (Typst's SVG renderer) can't render color-emoji glyphs cleanly, so the plugin removes them and keeps the surrounding text (e.g. `Foo 📊 Bar` → `Foo Bar`). |
 | Obsidian Bases embeds `![[file.base]]` | Rendered via Obsidian's embed registry as a Markdown table |

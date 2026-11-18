@@ -80,7 +80,11 @@ export async function exportNote(
     }
 
     // Step 4: Render to Typst
-    const typstSrc = await renderToTypst(markdown, templatePath);
+    // Links to other notes need the vault name; it is only embedded in link mode.
+    const typstSrc = await renderToTypst(markdown, templatePath, {
+      wikilinks: settings.wikilinkMode,
+      obsidianVault: settings.wikilinkMode === 'link' ? app.vault.getName() : undefined,
+    });
 
     // Step 5: Resolve output path
     const outputPath = resolveOutputPath(file.path, format, settings);
