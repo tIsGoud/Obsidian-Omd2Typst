@@ -10,3 +10,8 @@ dist/
 /app.js
 /mermaid.min.js
 /obsidian-extract/
+
+# Exclude the work-related templates
+templates/duo-template-no-ribbon.typ
+templates/duo-template.typ
+templates/ro-template.typ
