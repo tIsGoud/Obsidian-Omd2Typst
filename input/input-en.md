@@ -6,10 +6,14 @@ version: 0.9
 status: Draft
 language: en
 date: 14-05-2026
-summary: This document is a sample document to test the functionality of omd2typst. It contains a cover page, table of contents, tables, images and call-outs. Optionally a figure list and revision and approval sections.
+summary: |
+  This document is a sample document to test the functionality of omd2typst.
+
+  It contains a cover page, table of contents, tables, images and call-outs. Optionally a figure list and revision and approval sections.
 figure-list: true
 revision-table: Revision
 approval-table: Approval
+appendix-from: Notes
 ---
 
 # Example Document
@@ -41,19 +45,14 @@ This section gives a brief introduction to the document.
 
 ## Text examples
 
-Regular text.
-
-\*\*Bold text\*\* →
-**Bold text**
-
-\_Italic text\_ →
-_Italic text_
+| Description  | Syntax                  | Result                 |
+| ------------ | ----------------------- | ---------------------- |
+| Regular text | \*\*Bold text\*\*       | **Bold text**          |
+| Italic text  | \_Italic text\_         | _Italic text_          |
+| Inline code  | this is \`sample\` text | this is `sample` text  |
 
 \> "Quote" →
 > "Quote: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." – Lorem Ipsum
-
-\`Inline code\` →
-`text between backticks`
 
 The Obsidian comment (\%\%Obsidian comment\%\%) is on the line below; in the omd2typst output it has been removed.
 
@@ -72,27 +71,23 @@ Another line of text.
 
 ## Strikethrough, highlighting, super- and subscript
 
-`~~strikethrough text~~` →
-~~strikethrough~~ text
-
-`==highlighted== text` →
-==highlighted== text
-
-Superscript (HTML hack) E = mc\<sup\>2\</sup\> →
-Superscript: E = mc<sup>2</sup>
-
-Subscript: H\<sub\>2\</sub\>O →
-Subscript: H<sub>2</sub>O
+| Markdown                                       | Result                                  |
+| ---------------------------------------------- | --------------------------------------- |
+| `~~strikethrough text~~`                       | ~~strikethrough~~ text                  |
+| `Following text is ==highlighted== text.`      | Following text is ==highlighted== text. |
+| Superscript (HTML hack) E = mc\<sup\>2\</sup\> | Superscript: E = mc<sup>2</sup>         |
+| Subscript: H\<sub\>2\</sub\>O                  | Subscript: H<sub>2</sub>O               |
 
 ## Mathematics
 
-Inline math: \$E = m c^2$ and $a^2 + b^2 = c^2$. →
-Inline math: $E = m c^2$ and $a^2 + b^2 = c^2$.
+Inline math uses a single '$', with '\$\$' its placed centered on the next line.
 
-
-Display formula: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ →
-
-Display formula: $$sum_(k=1)^n k = (n(n+1)) / 2$$
+| Markdown                                          | Result                                         |
+| ------------------------------------------------- | ---------------------------------------------- |
+| Math \$E = m c^2$ and $a^2 + b^2 = c^2\$ inline.  | Math $E = m c^2$ and $a^2 + b^2 = c^2$ inline. |
+| New line: \$$E = m c^2$ and $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ and $a^2 + b^2 = c^2$$            |
+| New line: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$    | $$sum_(k=1)^n k = (n(n+1)) / 2$$               |
+| New line: \$\$log(x)\$$                           | $$log(x)$$                                     |
 
 ## Bullet lists
 
@@ -328,6 +323,32 @@ Regularly used in Obsidian but after a PDF export they may still be useful to in
 - [i] Info
 - [*] Star
 
+## Wiki links
+
+Obsidian wikilinks are rendered according to the `--wikilinks` option of the CLI
+(or the *Wikilinks* setting of the plugin): `text` (default), `bold`, `link` or
+`keep`.
+
+| Syntax | Description | Result |
+| ------ | ----------- | ------ |
+| \[\[A Note\]\] | Note | [[A Note]] |
+| \[\[A Note\\\|just a label\]\] | Note with alias | [[A Note\|just a label]] |
+| \[\[A Note#Some heading\]\] | Note and heading | [[A Note#Some heading]] |
+| \[\[\#Table\]\] | Heading in this document | [[#Table]] |
+| \[\[\#Footnotes\|jump to footnotes\]\] | Heading in this document with alias | [[#Footnotes\|jump to footnotes]] |
+| \[\[\#text examples\]\] | Heading in this document, different case | [[#text examples]] |
+| \[\[\#No such heading\]\] | Heading that does not exist | [[#No such heading]] |
+| \[\[Another Note#^block-id\]\] | Block reference | [[Another Note#^block-id]] |
+
+Wikilinks also work inside running text, for example in a sentence that mentions
+[[Another Note|another note]] and then continues, in **bold [[#Mathematics]]**
+and in a list:
+
+- First item with a link to a [[TestNote]].
+- Second item pointing to [[#Code block|the code block]] within this document.
+
+`[[Wikilinks in code stay as typed]]`
+
 ## Footnotes
 
 Footnotes are placed inline in the text.[^1] A second footnote can follow immediately.[^2]
@@ -335,10 +356,10 @@ Footnotes are placed inline in the text.[^1] A second footnote can follow immedi
 [^1]: This is the first footnote. It appears at the bottom of the page.
 [^2]: This is the second footnote.
 
-## Addendum — Notes
+## Notes
 
 Here follows an addendum with notes.
 
-## Addendum — More notes
+## More notes
 
 More notes.

@@ -41,19 +41,14 @@ Cette section donne une brève introduction au document.
 
 ## Exemples de texte
 
-Texte normal.
-
-\*\*Texte en gras\*\* →
-**Texte en gras**
-
-\_Texte en italique\_ →
-_Texte en italique_
+| Description | Syntaxe | Résultat |
+| --- | --- | --- |
+| Texte en gras | \*\*Texte en gras\*\* | **Texte en gras** |
+| Texte en italique | \_Texte en italique\_ | _Texte en italique_ |
+| Code en ligne | ceci est un texte \`exemple\` | ceci est un texte `exemple` |
 
 \> "Citation" →
 > "Citation : Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." – Lorem Ipsum
-
-\`Code en ligne\` →
-`texte entre guillemets obliques`
 
 Le commentaire Obsidian (\%\%Commentaire Obsidian\%\%) se trouve sur la ligne ci-dessous ; dans la sortie d'Omd2Typst il a été supprimé.
 
@@ -72,27 +67,23 @@ Encore une ligne de texte.
 
 ## Barré, surligné, exposant et indice
 
-`~~texte barré~~` →
-~~barré~~ texte
-
-`==texte surligné==` →
-==surligné== texte
-
-Exposant (astuce HTML) E = mc\<sup\>2\</sup\> →
-Exposant : E = mc<sup>2</sup>
-
-Indice : H\<sub\>2\</sub\>O →
-Indice : H<sub>2</sub>O
+| Markdown | Résultat |
+| --- | --- |
+| `~~texte barré~~` | ~~barré~~ texte |
+| `Le texte suivant est du texte ==surligné==.` | Le texte suivant est du texte ==surligné==. |
+| Exposant (astuce HTML) E = mc\<sup\>2\</sup\> | Exposant : E = mc<sup>2</sup> |
+| Indice : H\<sub\>2\</sub\>O | Indice : H<sub>2</sub>O |
 
 ## Mathématiques
 
-Mathématiques en ligne : \$E = m c^2$ et $a^2 + b^2 = c^2$. →
-Mathématiques en ligne : $E = m c^2$ et $a^2 + b^2 = c^2$.
+Les mathématiques en ligne utilisent un seul '$' ; avec '\$\$' la formule est placée centrée sur la ligne suivante.
 
-
-Formule affichée : \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ →
-
-Formule affichée : $$sum_(k=1)^n k = (n(n+1)) / 2$$
+| Markdown | Résultat |
+| ------------------------------------------------- | ---------------------------------------------- |
+| Mathématiques \$E = m c^2$ et $a^2 + b^2 = c^2\$ inline. | Mathématiques $E = m c^2$ et $a^2 + b^2 = c^2$ inline. |
+| Nouvelle ligne: \$$E = m c^2$ et $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ et $a^2 + b^2 = c^2$$ |
+| Nouvelle ligne: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ | $$sum_(k=1)^n k = (n(n+1)) / 2$$ |
+| Nouvelle ligne: \$\$log(x)\$$ | $$log(x)$$ |
 
 ## Listes à puces
 
@@ -327,6 +318,28 @@ Régulièrement utilisées dans Obsidian, ces cases peuvent encore être utiles 
 - [I] Idée
 - [i] Info
 - [*] Étoile
+
+## Wikilinks
+
+Les wikilinks d'Obsidian sont rendus selon l'option `--wikilinks` de la CLI (ou le réglage *Wikilinks* du plugin) : `text` (par défaut), `bold`, `link` ou `keep`.
+
+| Syntaxe | Description | Résultat |
+| ------ | ----------- | ------ |
+| \[\[Une note\]\] | Note | [[Une note]] |
+| \[\[Une note\\\|simplement une étiquette\]\] | Note avec alias | [[Une note\|simplement une étiquette]] |
+| \[\[Une note#Un titre\]\] | Note et titre | [[Une note#Un titre]] |
+| \[\[\#Tableau\]\] | Titre de ce document | [[#Tableau]] |
+| \[\[\#Notes de bas de page\|aller aux notes de bas de page\]\] | Titre de ce document avec alias | [[#Notes de bas de page\|aller aux notes de bas de page]] |
+| \[\[\#exemples de texte\]\] | Titre de ce document, autre casse | [[#exemples de texte]] |
+| \[\[\#N'existe pas\]\] | Titre inexistant | [[#N'existe pas]] |
+| \[\[Autre note#^id-bloc\]\] | Référence de bloc | [[Autre note#^id-bloc]] |
+
+Les wikilinks fonctionnent aussi dans le texte courant, par exemple dans une phrase qui renvoie à [[Autre note|une autre note]] et se poursuit, en **gras [[#Mathématiques]]** et dans une liste :
+
+- Premier point avec [[Autre note]]
+- Deuxième point qui renvoie à [[#Bloc de code|le bloc de code]]
+
+`[[Les wikilinks dans le code restent tels que saisis]]`
 
 ## Notes de bas de page
 

@@ -41,19 +41,14 @@ Dieser Abschnitt gibt eine kurze Einleitung in das Dokument.
 
 ## Textbeispiele
 
-Regulärer Text.
-
-\*\*Fetter Text\*\* →
-**Fetter Text**
-
-\_Kursiver Text\_ →
-_Kursiver Text_
+| Beschreibung | Syntax | Ergebnis |
+| --- | --- | --- |
+| Fetter Text | \*\*Fetter Text\*\* | **Fetter Text** |
+| Kursiver Text | \_Kursiver Text\_ | _Kursiver Text_ |
+| Inline-Code | dies ist \`Beispiel\`-Text | dies ist `Beispiel`-Text |
 
 \> "Zitat" →
 > "Zitat: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." – Lorem Ipsum
-
-\`Inline-Code\` →
-`Text in Backticks`
 
 Der Obsidian-Kommentar (\%\%Obsidian-Kommentar\%\%) steht in der Zeile unten; in der Ausgabe von Omd2Typst wurde er entfernt.
 
@@ -72,27 +67,23 @@ Noch eine Textzeile.
 
 ## Durchgestrichen, markiert, hoch- und tiefgestellt
 
-`~~durchgestrichener Text~~` →
-~~durchgestrichener~~ Text
-
-`==markierter== Text` →
-==markierter== Text
-
-Hochgestellt (HTML-Hack) E = mc\<sup\>2\</sup\> →
-Hochgestellt: E = mc<sup>2</sup>
-
-Tiefgestellt: H\<sub\>2\</sub\>O →
-Tiefgestellt: H<sub>2</sub>O
+| Markdown | Ergebnis |
+| --- | --- |
+| `~~durchgestrichener Text~~` | ~~durchgestrichener~~ Text |
+| `Der folgende Text ist ==markierter== Text.` | Der folgende Text ist ==markierter== Text. |
+| Hochgestellt (HTML-Hack) E = mc\<sup\>2\</sup\> | Hochgestellt: E = mc<sup>2</sup> |
+| Tiefgestellt: H\<sub\>2\</sub\>O | Tiefgestellt: H<sub>2</sub>O |
 
 ## Mathematik
 
-Inline-Mathematik: \$E = m c^2$ und $a^2 + b^2 = c^2$. →
-Inline-Mathematik: $E = m c^2$ und $a^2 + b^2 = c^2$.
+Inline-Mathematik verwendet ein einzelnes '$'; mit '\$\$' wird die Formel zentriert in der nächsten Zeile gesetzt.
 
-
-Anzeigeformel: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ →
-
-Anzeigeformel: $$sum_(k=1)^n k = (n(n+1)) / 2$$
+| Markdown | Ergebnis |
+| ------------------------------------------------- | ---------------------------------------------- |
+| Mathematik \$E = m c^2$ und $a^2 + b^2 = c^2\$ inline. | Mathematik $E = m c^2$ und $a^2 + b^2 = c^2$ inline. |
+| Neue Zeile: \$$E = m c^2$ und $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ und $a^2 + b^2 = c^2$$ |
+| Neue Zeile: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ | $$sum_(k=1)^n k = (n(n+1)) / 2$$ |
+| Neue Zeile: \$\$log(x)\$$ | $$log(x)$$ |
 
 ## Aufzählungslisten
 
@@ -327,6 +318,28 @@ Regelmäßig in Obsidian verwendet, aber nach einem PDF-Export möglicherweise n
 - [I] Idee
 - [i] Info
 - [*] Stern
+
+## Wikilinks
+
+Obsidian-Wikilinks werden gemäß der CLI-Option `--wikilinks` (oder der Plugin-Einstellung *Wikilinks*) dargestellt: `text` (Standard), `bold`, `link` oder `keep`.
+
+| Syntax | Beschreibung | Ergebnis |
+| ------ | ----------- | ------ |
+| \[\[Eine Notiz\]\] | Notiz | [[Eine Notiz]] |
+| \[\[Eine Notiz\\\|nur ein Label\]\] | Notiz mit Alias | [[Eine Notiz\|nur ein Label]] |
+| \[\[Eine Notiz#Eine Überschrift\]\] | Notiz und Überschrift | [[Eine Notiz#Eine Überschrift]] |
+| \[\[\#Tabelle\]\] | Überschrift in diesem Dokument | [[#Tabelle]] |
+| \[\[\#Fußnoten\|zu den Fußnoten\]\] | Überschrift in diesem Dokument mit Alias | [[#Fußnoten\|zu den Fußnoten]] |
+| \[\[\#textbeispiele\]\] | Überschrift in diesem Dokument, andere Groß-/Kleinschreibung | [[#textbeispiele]] |
+| \[\[\#Gibt es nicht\]\] | Überschrift, die nicht existiert | [[#Gibt es nicht]] |
+| \[\[Andere Notiz#^block-id\]\] | Blockverweis | [[Andere Notiz#^block-id]] |
+
+Wikilinks funktionieren auch im Fließtext, zum Beispiel in einem Satz, der auf [[Andere Notiz|eine andere Notiz]] verweist und dann weitergeht, in **fettem [[#Mathematik]]** und in einer Liste:
+
+- Erster Punkt mit [[Andere Notiz]]
+- Zweiter Punkt, der auf [[#Codeblock|den Codeblock]] verweist
+
+`[[Wikilinks in Code bleiben wie eingegeben]]`
 
 ## Fußnoten
 

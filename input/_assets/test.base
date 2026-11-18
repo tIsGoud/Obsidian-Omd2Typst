@@ -1,0 +1,12 @@
+filters:
+  and:
+    - file.folder.contains("omd2typst/input/_assets")
+properties:
+  file.name:
+    displayName: assets
+views:
+  - type: table
+    name: Table
+    sort:
+      - property: file.name
+        direction: ASC

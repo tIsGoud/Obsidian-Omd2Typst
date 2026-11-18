@@ -10,9 +10,9 @@ summary: Dit document is een voorbeelddocument om de werking van omd2typst te te
 figure-list: true
 revision-table: Revisie
 approval-table: Goedkeuring
+appendix-from: Aantekeningen
 ---
-
-# Voorbeeldig document
+# input-nl
 
 ## Revisie
 
@@ -41,27 +41,22 @@ Dit gedeelte geeft een korte inleiding op het document.
 
 ## Tekstvoorbeelden
 
-Reguliere tekst.
-
-\*\*Vetgedrukte tekst\*\* →
-**Vetgedrukte tekst**
-
-\_Cursieve tekst\_ →
-_Cursieve tekst_
+| Omschrijving | Syntax | Resultaat |
+| --- | --- | --- |
+| Vetgedrukte tekst | \*\*Vetgedrukte tekst\*\* | **Vetgedrukte tekst** |
+| Cursieve tekst | \_Cursieve tekst\_ | _Cursieve tekst_ |
+| Inline code | dit is \`voorbeeld\` tekst | dit is `voorbeeld` tekst |
 
 \> "Citaat" →
 > "Citaat: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." – Lorem Ipsum
 
-\`Inline code\` →
-`tekst tussen backticks`
-
-Obsidian commentaar (\%\%Obsidian commentaar\%\% )staat op de regel hieronder, in de uitvoer van Omd2Typst is deze verwijderd.
+Obsidian commentaar (\%\%Obsidian commentaar\%\% ) staat op de regel hieronder, in de uitvoer van Omd2Typst is deze verwijderd.
 
 %% Obsidian commentaar %%
 
 Hieronder staat nog een Obsidian commentaar regel in een MarkDown block.
 ```markdown
-# Markdown voorbeeld
+## Markdown voorbeeld
 
 Hieronder een Obsidian commentaar
 
@@ -72,27 +67,23 @@ Nog een regel tekst.
 
 ## Doorhalen, markeren, super- en subscript
 
-`~~doorgehaalde tekst~~` →
-~~doorgehaalde~~ tekst
-
-`==gemarkeerde== tekst` →
-==gemarkeerde== tekst
-
-Superscript (HTML-hack) E = mc\<sup\>2\</sup\> →
-Superscript: E = mc<sup>2</sup>
-
-Subscript: H\<sub\>2\</sub\>O →
-Subscript: H<sub>2</sub>O
+| Markdown | Resultaat |
+| --- | --- |
+| `~~doorgehaalde tekst~~` | ~~doorgehaalde~~ tekst |
+| `Volgende tekst is ==gemarkeerde== tekst.` | Volgende tekst is ==gemarkeerde== tekst. |
+| Superscript (HTML-hack) E = mc\<sup\>2\</sup\> | Superscript: E = mc<sup>2</sup> |
+| Subscript: H\<sub\>2\</sub\>O | Subscript: H<sub>2</sub>O |
 
 ## Wiskunde
 
-Inline wiskunde: \$E = m c^2$ en $a^2 + b^2 = c^2$. →
-Inline wiskunde: $E = m c^2$ en $a^2 + b^2 = c^2$.
+Inline wiskunde gebruikt één '$', met '\$\$' wordt de formule gecentreerd op de volgende regel geplaatst.
 
-
-Weergaveformule: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ →
-
-Weergaveformule: $$sum_(k=1)^n k = (n(n+1)) / 2$$
+| Markdown | Resultaat |
+| ------------------------------------------------- | ---------------------------------------------- |
+| Wiskunde \$E = m c^2$ en $a^2 + b^2 = c^2\$ inline. | Wiskunde $E = m c^2$ en $a^2 + b^2 = c^2$ inline. |
+| Nieuwe regel: \$$E = m c^2$ en $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ en $a^2 + b^2 = c^2$$ |
+| Nieuwe regel: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ | $$sum_(k=1)^n k = (n(n+1)) / 2$$ |
+| Nieuwe regel: \$\$log(x)\$$ | $$log(x)$$ |
 
 ## Lijsten met opsommingstekens
 
@@ -234,6 +225,17 @@ De alt-tekst wordt hierbij niet ondersteund. Het onderschrift toont alleen het n
 
 ![[_assets/laptop.png|150]]
 
+### Breedte 50 - Spatie in de naam van het plaatje
+
+De alt-tekst wordt ook hier niet ondersteund. Het onderschrift toont alleen het nummer van de afbeelding.
+
+```markdown
+![[_assets/dutch flag.png|50]]
+```
+
+![[_assets/dutch flag.png|50]]
+
+
 ## Call-outs
 
 De syntax van de call-outs is in het Engels, daarom zijn de sub-paragrafen Engelstalig.
@@ -313,6 +315,47 @@ De syntax van de call-outs is in het Engels, daarom zijn de sub-paragrafen Engel
 
 In Typst wordt  aan het buitenste blok van een call-outs `breakable: false`. Hierdoor worden call-outs niet gesplitst door een pagina-einde.
 
+## TempTest
+
+Mermaid diagram with title
+
+```mermaid
+---
+title: My Sequence diagram
+---
+sequenceDiagram
+    Alice->>+John: Hello John, how are you?
+    Alice->>+John: John, can you hear me?
+    John-->>-Alice: Hi Alice, I can hear you!
+    John-->>-Alice: I feel great!
+```
+
+Second Mermaid diagram with title
+
+```mermaid
+---
+title: My Second diagram
+---
+sequenceDiagram
+    Alice->>+John: Hello John, how are you?
+    Alice->>+John: John, can you hear me?
+    John-->>-Alice: Hi Alice, I can hear you!
+    John-->>-Alice: I feel great!
+```
+
+Third Mermaid diagram with title
+
+```mermaid
+---
+title: My third diagram
+---
+sequenceDiagram
+    Alice->>+John: Hello John, how are you?
+    Alice->>+John: John, can you hear me?
+    John-->>-Alice: Hi Alice, I can hear you!
+    John-->>-Alice: I feel great!
+```
+
 ## Selectie- of aankruisvakjes
 
 Regelmatig gebruikt in Obsidian maar deze zijn na een PDF-export wellicht nog te gebruiken om een bepaalde status aan te geven.
@@ -328,6 +371,32 @@ Regelmatig gebruikt in Obsidian maar deze zijn na een PDF-export wellicht nog te
 - [i] Info
 - [*] Ster
 
+## Wikilinks
+
+Obsidian wikilinks worden weergegeven volgens de optie `--wikilinks` van de CLI
+(of de instelling *Wikilinks* van de plugin): `text` (standaard), `bold`, `link`
+of `keep`.
+
+| Syntax | Omschrijving | Resultaat |
+| ------ | ----------- | ------ |
+| \[\[Een notitie\]\] | Notitie | [[Een notitie]] |
+| \[\[Een notitie\\\|slechts een label\]\] | Notitie met alias | [[Een notitie\|slechts een label]] |
+| \[\[Een notitie#Een kop\]\] | Notitie en kop | [[Een notitie#Een kop]] |
+| \[\[\#Tabel\]\] | Kop in dit document | [[#Tabel]] |
+| \[\[\#Voetnoten\|ga naar voetnoten\]\] | Kop in dit document met alias | [[#Voetnoten\|ga naar voetnoten]] |
+| \[\[\#tekstvoorbeelden\]\] | Kop in dit document, andere hoofdletters | [[#tekstvoorbeelden]] |
+| \[\[\#Bestaat niet\]\] | Kop die niet bestaat | [[#Bestaat niet]] |
+| \[\[Andere notitie#^blok-id\]\] | Blokverwijzing | [[Andere notitie#^blok-id]] |
+
+Wikilinks werken ook in lopende tekst, bijvoorbeeld in een zin die naar
+[[Andere notitie|een andere notitie]] verwijst en daarna verdergaat, in
+**vet [[#Wiskunde]]** en in een lijst:
+
+- Eerste punt met [[Andere notitie]]
+- Tweede punt dat verwijst naar [[#Codeblok|het codeblok]]
+
+`[[Wikilinks in code blijven staan zoals getypt]]`
+
 ## Voetnoten
 
 Voetnoten worden inline in de tekst geplaatst.[^1] Een tweede voetnoot kan direct volgen.[^2]
@@ -335,10 +404,139 @@ Voetnoten worden inline in de tekst geplaatst.[^1] Een tweede voetnoot kan direc
 [^1]: Dit is de eerste voetnoot. Deze verschijnt onderaan de pagina.
 [^2]: Dit is de tweede voetnoot.
 
-## Addendum — Aantekeningen
+## Mermaid
+
+Git graph
+
+```mermaid
+---
+title: GitGraph example
+---
+gitGraph
+    commit
+    branch develop
+    checkout develop
+    commit
+    commit
+    checkout main
+    merge develop
+    commit
+    branch feature
+    checkout feature
+    commit
+    commit
+    checkout main
+    merge feature
+```
+
+
+Sequence diagram
+
+```mermaid
+---
+title: My Sequence diagram
+---
+sequenceDiagram
+    Alice->>+John: Hello John, how are you?
+    Alice->>+John: John, can you hear me?
+    John-->>-Alice: Hi Alice, I can hear you!
+    John-->>-Alice: I feel great!
+```
+
+Git graph
+
+```mermaid
+---
+title: GitGraph example
+---
+gitGraph
+    commit
+    branch develop
+    checkout develop
+    commit
+    commit
+    checkout main
+    merge develop
+    commit
+    branch feature
+    checkout feature
+    commit
+    commit
+    checkout main
+    merge feature
+```
+
+Flowchart
+
+```mermaid
+---
+title: Flowchart example
+---
+flowchart TD
+    A[Christmas] -->|Get money| B(Go shopping)
+    B --> C{Let me think}
+    C -->|One| D[Laptop]
+    C -->|Two| E[iPhone]
+    C -->|Three| F[fa:fa-car Car]
+```
+
+
+Mindmap
+
+```mermaid
+---
+title: Mindmap example
+---
+mindmap
+  root((mindmap))
+    Origins
+      Long history
+      ::icon(fa fa-book)
+      Popularisation
+        British popular psychology author Tony Buzan
+    Research
+      On effectiveness<br/>and features
+      On Automatic creation
+        Uses
+            Creative techniques
+            Strategic planning
+            Argument mapping
+    Tools
+      Pen and paper
+      Mermaid
+```
+
+Pie-chart
+
+```mermaid
+---
+title: Pie-chart example
+---
+pie title Pets adopted by volunteers
+    "Dogs" : 386
+    "Cats" : 85
+    "Rats" : 15
+```
+
+## Bases
+
+Test base
+![[_assets/test.base]]
+
+Another test base
+![[_assets/input-base.base]]
+
+## Dataview
+
+```dataview
+LIST
+WHERE contains(file.name, "input-")
+```
+
+## Aantekeningen
 
 Hier volgt een addendum met aantekeningen.
 
-## Addendum — Meer aantekeningen
+# Meer aantekeningen
 
 Nog meer aantekeningen.

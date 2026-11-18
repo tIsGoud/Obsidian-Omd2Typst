@@ -41,19 +41,14 @@ Esta sección da una breve introducción al documento.
 
 ## Ejemplos de texto
 
-Texto normal.
-
-\*\*Texto en negrita\*\* →
-**Texto en negrita**
-
-\_Texto en cursiva\_ →
-_Texto en cursiva_
+| Descripción | Sintaxis | Resultado |
+| --- | --- | --- |
+| Texto en negrita | \*\*Texto en negrita\*\* | **Texto en negrita** |
+| Texto en cursiva | \_Texto en cursiva\_ | _Texto en cursiva_ |
+| Código en línea | esto es texto de \`ejemplo\` | esto es texto de `ejemplo` |
 
 \> "Cita" →
 > "Cita: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." – Lorem Ipsum
-
-\`Código en línea\` →
-`texto entre comillas invertidas`
 
 El comentario de Obsidian (\%\%Comentario de Obsidian\%\%) está en la línea de abajo; en la salida de Omd2Typst ha sido eliminado.
 
@@ -72,27 +67,23 @@ Otra línea de texto.
 
 ## Tachado, resaltado, super- y subíndice
 
-`~~texto tachado~~` →
-~~tachado~~ texto
-
-`==texto resaltado==` →
-==resaltado== texto
-
-Superíndice (truco HTML) E = mc\<sup\>2\</sup\> →
-Superíndice: E = mc<sup>2</sup>
-
-Subíndice: H\<sub\>2\</sub\>O →
-Subíndice: H<sub>2</sub>O
+| Markdown | Resultado |
+| --- | --- |
+| `~~texto tachado~~` | ~~tachado~~ texto |
+| `El texto siguiente es texto ==resaltado==.` | El texto siguiente es texto ==resaltado==. |
+| Superíndice (truco HTML) E = mc\<sup\>2\</sup\> | Superíndice: E = mc<sup>2</sup> |
+| Subíndice: H\<sub\>2\</sub\>O | Subíndice: H<sub>2</sub>O |
 
 ## Matemáticas
 
-Matemáticas en línea: \$E = m c^2$ y $a^2 + b^2 = c^2$. →
-Matemáticas en línea: $E = m c^2$ y $a^2 + b^2 = c^2$.
+Las matemáticas en línea usan un solo '$'; con '\$\$' la fórmula se coloca centrada en la línea siguiente.
 
-
-Fórmula mostrada: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ →
-
-Fórmula mostrada: $$sum_(k=1)^n k = (n(n+1)) / 2$$
+| Markdown | Resultado |
+| ------------------------------------------------- | ---------------------------------------------- |
+| Matemáticas \$E = m c^2$ y $a^2 + b^2 = c^2\$ inline. | Matemáticas $E = m c^2$ y $a^2 + b^2 = c^2$ inline. |
+| Nueva línea: \$$E = m c^2$ y $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ y $a^2 + b^2 = c^2$$ |
+| Nueva línea: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ | $$sum_(k=1)^n k = (n(n+1)) / 2$$ |
+| Nueva línea: \$\$log(x)\$$ | $$log(x)$$ |
 
 ## Listas con viñetas
 
@@ -327,6 +318,28 @@ Usadas regularmente en Obsidian, pero después de exportar a PDF pueden seguir s
 - [I] Idea
 - [i] Info
 - [*] Estrella
+
+## Wikilinks
+
+Los wikilinks de Obsidian se representan según la opción `--wikilinks` de la CLI (o el ajuste *Wikilinks* del plugin): `text` (predeterminado), `bold`, `link` o `keep`.
+
+| Sintaxis | Descripción | Resultado |
+| ------ | ----------- | ------ |
+| \[\[Una nota\]\] | Nota | [[Una nota]] |
+| \[\[Una nota\\\|solo una etiqueta\]\] | Nota con alias | [[Una nota\|solo una etiqueta]] |
+| \[\[Una nota#Un encabezado\]\] | Nota y encabezado | [[Una nota#Un encabezado]] |
+| \[\[\#Tabla\]\] | Encabezado de este documento | [[#Tabla]] |
+| \[\[\#Notas al pie\|ir a las notas al pie\]\] | Encabezado de este documento con alias | [[#Notas al pie\|ir a las notas al pie]] |
+| \[\[\#ejemplos de texto\]\] | Encabezado de este documento, otras mayúsculas | [[#ejemplos de texto]] |
+| \[\[\#No existe\]\] | Encabezado que no existe | [[#No existe]] |
+| \[\[Otra nota#^id-bloque\]\] | Referencia de bloque | [[Otra nota#^id-bloque]] |
+
+Los wikilinks también funcionan en el texto corrido, por ejemplo en una frase que remite a [[Otra nota|otra nota]] y sigue, en **negrita [[#Matemáticas]]** y en una lista:
+
+- Primer punto con [[Otra nota]]
+- Segundo punto que remite a [[#Bloque de código|el bloque de código]]
+
+`[[Los wikilinks en código se quedan como se escribieron]]`
 
 ## Notas al pie
 

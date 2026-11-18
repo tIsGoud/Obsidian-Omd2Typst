@@ -1,0 +1,17 @@
+filters:
+  and:
+    - file.name.startsWith("input-")
+    - '!file.name.endsWith(".pdf")'
+    - '!file.name.endsWith(".base")'
+properties:
+  file.name:
+    displayName: input-file
+views:
+  - type: table
+    name: Table
+    order:
+      - file.name
+      - file.ctime
+    sort:
+      - property: file.name
+        direction: ASC
