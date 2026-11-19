@@ -71,6 +71,12 @@ Nog een regel tekst.
 | --- | --- |
 | `~~doorgehaalde tekst~~` | ~~doorgehaalde~~ tekst |
 | `Volgende tekst is ==gemarkeerde== tekst.` | Volgende tekst is ==gemarkeerde== tekst. |
+| `Volgende tekst is ==🔴gemarkeerde== tekst.` | Volgende tekst is ==🔴gemarkeerde== tekst. |
+| `Volgende tekst is ==🟠gemarkeerde== tekst.` | Volgende tekst is ==🟠gemarkeerde== tekst. |
+| `Volgende tekst is ==🟡gemarkeerde== tekst.` | Volgende tekst is ==🟡gemarkeerde== tekst. |
+| `Volgende tekst is ==🟢gemarkeerde== tekst.` | Volgende tekst is ==🟢gemarkeerde== tekst. |
+| `Volgende tekst is ==🔵gemarkeerde== tekst.` | Volgende tekst is ==🔵gemarkeerde== tekst. |
+| `Volgende tekst is ==🟣gemarkeerde== tekst.` | Volgende tekst is ==🟣gemarkeerde== tekst. |
 | Superscript (HTML-hack) E = mc\<sup\>2\</sup\> | Superscript: E = mc<sup>2</sup> |
 | Subscript: H\<sub\>2\</sub\>O | Subscript: H<sub>2</sub>O |
 

@@ -71,12 +71,18 @@ Another line of text.
 
 ## Strikethrough, highlighting, super- and subscript
 
-| Markdown                                       | Result                                  |
-| ---------------------------------------------- | --------------------------------------- |
-| `~~strikethrough text~~`                       | ~~strikethrough~~ text                  |
-| `Following text is ==highlighted== text.`      | Following text is ==highlighted== text. |
-| Superscript (HTML hack) E = mc\<sup\>2\</sup\> | Superscript: E = mc<sup>2</sup>         |
-| Subscript: H\<sub\>2\</sub\>O                  | Subscript: H<sub>2</sub>O               |
+| Markdown                                       | Result                                   |
+| ---------------------------------------------- | ---------------------------------------- |
+| `~~strikethrough text~~`                       | ~~strikethrough~~ text                   |
+| `Following text is ==highlighted== text.`      | Following text is ==highlighted== text.  |
+| `Following text is ==🔴highlighted== text.`    | Following text is ==🔴highlighted== text. |
+| `Following text is ==🟠highlighted== text.`    | Following text is ==🟠highlighted== text. |
+| `Following text is ==🟡highlighted== text.`    | Following text is ==🟡highlighted== text. |
+| `Following text is ==🟢highlighted== text.`    | Following text is ==🟢highlighted== text. |
+| `Following text is ==🔵highlighted== text.`    | Following text is ==🔵highlighted== text. |
+| `Following text is ==🟣highlighted== text.`    | Following text is ==🟣highlighted== text. |
+| Superscript (HTML hack) E = mc\<sup\>2\</sup\> | Superscript: E = mc<sup>2</sup>          |
+| Subscript: H\<sub\>2\</sub\>O                  | Subscript: H<sub>2</sub>O                |
 
 ## Mathematics
 

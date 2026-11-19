@@ -71,6 +71,12 @@ Otra línea de texto.
 | --- | --- |
 | `~~texto tachado~~` | ~~tachado~~ texto |
 | `El texto siguiente es texto ==resaltado==.` | El texto siguiente es texto ==resaltado==. |
+| `El texto siguiente es texto ==🔴resaltado==.` | El texto siguiente es texto ==🔴resaltado==. |
+| `El texto siguiente es texto ==🟠resaltado==.` | El texto siguiente es texto ==🟠resaltado==. |
+| `El texto siguiente es texto ==🟡resaltado==.` | El texto siguiente es texto ==🟡resaltado==. |
+| `El texto siguiente es texto ==🟢resaltado==.` | El texto siguiente es texto ==🟢resaltado==. |
+| `El texto siguiente es texto ==🔵resaltado==.` | El texto siguiente es texto ==🔵resaltado==. |
+| `El texto siguiente es texto ==🟣resaltado==.` | El texto siguiente es texto ==🟣resaltado==. |
 | Superíndice (truco HTML) E = mc\<sup\>2\</sup\> | Superíndice: E = mc<sup>2</sup> |
 | Subíndice: H\<sub\>2\</sub\>O | Subíndice: H<sub>2</sub>O |
 

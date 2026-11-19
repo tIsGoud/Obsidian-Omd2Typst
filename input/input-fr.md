@@ -71,6 +71,12 @@ Encore une ligne de texte.
 | --- | --- |
 | `~~texte barré~~` | ~~barré~~ texte |
 | `Le texte suivant est du texte ==surligné==.` | Le texte suivant est du texte ==surligné==. |
+| `Le texte suivant est du texte ==🔴surligné==.` | Le texte suivant est du texte ==🔴surligné==. |
+| `Le texte suivant est du texte ==🟠surligné==.` | Le texte suivant est du texte ==🟠surligné==. |
+| `Le texte suivant est du texte ==🟡surligné==.` | Le texte suivant est du texte ==🟡surligné==. |
+| `Le texte suivant est du texte ==🟢surligné==.` | Le texte suivant est du texte ==🟢surligné==. |
+| `Le texte suivant est du texte ==🔵surligné==.` | Le texte suivant est du texte ==🔵surligné==. |
+| `Le texte suivant est du texte ==🟣surligné==.` | Le texte suivant est du texte ==🟣surligné==. |
 | Exposant (astuce HTML) E = mc\<sup\>2\</sup\> | Exposant : E = mc<sup>2</sup> |
 | Indice : H\<sub\>2\</sub\>O | Indice : H<sub>2</sub>O |
 
