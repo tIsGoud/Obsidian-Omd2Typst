@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Omd2Typst-logo.png" alt="Omd2Typst logo" width="320">
+</p>
+
 # Omd2Typst
 
 Export your Obsidian notes to professionally typeset PDFs — with a structured cover page, auto-numbered table of contents, callout blocks, tables, images, and support for five languages — using [Typst](https://typst.app), a modern document compiler.
@@ -147,7 +151,8 @@ Full coverage of standard Markdown plus the most-used Obsidian extensions:
 | Feature | Notes |
 |---|---|
 | Headings `# H1` … `###### H6` | Level offset applied automatically when document has a title |
-| Bold, italic, strikethrough, highlight | `**`, `*`, `~~`, `==` |
+| Bold, italic, strikethrough | `**`, `*`, `~~` |
+| Highlight | `==text==`; a coloured dot right after `==` picks the colour: `==🔴text==` (🔴 red, 🟠 orange, 🟡 yellow, 🟢 green, 🔵 blue, 🟣 purple) |
 | Inline and display math | Typst math syntax — `$…$` and `$$…$$` |
 | Code blocks with language tag | Language label preserved |
 | Tables | Left / center / right alignment |
