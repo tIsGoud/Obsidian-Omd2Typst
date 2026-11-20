@@ -69,16 +69,16 @@ Noch eine Textzeile.
 
 | Markdown | Ergebnis |
 | --- | --- |
-| `~~durchgestrichener Text~~` | ~~durchgestrichener~~ Text |
-| `Der folgende Text ist ==markierter== Text.` | Der folgende Text ist ==markierter== Text. |
-| `Der folgende Text ist ==🔴markierter== Text.` | Der folgende Text ist ==🔴markierter== Text. |
-| `Der folgende Text ist ==🟠markierter== Text.` | Der folgende Text ist ==🟠markierter== Text. |
-| `Der folgende Text ist ==🟡markierter== Text.` | Der folgende Text ist ==🟡markierter== Text. |
-| `Der folgende Text ist ==🟢markierter== Text.` | Der folgende Text ist ==🟢markierter== Text. |
-| `Der folgende Text ist ==🔵markierter== Text.` | Der folgende Text ist ==🔵markierter== Text. |
-| `Der folgende Text ist ==🟣markierter== Text.` | Der folgende Text ist ==🟣markierter== Text. |
-| Hochgestellt (HTML-Hack) E = mc\<sup\>2\</sup\> | Hochgestellt: E = mc<sup>2</sup> |
-| Tiefgestellt: H\<sub\>2\</sub\>O | Tiefgestellt: H<sub>2</sub>O |
+| \~~durchgestrichener Text\~~ | ~~durchgestrichener~~ Text |
+| Der folgende Text ist `==markierter==` Text. | Der folgende Text ist ==markierter== Text. |
+| Der folgende Text ist `==🔴markierter==` Text. | Der folgende Text ist ==🔴markierter== Text. |
+| Der folgende Text ist `==🟠markierter==` Text. | Der folgende Text ist ==🟠markierter== Text. |
+| Der folgende Text ist `==🟡markierter==` Text. | Der folgende Text ist ==🟡markierter== Text. |
+| Der folgende Text ist `==🟢markierter==` Text. | Der folgende Text ist ==🟢markierter== Text. |
+| Der folgende Text ist `==🔵markierter==` Text. | Der folgende Text ist ==🔵markierter== Text. |
+| Der folgende Text ist `==🟣markierter==` Text. | Der folgende Text ist ==🟣markierter== Text. |
+| Hochgestellt (HTML-Hack) `E = mc<sup>2</sup>` | Hochgestellt: E = mc<sup>2</sup> |
+| Tiefgestellt: `H<sub>2</sub>O` | Tiefgestellt: H<sub>2</sub>O |
 
 ## Mathematik
 
