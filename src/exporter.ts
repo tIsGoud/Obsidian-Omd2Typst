@@ -84,6 +84,7 @@ export async function exportNote(
     const typstSrc = await renderToTypst(markdown, templatePath, {
       wikilinks: settings.wikilinkMode,
       obsidianVault: settings.wikilinkMode === 'link' ? app.vault.getName() : undefined,
+      math: settings.mathSyntax,
     });
 
     // Step 5: Resolve output path

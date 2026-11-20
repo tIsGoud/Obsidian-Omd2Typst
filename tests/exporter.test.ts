@@ -20,6 +20,7 @@ const BASE_SETTINGS: Omd2TypstSettings = {
   outputFolder: 'exports',
   defaultLanguage: 'en',
   wikilinkMode: 'text',
+  mathSyntax: 'latex',
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',
@@ -91,13 +92,26 @@ describe('exportNote — wikilink options', () => {
     expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, {
       wikilinks: 'link',
       obsidianVault: 'My Vault',
+      math: 'latex',
     });
 
     await exportNote(file, 'typ', null, { ...BASE_SETTINGS, wikilinkMode: 'bold' }, makeApp() as any, noopComponent);
     expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, {
       wikilinks: 'bold',
       obsidianVault: undefined,
+      math: 'latex',
     });
+  });
+});
+
+describe('exportNote — math syntax', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { renderToTypst } = require('../src/wasm/omd2typst') as { renderToTypst: jest.Mock };
+
+  it('passes the math syntax setting', async () => {
+    renderToTypst.mockClear();
+    await exportNote(makeTFile('notes/hello.md'), 'typ', null, { ...BASE_SETTINGS, mathSyntax: 'typst' }, makeApp() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, expect.objectContaining({ math: 'typst' }));
   });
 });
 

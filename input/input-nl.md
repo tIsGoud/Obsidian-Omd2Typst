@@ -84,12 +84,25 @@ Nog een regel tekst.
 
 Inline wiskunde gebruikt één '$', met '\$\$' wordt de formule gecentreerd op de volgende regel geplaatst.
 
+Formules worden in LaTeX geschreven, zoals Obsidian ze weergeeft. Gebruik `--math typst` (CLI) of de instelling *Math syntax* (plugin) voor Typst-syntaxis.
+
 | Markdown | Resultaat |
-| ------------------------------------------------- | ---------------------------------------------- |
-| Wiskunde \$E = m c^2$ en $a^2 + b^2 = c^2\$ inline. | Wiskunde $E = m c^2$ en $a^2 + b^2 = c^2$ inline. |
-| Nieuwe regel: \$$E = m c^2$ en $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ en $a^2 + b^2 = c^2$$ |
-| Nieuwe regel: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ | $$sum_(k=1)^n k = (n(n+1)) / 2$$ |
-| Nieuwe regel: \$\$log(x)\$$ | $$log(x)$$ |
+| --- | --- |
+| Wiskunde `$E = m c^2$ and $a^2 + b^2 = c^2$` inline. | Wiskunde $E = m c^2$ and $a^2 + b^2 = c^2$ inline. |
+| Nieuwe regel: `$$E = m c^2$$` | $$E = m c^2$$ |
+| Nieuwe regel: `$$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$` | $$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$ |
+| Nieuwe regel: `$$\log(x)$$` | $$\log(x)$$ |
+| `$\sqrt{x}$, $\alpha$, $\beta$` | $\sqrt{x}$, $\alpha$, $\beta$ |
+
+Matrix en cases:
+
+$$
+f(x) = \begin{cases} 1 & x > 0 \\ 0 & \text{otherwise} \end{cases}
+$$
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}
+$$
 
 ## Lijsten met opsommingstekens
 

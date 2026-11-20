@@ -46,6 +46,9 @@ export type OutputMode  = 'same-folder' | 'fixed-folder' | 'ask';
 export type FrontmatterTemplateMode = 'inline' | 'file' | 'user-defined';
 export type WikilinkMode = 'text' | 'bold' | 'link' | 'keep';
 
+/** Syntax of $…$ / $$…$$ formulas in the notes. */
+export type MathSyntax = 'latex' | 'typst';
+
 export interface TemplateEntry {
   name: string;
   /** Vault-relative path to the .typ file. Empty string for the built-in template. */
@@ -66,6 +69,8 @@ export interface Omd2TypstSettings {
   defaultLanguage: string;
   /** How [[wikilinks]] are rendered in the export. */
   wikilinkMode: WikilinkMode;
+  /** Syntax of math formulas: LaTeX (as Obsidian renders it) or Typst. */
+  mathSyntax: MathSyntax;
   frontmatterTemplateMode: FrontmatterTemplateMode;
   /** YAML lines (no --- delimiters) used in inline mode. */
   frontmatterInline: string;
@@ -85,6 +90,7 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
   outputFolder: 'exports',
   defaultLanguage: 'en',
   wikilinkMode: 'text',
+  mathSyntax: 'latex',
   frontmatterTemplateMode: 'inline',
   frontmatterInline: [
     'title:',
@@ -339,6 +345,19 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
                 bold: 'Bold display text',
                 link: 'Links',
                 keep: 'Keep as typed',
+              },
+            },
+          },
+          {
+            name: 'Math syntax',
+            desc: 'Syntax of formulas between $ signs. LaTeX is what Obsidian renders and is converted ' +
+              'to Typst math; choose Typst if your notes contain Typst math notation.',
+            control: {
+              type: 'dropdown',
+              key: 'mathSyntax',
+              options: {
+                latex: 'LaTeX',
+                typst: 'Typst',
               },
             },
           },

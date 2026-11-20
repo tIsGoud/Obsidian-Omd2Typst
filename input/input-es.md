@@ -84,12 +84,25 @@ Otra línea de texto.
 
 Las matemáticas en línea usan un solo '$'; con '\$\$' la fórmula se coloca centrada en la línea siguiente.
 
+Las fórmulas se escriben en LaTeX, tal como las muestra Obsidian. Para la sintaxis de Typst usa `--math typst` (CLI) o el ajuste *Math syntax* (plugin).
+
 | Markdown | Resultado |
-| ------------------------------------------------- | ---------------------------------------------- |
-| Matemáticas \$E = m c^2$ y $a^2 + b^2 = c^2\$ inline. | Matemáticas $E = m c^2$ y $a^2 + b^2 = c^2$ inline. |
-| Nueva línea: \$$E = m c^2$ y $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ y $a^2 + b^2 = c^2$$ |
-| Nueva línea: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ | $$sum_(k=1)^n k = (n(n+1)) / 2$$ |
-| Nueva línea: \$\$log(x)\$$ | $$log(x)$$ |
+| --- | --- |
+| Matemáticas `$E = m c^2$ and $a^2 + b^2 = c^2$` inline. | Matemáticas $E = m c^2$ and $a^2 + b^2 = c^2$ inline. |
+| Nueva línea: `$$E = m c^2$$` | $$E = m c^2$$ |
+| Nueva línea: `$$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$` | $$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$ |
+| Nueva línea: `$$\log(x)$$` | $$\log(x)$$ |
+| `$\sqrt{x}$, $\alpha$, $\beta$` | $\sqrt{x}$, $\alpha$, $\beta$ |
+
+Matriz y casos:
+
+$$
+f(x) = \begin{cases} 1 & x > 0 \\ 0 & \text{otherwise} \end{cases}
+$$
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}
+$$
 
 ## Listas con viñetas
 

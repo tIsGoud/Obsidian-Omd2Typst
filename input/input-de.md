@@ -84,12 +84,25 @@ Noch eine Textzeile.
 
 Inline-Mathematik verwendet ein einzelnes '$'; mit '\$\$' wird die Formel zentriert in der nächsten Zeile gesetzt.
 
+Formeln werden in LaTeX geschrieben, wie Obsidian sie darstellt. Für die Typst-Syntax `--math typst` (CLI) oder die Einstellung *Math syntax* (Plugin) verwenden.
+
 | Markdown | Ergebnis |
-| ------------------------------------------------- | ---------------------------------------------- |
-| Mathematik \$E = m c^2$ und $a^2 + b^2 = c^2\$ inline. | Mathematik $E = m c^2$ und $a^2 + b^2 = c^2$ inline. |
-| Neue Zeile: \$$E = m c^2$ und $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ und $a^2 + b^2 = c^2$$ |
-| Neue Zeile: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ | $$sum_(k=1)^n k = (n(n+1)) / 2$$ |
-| Neue Zeile: \$\$log(x)\$$ | $$log(x)$$ |
+| --- | --- |
+| Mathematik `$E = m c^2$ and $a^2 + b^2 = c^2$` inline. | Mathematik $E = m c^2$ and $a^2 + b^2 = c^2$ inline. |
+| Neue Zeile: `$$E = m c^2$$` | $$E = m c^2$$ |
+| Neue Zeile: `$$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$` | $$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$ |
+| Neue Zeile: `$$\log(x)$$` | $$\log(x)$$ |
+| `$\sqrt{x}$, $\alpha$, $\beta$` | $\sqrt{x}$, $\alpha$, $\beta$ |
+
+Matrix und Cases:
+
+$$
+f(x) = \begin{cases} 1 & x > 0 \\ 0 & \text{otherwise} \end{cases}
+$$
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}
+$$
 
 ## Aufzählungslisten
 

@@ -23,11 +23,12 @@ export function get_builtin_template() {
  * @param {string | null} [template_src]
  * @param {string | null} [wikilinks]
  * @param {string | null} [obsidian_vault]
+ * @param {string | null} [math]
  * @returns {string}
  */
-export function render_to_typst(markdown, template_src, wikilinks, obsidian_vault) {
-    let deferred5_0;
-    let deferred5_1;
+export function render_to_typst(markdown, template_src, wikilinks, obsidian_vault, math) {
+    let deferred6_0;
+    let deferred6_1;
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(markdown, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
@@ -38,15 +39,17 @@ export function render_to_typst(markdown, template_src, wikilinks, obsidian_vaul
         var len2 = WASM_VECTOR_LEN;
         var ptr3 = isLikeNone(obsidian_vault) ? 0 : passStringToWasm0(obsidian_vault, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
         var len3 = WASM_VECTOR_LEN;
-        wasm.render_to_typst(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+        var ptr4 = isLikeNone(math) ? 0 : passStringToWasm0(math, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
+        var len4 = WASM_VECTOR_LEN;
+        wasm.render_to_typst(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        deferred5_0 = r0;
-        deferred5_1 = r1;
+        deferred6_0 = r0;
+        deferred6_1 = r1;
         return getStringFromWasm0(r0, r1);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export(deferred5_0, deferred5_1, 1);
+        wasm.__wbindgen_export(deferred6_0, deferred6_1, 1);
     }
 }
 let cachedDataViewMemory0 = null;

@@ -126,6 +126,7 @@ The top of the Export section shows the detected Typst version and path, or *"Ty
 | **Default output format** | `PDF` or `Typst source (.typ)`. |
 | **Output location** | *Same folder as note* / *Fixed folder* (vault folder autocomplete) / *Ask every time*. |
 | **Wikilinks** | *Display text* (default) / *Bold display text* / *Links* / *Keep as typed*. *Links*: `[[#Heading]]` becomes a link to that heading in the PDF, and links to other notes become `obsidian://` links that open the note in Obsidian — the vault name is stored in the PDF. Links to headings that don't exist, or to other notes in non-link modes, show as plain text. |
+| **Math syntax** | *LaTeX* (default, as Obsidian renders formulas) or *Typst*. LaTeX formulas are converted to Typst math; a formula that cannot be converted is passed through as typed. The choice applies to every note you export. |
 
 ### Document defaults
 
@@ -153,7 +154,7 @@ Full coverage of standard Markdown plus the most-used Obsidian extensions:
 | Headings `# H1` … `###### H6` | Level offset applied automatically when document has a title |
 | Bold, italic, strikethrough | `**`, `*`, `~~` |
 | Highlight | `==text==`; a coloured dot right after `==` picks the colour: `==🔴text==` (🔴 red, 🟠 orange, 🟡 yellow, 🟢 green, 🔵 blue, 🟣 purple) |
-| Inline and display math | Typst math syntax — `$…$` and `$$…$$` |
+| Inline and display math | `$…$` and `$$…$$`; LaTeX by default (converted to Typst), Typst syntax via the *Math syntax* setting |
 | Code blocks with language tag | Language label preserved |
 | Tables | Left / center / right alignment |
 | Images — standard `![alt](path)` and wikilink `![[path\|width]]` | Width in points |

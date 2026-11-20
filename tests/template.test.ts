@@ -14,6 +14,7 @@ const SETTINGS_BASE: Omd2TypstSettings = {
   outputFolder: 'exports',
   defaultLanguage: 'en',
   wikilinkMode: 'text',
+  mathSyntax: 'latex',
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',

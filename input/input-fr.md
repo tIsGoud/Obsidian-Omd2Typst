@@ -84,12 +84,25 @@ Encore une ligne de texte.
 
 Les mathématiques en ligne utilisent un seul '$' ; avec '\$\$' la formule est placée centrée sur la ligne suivante.
 
+Les formules s'écrivent en LaTeX, comme Obsidian les affiche. Pour la syntaxe Typst, utilisez `--math typst` (CLI) ou le réglage *Math syntax* (plugin).
+
 | Markdown | Résultat |
-| ------------------------------------------------- | ---------------------------------------------- |
-| Mathématiques \$E = m c^2$ et $a^2 + b^2 = c^2\$ inline. | Mathématiques $E = m c^2$ et $a^2 + b^2 = c^2$ inline. |
-| Nouvelle ligne: \$$E = m c^2$ et $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ et $a^2 + b^2 = c^2$$ |
-| Nouvelle ligne: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$ | $$sum_(k=1)^n k = (n(n+1)) / 2$$ |
-| Nouvelle ligne: \$\$log(x)\$$ | $$log(x)$$ |
+| --- | --- |
+| Mathématiques `$E = m c^2$ and $a^2 + b^2 = c^2$` inline. | Mathématiques $E = m c^2$ and $a^2 + b^2 = c^2$ inline. |
+| Nouvelle ligne: `$$E = m c^2$$` | $$E = m c^2$$ |
+| Nouvelle ligne: `$$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$` | $$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$ |
+| Nouvelle ligne: `$$\log(x)$$` | $$\log(x)$$ |
+| `$\sqrt{x}$, $\alpha$, $\beta$` | $\sqrt{x}$, $\alpha$, $\beta$ |
+
+Matrice et cas :
+
+$$
+f(x) = \begin{cases} 1 & x > 0 \\ 0 & \text{otherwise} \end{cases}
+$$
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}
+$$
 
 ## Listes à puces
 

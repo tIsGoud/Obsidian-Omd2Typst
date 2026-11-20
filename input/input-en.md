@@ -88,12 +88,25 @@ Another line of text.
 
 Inline math uses a single '$', with '\$\$' its placed centered on the next line.
 
-| Markdown                                          | Result                                         |
-| ------------------------------------------------- | ---------------------------------------------- |
-| Math \$E = m c^2$ and $a^2 + b^2 = c^2\$ inline.  | Math $E = m c^2$ and $a^2 + b^2 = c^2$ inline. |
-| New line: \$$E = m c^2$ and $a^2 + b^2 = c^2\$\$. | $$E = m c^2$ and $a^2 + b^2 = c^2$$            |
-| New line: \$\$sum_(k=1)^n k = (n(n+1)) / 2\$\$    | $$sum_(k=1)^n k = (n(n+1)) / 2$$               |
-| New line: \$\$log(x)\$$                           | $$log(x)$$                                     |
+Formulas are written in LaTeX, as Obsidian renders them. Use `--math typst` (CLI) or the *Math syntax* setting (plugin) for Typst math syntax; see `input-en-typst-math.md`.
+
+| Markdown | Result |
+| --- | --- |
+| Math `$E = m c^2$ and $a^2 + b^2 = c^2$` inline. | Math $E = m c^2$ and $a^2 + b^2 = c^2$ inline. |
+| New line: `$$E = m c^2$$` | $$E = m c^2$$ |
+| New line: `$$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$` | $$\sum_{k=1}^n k = \frac{n(n+1)}{2}$$ |
+| New line: `$$\log(x)$$` | $$\log(x)$$ |
+| `$\sqrt{x}$, $\alpha$, $\beta$` | $\sqrt{x}$, $\alpha$, $\beta$ |
+
+Matrix and cases:
+
+$$
+f(x) = \begin{cases} 1 & x > 0 \\ 0 & \text{otherwise} \end{cases}
+$$
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}
+$$
 
 ## Bullet lists
 
