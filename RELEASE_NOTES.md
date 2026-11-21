@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.13.1 — Add template row restored
+
+- The **Choose file…** button on the *Add template* row is removed again: with
+  four controls in one row the title and description were squeezed into a
+  narrow column. Search for the `.typ` file in the field as before. The
+  *Frontmatter template file* row keeps its **Choose file…** button.
+- Engine unchanged (omd2typst v0.17.1).
+
+---
+
 ## v0.13.0 — Export as bundle, native file and folder dialogs
 
 - **Export as bundle.** A new command (palette and right-click menu) writes a
@@ -16,10 +26,11 @@
   vault) and *Open folder after exporting a bundle* (off by default). If no
   folder is set, the first export asks for one and remembers it. The command
   *Export as bundle to a chosen folder…* asks every time and saves nothing.
-- **Choose file… buttons.** The *Frontmatter template file* and *Add template*
-  rows get a **Choose file…** button that opens the system file dialog (the file
-  must be inside the vault). Searching in the field still works, and the
-  frontmatter row warns when the file is not found.
+- **Choose file… button.** The *Frontmatter template file* row gets a
+  **Choose file…** button that opens the system file dialog (the file must be
+  inside the vault). Searching in the field still works, and the row warns when
+  the file is not found. (0.13.0 also added this button to the *Add template*
+  row; 0.13.1 removes it again.)
 - The dialogs use an Obsidian internal that Obsidian itself uses; if a future
   version removes it you get a notice and can type the path instead.
 - Engine unchanged (omd2typst v0.17.1).

@@ -234,7 +234,6 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
     let newName = '';
     let newPath = '';
     let nameComp: TextComponent;
-    let pathComp: TextComponent;
 
     setting
       .addText(text => {
@@ -243,7 +242,6 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           .onChange(v => { newName = v.trim(); });
       })
       .addText(text => {
-        pathComp = text;
         text.setPlaceholder('Search .typ files…');
         text.onChange(v => { newPath = v.trim(); });
         new TypFileSuggest(this.app, text.inputEl, (file: TFile) => {
@@ -254,34 +252,6 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
           }
         });
       })
-      .addButton(btn =>
-        btn.setButtonText('Choose file…')
-          .onClick(() => {
-            const vaultBase = this.vaultBasePath();
-            const picked = pickFile('Choose a Typst template', {
-              defaultPath: vaultBase || undefined,
-              extensions: ['typ'],
-              filterName: 'Typst template',
-            });
-            if (picked.status === 'unavailable') {
-              new Notice('The file picker is not available in this version of Obsidian. Search for the file instead.');
-              return;
-            }
-            if (picked.status === 'cancelled') return;
-            const vaultPath = toVaultPath(picked.path, vaultBase);
-            if (!vaultPath) {
-              new Notice('Choose a template inside your vault.');
-              return;
-            }
-            newPath = vaultPath;
-            pathComp.setValue(vaultPath);
-            if (!newName) {
-              const file = this.app.vault.getAbstractFileByPath(vaultPath);
-              newName = file instanceof TFile ? file.basename : (vaultPath.split('/').pop() ?? '').replace(/\.typ$/i, '');
-              nameComp.setValue(newName);
-            }
-          })
-      )
       .addButton(btn =>
         btn.setButtonText('Add')
           .setCta()
@@ -439,7 +409,7 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
         items: [
           {
             name: 'Add template',
-            desc: 'Search for a .typ file in the vault, or press Choose file…. The name is derived from the filename.',
+            desc: 'Select a .typ file from the vault. Name is derived from the filename.',
             render: (setting: Setting) => this.renderAddTemplate(setting),
           },
           {

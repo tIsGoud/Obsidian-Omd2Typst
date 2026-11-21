@@ -135,7 +135,7 @@ This partial PDF output shows the added front page, the added revision and appro
 | Setting | Description |
 |---|---|
 | **Template list** | Each registered template shows its name, vault-relative path, and the languages detected from its `_lang_strings` dictionary. |
-| **Add template** | Select a `.typ` file from the vault: search for it in the field, or press **Choose file…** to pick it in the system file dialog (the file must be inside the vault). The name is auto-filled from the filename and can be edited before adding. |
+| **Add template** | Select a `.typ` file from the vault using the autocomplete picker. The name is auto-filled from the filename and can be edited before adding. |
 | **Default template** | Used for right-click exports and as the pre-selected option in palette exports. Changing this also updates the available *Default language* options. |
 
 ### Export
