@@ -1,5 +1,110 @@
 # Release Notes
 
+## v0.12.2 — Tables and figure captions
+
+- **Text below a table.** A text line directly under the last table row is now a
+  paragraph, as in Obsidian. Before, it became an extra table row in the PDF.
+  A table ends at the first line without a `|`.
+- **Figure captions.** Captions are smaller (0.85em) and there is more space
+  below a figure (2em) in the built-in template and the shipped templates
+  (`purple`, `tig`, and the DUO, ro, taotek and vnet templates). Custom
+  templates can add `show figure.caption: set text(size: 0.85em)` and
+  `show figure: set block(below: 2em)`.
+- Bundles omd2typst engine v0.17.1.
+
+---
+
+## v0.12.1 — Source-review fix
+
+- Replaced `String.matchAll` in `excalidraw.ts` with a `RegExp.exec` loop. The
+  store's lint runs without `@types/node` and reported three `no-unsafe-*`
+  warnings for it. No functional change.
+
+---
+
+## v0.12.0 — Image sizes as a share of the text width
+
+- **Behaviour change.** An image size such as `![[image.png|400]]` is in pixels
+  in Obsidian, but the PDF used it as points, so images came out far too large.
+  The size is now converted to the same share of the text width: size divided
+  by a reference width, at most 100%. With the default 700 (Obsidian's default
+  readable line length), `|400` is 57%, `|350` is 50% and `|700` is 100%.
+- **New setting *Image width reference (px)*** (default 700). Enter your own
+  Obsidian line width if you changed *Readable line length* or use a wider
+  editor. `0` reads the sizes as points again (the old behaviour).
+- Existing documents with sized images look smaller than before.
+- Bundles omd2typst engine v0.17.0.
+
+---
+
+## v0.11.0 — Excalidraw drawings, image alt text, file-name captions
+
+- **Excalidraw drawings are exported.** `![[Drawing.excalidraw]]` and
+  `![[Drawing.excalidraw|500]]` are rendered with the Excalidraw plugin to an
+  image (light theme, white background). New setting *Excalidraw drawings*:
+  PNG (default, looks exactly like Obsidian), SVG (sharp when zoomed, but text
+  uses a normal font because Typst cannot use Excalidraw's web font) or *Do not
+  render*. Without the Excalidraw plugin, or when rendering fails, an image
+  Excalidraw's "Auto-export SVG/PNG" wrote next to the drawing is used.
+  Embeds of part of a drawing (`#^frame=…`) are not rendered.
+- **Alt text and size in double bracket images.** `![[image.png|200|alt text]]`,
+  `|alt text|200`, `|alt text` and `|100x145|alt text` now give the width and
+  the alt text, in any order. The alt text becomes the figure caption. Before,
+  the alt text came out as `|200|alt text` and the size was lost.
+- **New setting *Use file name as caption*** (off by default): images without
+  alt text get their file name as caption. Alt text always wins.
+- Bundles omd2typst engine v0.16.0.
+
+---
+
+## v0.10.0 — LaTeX math
+
+- **Math is written in LaTeX by default**, as Obsidian renders it, and is
+  converted to Typst math: `$\log$`, `$$\frac{a}{b}$$`, `$\sqrt{x}$`, Greek
+  letters, `\sum`, matrices (`pmatrix`, `bmatrix`, …) and `cases`.
+- **New setting *Math syntax*** (LaTeX or Typst). Notes written in Typst math
+  notation (`sum_(k=1)^n`) need *Typst*. The choice applies to every note.
+- A formula that cannot be converted is passed through as typed. An unknown
+  LaTeX command is not detected and fails in Typst as an unknown variable.
+- Bundles omd2typst engine v0.15.0. `input/input-en-typst-math.md` is an example
+  in Typst syntax.
+
+---
+
+## v0.9.9 — Highlight palette, super- and subscript size
+
+- Lighter highlight colours that are closer to Obsidian's: `==🔴text==` and the
+  other five dots (🟠🟡🟢🔵🟣). Plain `==text==` is unchanged.
+- `<sup>` and `<sub>` no longer come out tiny in fonts like Helvetica Neue (the
+  purple and tig templates): the size is now set explicitly (0.7em).
+- Bundles omd2typst engine v0.14.2.
+
+---
+
+## v0.9.8 — Coloured highlights
+
+- **Coloured highlights.** A coloured dot right after `==` picks the colour:
+  `==🔴text==` (red), 🟠 orange, 🟡 yellow, 🟢 green, 🔵 blue, 🟣 purple. Plain
+  `==text==` uses Obsidian's default highlight colour.
+- The placeholder for unsupported embeds (PDFs, notes, audio/video) no longer
+  says "in the CLI".
+- Bundles omd2typst engine v0.14.1.
+
+---
+
+## v0.9.7 — Wikilinks
+
+- **New setting *Wikilinks*.** `[[Note]]`, `[[Note|alias]]`, `[[#Heading]]` and
+  block references no longer show their brackets. *Display text* (default),
+  *Bold display text*, *Links* or *Keep as typed*.
+- **Links mode.** `[[#Heading]]` becomes a link to that heading in the PDF, and
+  links to other notes become `obsidian://` links that open the note in
+  Obsidian (the vault name is stored in the PDF). Headings that do not exist
+  show as plain text. Links use the template's accent colour.
+- Bundles omd2typst engine v0.14.0.
+
+---
+
 ## v0.9.6 — `reading-guide` frontmatter key
 
 - **Reading guide page.** A new `reading-guide` frontmatter key names an H2
