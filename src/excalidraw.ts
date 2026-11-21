@@ -164,7 +164,10 @@ export async function renderExcalidrawEmbeds(
   // (`#^frame=…`) selects part of a drawing, which we cannot render: skipped.
   const drawings = new Map<string, TFile>();
   mapLinesOutsideFences(markdown, line => {
-    for (const m of line.matchAll(WIKILINK_EMBED_RE)) {
+    // A fresh regex per line: a shared /g regex keeps `lastIndex` between calls.
+    const re = new RegExp(WIKILINK_EMBED_RE.source, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(line)) !== null) {
       const { linkpath, fragment } = splitEmbed(m[1]);
       if (fragment || !isExcalidrawLink(linkpath) || drawings.has(linkpath)) continue;
       const file = resolveDrawing(app, linkpath, noteFile.path);
