@@ -3,6 +3,9 @@ import { Omd2TypstSettings, DEFAULT_SETTINGS, OutputFormat, Omd2TypstSettingTab,
 import { resolveDefaultTemplate, exportCommandName } from './template';
 import { mergeFrontmatter, buildFrontmatterBlock, parseFrontmatter } from './frontmatter';
 import { exportNote } from './exporter';
+import { exportBundle } from './bundle';
+import { chooseBundleFolder } from './bundle-flow';
+import { openFolder, pickFolder } from './folder-dialog';
 import { detectSystemTypst, TypstStatus } from './typst-cli';
 import { getBuiltinTemplate } from './wasm/omd2typst';
 import { TemplateSuggestModal } from './template-picker';
@@ -31,6 +34,26 @@ export default class Omd2TypstPlugin extends Plugin {
       id: 'export-typ',
       name: exportCommandName('typst file', this.settings),
       callback: () => this.exportActiveNote('typ'),
+    });
+
+    this.addCommand({
+      id: 'export-bundle',
+      name: 'Export as bundle (folder with images)',
+      callback: () => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file) { new Notice('No active file.'); return; }
+        void this.exportFileAsBundle(file, false);
+      },
+    });
+
+    this.addCommand({
+      id: 'export-bundle-choose-folder',
+      name: 'Export as bundle to a chosen folder…',
+      callback: () => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file) { new Notice('No active file.'); return; }
+        void this.exportFileAsBundle(file, true);
+      },
     });
 
     this.addCommand({
@@ -92,6 +115,16 @@ export default class Omd2TypstPlugin extends Plugin {
               .setIcon('file-type')
               .onClick(() => this.exportFile(file, 'typ'));
         });
+        menu.addItem((item: MenuItem) => {
+          item.setTitle('Export as bundle')
+              .setIcon('folder-output')
+              .onClick(() => this.exportFileAsBundle(file, false));
+        });
+        menu.addItem((item: MenuItem) => {
+          item.setTitle('Export as bundle to a chosen folder…')
+              .setIcon('folder-output')
+              .onClick(() => this.exportFileAsBundle(file, true));
+        });
         if (this.settings.templates.length >= 1) {
           menu.addItem((item: MenuItem) => {
             item.setTitle('Export as PDF with template…')
@@ -150,6 +183,38 @@ export default class Omd2TypstPlugin extends Plugin {
     } catch (err) {
       console.error('[omd2typst] Export failed:', err);
       new Notice(`Export failed: ${(err as Error).message}`);
+    }
+  }
+
+  /**
+   * Export a note as a bundle. With `chooseEachTime` a folder dialog opens for
+   * this export only; otherwise the configured bundle folder is used, and the
+   * first time (none set) the user picks one that is then remembered.
+   */
+  private async exportFileAsBundle(file: TFile, chooseEachTime: boolean) {
+    try {
+      const choice = chooseBundleFolder({
+        configured: this.settings.bundleFolder,
+        chooseEachTime,
+        pick: pickFolder,
+      });
+      if (!choice) return; // dialog cancelled
+
+      const result = await exportBundle(file, this.settings, this.app, this, choice.folder);
+      if (choice.remember) {
+        this.settings.bundleFolder = choice.folder;
+        await this.saveSettings();
+      }
+      new Notice(`Bundle exported: ${result.dir} (${result.copied} image${result.copied === 1 ? '' : 's'})`, 8000);
+      if (result.missing.length > 0) {
+        new Notice(`Images not found and left as they were: ${result.missing.join(', ')}`, 10000);
+      }
+      if (this.settings.openBundleFolder && !(await openFolder(result.dir))) {
+        new Notice('The bundle folder could not be opened automatically.');
+      }
+    } catch (err) {
+      console.error('[omd2typst] Bundle export failed:', err);
+      new Notice(`Bundle export failed: ${(err as Error).message}`);
     }
   }
 

@@ -38,6 +38,37 @@ function sanitizeReferenceWidth(value: unknown): number {
 }
 
 /**
+ * Read a note and run the preprocessors that need Obsidian: Bases tables,
+ * image-path resolution, Excalidraw drawings and Mermaid diagrams. The result
+ * is Markdown the engine understands; `cleanup` removes the temporary images
+ * the preprocessors wrote next to the note.
+ */
+export async function preprocessNote(
+  file: TFile,
+  settings: Omd2TypstSettings,
+  app: App,
+  parent: Component,
+): Promise<{ markdown: string; cleanup: () => Promise<void> }> {
+  const rawMarkdown = await app.vault.read(file);
+  const markdownAfterBases = await renderBaseEmbeds(rawMarkdown, app, file, parent);
+  // Resolve image links to /-absolute vault paths BEFORE mermaid, which emits
+  // its own bare-filename references that must not be resolved here (ADR 0012).
+  const markdownAfterImages = resolveImagePaths(markdownAfterBases, app, file);
+  // Excalidraw drawings become temporary images next to the note, like Mermaid.
+  const excalidraw = await renderExcalidrawEmbeds(
+    markdownAfterImages, app, file, settings.excalidrawImage, settings.filenameCaptions,
+  );
+  const mermaid = await renderMermaidBlocks(excalidraw.markdown, app, file);
+  return {
+    markdown: mermaid.markdown,
+    cleanup: async () => {
+      await excalidraw.cleanup();
+      await mermaid.cleanup();
+    },
+  };
+}
+
+/**
  * Export a note to Typst or PDF format.
  *
  * Steps:
@@ -57,21 +88,7 @@ export async function exportNote(
   parent: Component,
 ): Promise<void> {
   // Step 1: Read and pre-process the note
-  const rawMarkdown = await app.vault.read(file);
-  const markdownAfterBases = await renderBaseEmbeds(rawMarkdown, app, file, parent);
-  // Resolve image links to /-absolute vault paths BEFORE mermaid, which emits
-  // its own bare-filename references that must not be resolved here (ADR 0012).
-  const markdownAfterImages = resolveImagePaths(markdownAfterBases, app, file);
-  // Excalidraw drawings become temporary images next to the note, like Mermaid.
-  const excalidraw = await renderExcalidrawEmbeds(
-    markdownAfterImages, app, file, settings.excalidrawImage, settings.filenameCaptions,
-  );
-  const mermaid = await renderMermaidBlocks(excalidraw.markdown, app, file);
-  const markdown = mermaid.markdown;
-  const cleanup = async () => {
-    await excalidraw.cleanup();
-    await mermaid.cleanup();
-  };
+  const { markdown, cleanup } = await preprocessNote(file, settings, app, parent);
   try {
     // Step 2: Resolve template path for #import (verify file exists; null → built-in).
     // Prefixing with / makes the path vault-root-relative; typst resolves it from --root.

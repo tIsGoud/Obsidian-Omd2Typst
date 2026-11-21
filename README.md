@@ -102,10 +102,31 @@ This partial PDF output shows the added front page, the added revision and appro
 |---|---|---|
 | Export as PDF | ✓ | ✓ |
 | Export as Typst source (.typ) | ✓ | ✓ |
+| Export as bundle (folder with images) | ✓ | ✓ |
+| Export as bundle to a chosen folder… | ✓ | ✓ |
 | Insert omd2typst frontmatter | ✓ | — |
 | Export built-in template | ✓ | — |
 
 ---
+
+## Export as bundle
+
+*Export as bundle* writes a folder outside your vault that you can convert anywhere with the [command line tool](https://github.com/tIsGoud/Omd2Typst), without Obsidian:
+
+```
+<bundle folder>/My note/
+  My note.md          the note as plain Markdown
+  assets/             every image the note uses
+  .omd2typst-bundle   marker: only folders with it are replaced
+```
+
+- **Everything Obsidian renders is included as an image:** normal images (all link styles), Mermaid diagrams, Excalidraw drawings (see the *Excalidraw drawings* setting) and Bases tables (as Markdown tables). Image references are relative (`assets/…`), and images that share a file name get a unique name.
+- **Convert it** from inside the folder: `cd "My note" && omd2typst "My note.md" "My note.pdf"`. Add `--template`, `--wikilinks` and the other options as you like; they are not baked into the bundle.
+- **The bundle is a snapshot.** Export again after changing the note: the folder is replaced, but only if it carries the marker file, so another folder with the same name is never touched.
+- **Not included:** PDF, note and audio/video embeds (they stay placeholders), the template and the settings. Images that cannot be found are reported and left as they were.
+- **Choosing the folder.** Set it in the settings (type a path or press *Choose folder…*), or just run the command: the first time, with no folder set, a folder dialog opens and your choice is remembered. *Export as bundle to a chosen folder…* opens the dialog every time and saves nothing, to put one bundle somewhere else.
+- The bundle folder must be outside the vault, so exported files never end up among your notes. Enable *Open folder after exporting a bundle* to show the result in your file manager.
+- If a future Obsidian version removes the folder dialog, type the path in the settings instead.
 
 ## Settings
 
@@ -114,7 +135,7 @@ This partial PDF output shows the added front page, the added revision and appro
 | Setting | Description |
 |---|---|
 | **Template list** | Each registered template shows its name, vault-relative path, and the languages detected from its `_lang_strings` dictionary. |
-| **Add template** | Select a `.typ` file from the vault using the autocomplete picker. The name is auto-filled from the filename and can be edited before adding. |
+| **Add template** | Select a `.typ` file from the vault: search for it in the field, or press **Choose file…** to pick it in the system file dialog (the file must be inside the vault). The name is auto-filled from the filename and can be edited before adding. |
 | **Default template** | Used for right-click exports and as the pre-selected option in palette exports. Changing this also updates the available *Default language* options. |
 
 ### Export
@@ -129,6 +150,8 @@ The top of the Export section shows the detected Typst version and path, or *"Ty
 | **Math syntax** | *LaTeX* (default, as Obsidian renders formulas) or *Typst*. LaTeX formulas are converted to Typst math; a formula that cannot be converted is passed through as typed. The choice applies to every note you export. |
 | **Excalidraw drawings** | *PNG image* (default, looks exactly like Obsidian), *SVG image* (sharp when zoomed, but text uses a normal font because Typst cannot use Excalidraw's hand-drawn web font) or *Do not render* (placeholder). Drawings always use the light theme. |
 | **Use file name as caption** | Off by default. When on, an image without alt text gets its file name as caption (also Excalidraw drawings). Alt text, as in `![[image.png\|200\|alt text]]`, always wins. |
+| **Bundle folder** | Where *Export as bundle* saves its folders. Type a path or press **Choose folder…** to pick one in the system dialog. Must be outside your vault; a short message appears if it is not. If empty, you are asked the first time you export a bundle. |
+| **Open folder after exporting a bundle** | Off by default. When on, the exported bundle folder opens in your file manager. |
 | **Image width reference (px)** | Default `700`. Image sizes such as `![[image.png\|400]]` are pixels in Obsidian, where they take a share of the note width. In the PDF the number is converted to the same share of the text width: size ÷ this value, at most 100%. With 700 (Obsidian's default *Readable line length*), `\|400` becomes 57% and `\|350` 50%. Enter your own line width if you changed it or use a wider editor. `0` reads the sizes as points (the behaviour before 0.12.0). |
 
 ### Document defaults
@@ -143,7 +166,7 @@ The top of the Export section shows the detected Typst version and path, or *"Ty
 | Mode | Behaviour |
 |---|---|
 | **Inline editor** | Edit `key: value` lines directly in settings. Running the command inserts any missing keys (with their default values) into the active note's frontmatter. Existing keys are never overwritten. |
-| **Template file** | Select a `.md` file in the vault. The command reads that file's frontmatter and inserts missing keys (with their values) into the active note. |
+| **Template file** | Select a `.md` file in the vault: search for it in the field, or press **Choose file…** to pick it in the system file dialog (the file must be inside the vault). The command reads that file's frontmatter and inserts missing keys (with their values) into the active note. A message appears if the file is not found. |
 | **User defined** | The built-in insert command is disabled. Use Templater, the Templates core plugin, or any other frontmatter tool of your choice. |
 
 ---

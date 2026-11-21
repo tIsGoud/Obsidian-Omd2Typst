@@ -1,5 +1,31 @@
 # Release Notes
 
+## v0.13.0 — Export as bundle, native file and folder dialogs
+
+- **Export as bundle.** A new command (palette and right-click menu) writes a
+  folder outside your vault with the note as plain Markdown and an `assets/`
+  folder holding every image it uses: normal images, Mermaid diagrams and
+  Excalidraw drawings rendered by Obsidian, and Bases tables (as Markdown).
+  Image references are relative, so the folder converts anywhere with the
+  command line tool (`omd2typst "My note.md" "My note.pdf"`, run from inside
+  the folder) without Obsidian. Exporting the same note again replaces its
+  folder, but only a folder that carries the `.omd2typst-bundle` marker file is
+  ever replaced.
+- **Choosing the bundle folder.** New settings *Bundle folder* (type a path or
+  press **Choose folder…**, with a live message if the path is inside the
+  vault) and *Open folder after exporting a bundle* (off by default). If no
+  folder is set, the first export asks for one and remembers it. The command
+  *Export as bundle to a chosen folder…* asks every time and saves nothing.
+- **Choose file… buttons.** The *Frontmatter template file* and *Add template*
+  rows get a **Choose file…** button that opens the system file dialog (the file
+  must be inside the vault). Searching in the field still works, and the
+  frontmatter row warns when the file is not found.
+- The dialogs use an Obsidian internal that Obsidian itself uses; if a future
+  version removes it you get a notice and can type the path instead.
+- Engine unchanged (omd2typst v0.17.1).
+
+---
+
 ## v0.12.2 — Tables and figure captions
 
 - **Text below a table.** A text line directly under the last table row is now a

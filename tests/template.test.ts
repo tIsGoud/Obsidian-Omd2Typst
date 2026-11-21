@@ -18,6 +18,8 @@ const SETTINGS_BASE: Omd2TypstSettings = {
   excalidrawImage: 'png',
   filenameCaptions: false,
   imageReferenceWidth: 700,
+  bundleFolder: '',
+  openBundleFolder: false,
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',
