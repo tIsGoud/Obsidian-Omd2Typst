@@ -478,8 +478,9 @@
     it.body,
   )
 
-  // ── Figure spacing ───────────────────────────────────────────
-  show figure: set block(below: 1.5em)
+  // ── Figure spacing and caption size ──────────────────────────
+  show figure: set block(below: 2em)
+  show figure.caption: set text(size: 0.85em)
 
   // ── Cover page ───────────────────────────────────────────────
   page(
