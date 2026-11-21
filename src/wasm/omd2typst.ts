@@ -16,6 +16,7 @@ const renderFn   = _renderToTypst    as unknown as (
   vault?: string,
   math?: string,
   filenameCaptions?: boolean,
+  imageReferenceWidth?: number,
 ) => string;
 const templateFn = _getBuiltinTemplate as unknown as () => string;
 
@@ -28,6 +29,8 @@ export interface RenderToTypstOptions {
   math?: string;
   /** Caption images without alt text with their file name. */
   filenameCaptions?: boolean;
+  /** Pixels that count as the full text width for image sizes (default 700; 0 = points). */
+  imageReferenceWidth?: number;
 }
 
 let initialised = false;
@@ -56,7 +59,8 @@ export async function renderToTypst(
   options: RenderToTypstOptions = {},
 ): Promise<string> {
   await ensureInit();
-  return renderFn(markdown, templateSrc ?? undefined, options.wikilinks, options.obsidianVault, options.math, options.filenameCaptions);
+  return renderFn(markdown, templateSrc ?? undefined, options.wikilinks, options.obsidianVault, options.math, options.filenameCaptions,
+    options.imageReferenceWidth);
 }
 
 /** Return the built-in Typst template source. */

@@ -23,6 +23,7 @@ const BASE_SETTINGS: Omd2TypstSettings = {
   mathSyntax: 'latex',
   excalidrawImage: 'png',
   filenameCaptions: false,
+  imageReferenceWidth: 700,
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',
@@ -96,6 +97,7 @@ describe('exportNote — wikilink options', () => {
       obsidianVault: 'My Vault',
       math: 'latex',
       filenameCaptions: false,
+      imageReferenceWidth: 700,
     });
 
     await exportNote(file, 'typ', null, { ...BASE_SETTINGS, wikilinkMode: 'bold' }, makeApp() as any, noopComponent);
@@ -104,6 +106,7 @@ describe('exportNote — wikilink options', () => {
       obsidianVault: undefined,
       math: 'latex',
       filenameCaptions: false,
+      imageReferenceWidth: 700,
     });
   });
 });
@@ -116,6 +119,21 @@ describe('exportNote — math syntax', () => {
     renderToTypst.mockClear();
     await exportNote(makeTFile('notes/hello.md'), 'typ', null, { ...BASE_SETTINGS, mathSyntax: 'typst' }, makeApp() as any, noopComponent);
     expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, expect.objectContaining({ math: 'typst' }));
+  });
+});
+
+describe('exportNote — image width reference', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { renderToTypst } = require('../src/wasm/omd2typst') as { renderToTypst: jest.Mock };
+
+  it('passes the reference width, falling back to 700 for invalid values', async () => {
+    const file = makeTFile('notes/hello.md');
+    await exportNote(file, 'typ', null, { ...BASE_SETTINGS, imageReferenceWidth: 800.9 }, makeApp() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, expect.objectContaining({ imageReferenceWidth: 800 }));
+    await exportNote(file, 'typ', null, { ...BASE_SETTINGS, imageReferenceWidth: 0 }, makeApp() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, expect.objectContaining({ imageReferenceWidth: 0 }));
+    await exportNote(file, 'typ', null, { ...BASE_SETTINGS, imageReferenceWidth: Number.NaN }, makeApp() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, expect.objectContaining({ imageReferenceWidth: 700 }));
   });
 });
 

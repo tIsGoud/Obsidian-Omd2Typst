@@ -213,6 +213,8 @@ Texto después del bloque de código.
 
 Ejemplos de las diferentes formas en que se pueden mostrar imágenes en markdown. Con o sin texto alternativo o tamaño personalizado.
 
+Los tamaños se indican en píxeles de Obsidian. En el PDF se convierten en la misma proporción del ancho del texto: con el ancho de referencia predeterminado de 700, `|350` es la mitad del ancho y `|700` el ancho completo (véanse `--image-reference-width` y el ajuste del plugin *Image width reference*).
+
 ### Sin tamaño
 
 Una imagen sin tamaño especificado.

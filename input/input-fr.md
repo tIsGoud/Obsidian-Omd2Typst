@@ -213,6 +213,8 @@ Texte après le bloc de code.
 
 Exemples des différentes façons d'afficher des images en markdown. Avec ou sans texte alternatif ou taille personnalisée.
 
+Les tailles sont données en pixels Obsidian. Dans le PDF, elles deviennent la même proportion de la largeur du texte : avec la largeur de référence par défaut de 700, `|350` correspond à la moitié de la largeur et `|700` à la largeur complète (voir `--image-reference-width` et le réglage du plugin *Image width reference*).
+
 ### Sans taille
 
 Une image sans taille spécifiée.

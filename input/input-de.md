@@ -213,6 +213,8 @@ Text nach dem Codeblock.
 
 Beispiele für die verschiedenen Möglichkeiten, wie Bilder in Markdown angezeigt werden können. Mit oder ohne Alternativtext oder benutzerdefinierter Größe.
 
+Größen werden in Obsidian-Pixeln angegeben. Im PDF werden sie zum gleichen Anteil der Textbreite: Mit der Standard-Referenzbreite von 700 ist `|350` die halbe und `|700` die volle Breite (siehe `--image-reference-width` und die Plugin-Einstellung *Image width reference*).
+
 ### Ohne Größe
 
 Ein Bild ohne angegebene Größe.

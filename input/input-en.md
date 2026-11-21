@@ -217,6 +217,8 @@ Text after the code block.
 
 Examples of the different ways images can be displayed in markdown. With or without alt text or custom size.
 
+Sizes are given in Obsidian pixels. In the PDF they become the same share of the text width: with the default reference width of 700, `|350` is half the width and `|700` the full width (see `--image-reference-width` and the plugin setting *Image width reference*).
+
 ### Without size
 
 An image without a specified size.

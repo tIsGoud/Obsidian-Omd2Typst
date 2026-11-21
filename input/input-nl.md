@@ -213,6 +213,8 @@ Tekst na het codeblok.
 
 Voorbeelden van de verschillende manieren waarop afbeeldingen in markdown getoond kunnen worden. Al dan niet met hun alt-tekst of aangepaste grootte.
 
+Afmetingen zijn in Obsidian-pixels. In de PDF worden ze hetzelfde aandeel van de tekstbreedte: met de standaard referentiebreedte van 700 is `|350` de halve breedte en `|700` de volle breedte (zie `--image-reference-width` en de plugininstelling *Image width reference*).
+
 ### Zonder grootte
 
 Hieronder een afbeelding zonder opgegeven grootte.

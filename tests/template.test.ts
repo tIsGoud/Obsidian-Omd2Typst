@@ -17,6 +17,7 @@ const SETTINGS_BASE: Omd2TypstSettings = {
   mathSyntax: 'latex',
   excalidrawImage: 'png',
   filenameCaptions: false,
+  imageReferenceWidth: 700,
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',

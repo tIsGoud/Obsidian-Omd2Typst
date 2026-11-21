@@ -32,6 +32,11 @@ function extractFrontmatterValue(content: string, key: string): string | null {
   return null;
 }
 
+/** The reference width setting as a whole number of pixels; 700 if it is not a valid number. */
+function sanitizeReferenceWidth(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 700;
+}
+
 /**
  * Export a note to Typst or PDF format.
  *
@@ -96,6 +101,7 @@ export async function exportNote(
       obsidianVault: settings.wikilinkMode === 'link' ? app.vault.getName() : undefined,
       math: settings.mathSyntax,
       filenameCaptions: settings.filenameCaptions,
+      imageReferenceWidth: sanitizeReferenceWidth(settings.imageReferenceWidth),
     });
 
     // Step 5: Resolve output path

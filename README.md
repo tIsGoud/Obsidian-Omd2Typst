@@ -129,6 +129,7 @@ The top of the Export section shows the detected Typst version and path, or *"Ty
 | **Math syntax** | *LaTeX* (default, as Obsidian renders formulas) or *Typst*. LaTeX formulas are converted to Typst math; a formula that cannot be converted is passed through as typed. The choice applies to every note you export. |
 | **Excalidraw drawings** | *PNG image* (default, looks exactly like Obsidian), *SVG image* (sharp when zoomed, but text uses a normal font because Typst cannot use Excalidraw's hand-drawn web font) or *Do not render* (placeholder). Drawings always use the light theme. |
 | **Use file name as caption** | Off by default. When on, an image without alt text gets its file name as caption (also Excalidraw drawings). Alt text, as in `![[image.png\|200\|alt text]]`, always wins. |
+| **Image width reference (px)** | Default `700`. Image sizes such as `![[image.png\|400]]` are pixels in Obsidian, where they take a share of the note width. In the PDF the number is converted to the same share of the text width: size ÷ this value, at most 100%. With 700 (Obsidian's default *Readable line length*), `\|400` becomes 57% and `\|350` 50%. Enter your own line width if you changed it or use a wider editor. `0` reads the sizes as points (the behaviour before 0.12.0). |
 
 ### Document defaults
 
@@ -159,7 +160,7 @@ Full coverage of standard Markdown plus the most-used Obsidian extensions:
 | Inline and display math | `$…$` and `$$…$$`; LaTeX by default (converted to Typst), Typst syntax via the *Math syntax* setting |
 | Code blocks with language tag | Language label preserved |
 | Tables | Left / center / right alignment |
-| Images — standard `![alt\|width](path)` and double bracket `![[path\|width\|alt text]]` | Width in points; width and alt text can be given in any order; the alt text becomes the figure caption |
+| Images — standard `![alt\|width](path)` and double bracket `![[path\|width\|alt text]]` | Width in Obsidian pixels, converted to a share of the text width (see the *Image width reference* setting); width and alt text can be given in any order; the alt text becomes the figure caption |
 | Callouts `> [!type] Title` | 13 built-in types with Lucide SVG icons |
 | Block quotes `> text` | Left accent bar |
 | Checkbox lists | 10 variants: `[ ]` `[x]` `[/]` `[-]` `[>]` `[!]` `[?]` `[i]` `[I]` `[*]` |

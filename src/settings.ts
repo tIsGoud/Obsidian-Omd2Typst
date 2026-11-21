@@ -78,6 +78,8 @@ export interface Omd2TypstSettings {
   excalidrawImage: ExcalidrawImageMode;
   /** Caption images without alt text with their file name. */
   filenameCaptions: boolean;
+  /** Obsidian pixels that count as the full text width when image widths are converted; 0 = points. */
+  imageReferenceWidth: number;
   frontmatterTemplateMode: FrontmatterTemplateMode;
   /** YAML lines (no --- delimiters) used in inline mode. */
   frontmatterInline: string;
@@ -100,6 +102,7 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
   mathSyntax: 'latex',
   excalidrawImage: 'png',
   filenameCaptions: false,
+  imageReferenceWidth: 700,
   frontmatterTemplateMode: 'inline',
   frontmatterInline: [
     'title:',
@@ -390,6 +393,15 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
             desc: 'Give images without alt text their file name as caption. Alt text always wins: ' +
               '![[image.png|200|alt text]] or ![alt text|200](image.png).',
             control: { type: 'toggle', key: 'filenameCaptions' },
+          },
+          {
+            name: 'Image width reference (px)',
+            desc: 'Image sizes such as ![[image.png|400]] are pixels in Obsidian, but a PDF page has a different ' +
+              'width. The number is converted to a share of the page text width: size divided by this value, ' +
+              'at most 100%. With the default 700 (Obsidian\'s default readable line length), |400 becomes 57% ' +
+              'of the line, as in Obsidian. If you changed the readable line length or use a narrower ' +
+              'or wider editor, enter that width here. Use 0 to read the sizes as points (the old behaviour).',
+            control: { type: 'number', key: 'imageReferenceWidth', min: 0, placeholder: '700' },
           },
           {
             name: 'Show context menu items',
