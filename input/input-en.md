@@ -240,13 +240,35 @@ The first format for an image with width 200.
 ### Width 150 – Option 2
 
 The second format for an image with width 150.
-The alt text is not supported in this format. The caption shows only the figure number.
+Obsidian's double bracket format. Without alt text the caption shows only the figure number.
 
 ```markdown
 ![[_assets/laptop.png|150]]
 ```
 
 ![[_assets/laptop.png|150]]
+
+### Width 200 and alt text – Option 3
+
+The double bracket format with width and alt text. The order of width and alt text does not matter.
+
+```markdown
+![[_assets/laptop.png|200|alt text]]
+```
+
+![[_assets/laptop.png|200|alt text]]
+
+### Alt text only – Option 4
+
+The double bracket format with alt text and no width.
+
+```markdown
+![[_assets/laptop.png|alt text]]
+```
+
+![[_assets/laptop.png|alt text]]
+
+With the *Use file name as caption* setting (CLI: `--filename-captions`) an image without alt text gets its file name as caption. Alt text always wins.
 
 ## Call-outs
 

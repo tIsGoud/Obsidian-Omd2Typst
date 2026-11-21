@@ -46,6 +46,9 @@ export type OutputMode  = 'same-folder' | 'fixed-folder' | 'ask';
 export type FrontmatterTemplateMode = 'inline' | 'file' | 'user-defined';
 export type WikilinkMode = 'text' | 'bold' | 'link' | 'keep';
 
+/** How embedded Excalidraw drawings are exported: as a PNG or SVG image, or not at all. */
+export type ExcalidrawImageMode = 'png' | 'svg' | 'off';
+
 /** Syntax of $…$ / $$…$$ formulas in the notes. */
 export type MathSyntax = 'latex' | 'typst';
 
@@ -71,6 +74,10 @@ export interface Omd2TypstSettings {
   wikilinkMode: WikilinkMode;
   /** Syntax of math formulas: LaTeX (as Obsidian renders it) or Typst. */
   mathSyntax: MathSyntax;
+  /** Image format for embedded Excalidraw drawings. */
+  excalidrawImage: ExcalidrawImageMode;
+  /** Caption images without alt text with their file name. */
+  filenameCaptions: boolean;
   frontmatterTemplateMode: FrontmatterTemplateMode;
   /** YAML lines (no --- delimiters) used in inline mode. */
   frontmatterInline: string;
@@ -91,6 +98,8 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
   defaultLanguage: 'en',
   wikilinkMode: 'text',
   mathSyntax: 'latex',
+  excalidrawImage: 'png',
+  filenameCaptions: false,
   frontmatterTemplateMode: 'inline',
   frontmatterInline: [
     'title:',
@@ -360,6 +369,27 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
                 typst: 'Typst',
               },
             },
+          },
+          {
+            name: 'Excalidraw drawings',
+            desc: 'How drawings embedded from the Excalidraw plugin appear in the export. They are rendered ' +
+              'with the light theme. PNG looks exactly like Obsidian; SVG stays sharp when zoomed, but ' +
+              'Typst cannot use the hand-drawn web font, so text falls back to a normal font.',
+            control: {
+              type: 'dropdown',
+              key: 'excalidrawImage',
+              options: {
+                png: 'PNG image',
+                svg: 'SVG image',
+                off: 'Do not render',
+              },
+            },
+          },
+          {
+            name: 'Use file name as caption',
+            desc: 'Give images without alt text their file name as caption. Alt text always wins: ' +
+              '![[image.png|200|alt text]] or ![alt text|200](image.png).',
+            control: { type: 'toggle', key: 'filenameCaptions' },
           },
           {
             name: 'Show context menu items',

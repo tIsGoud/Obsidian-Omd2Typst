@@ -236,7 +236,7 @@ Hieronder het eerste formaat voor een afbeelding met breedte 200.
 ### Breedte 150 – Optie 2
 
 Hieronder het tweede formaat voor een afbeelding met breedte 150.
-De alt-tekst wordt hierbij niet ondersteund. Het onderschrift toont alleen het nummer van de afbeelding.
+Het dubbele-haakjes-formaat van Obsidian. Zonder alt-tekst toont het onderschrift alleen het nummer van de afbeelding.
 
 ```markdown
 ![[_assets/laptop.png|150]]
@@ -246,7 +246,7 @@ De alt-tekst wordt hierbij niet ondersteund. Het onderschrift toont alleen het n
 
 ### Breedte 50 - Spatie in de naam van het plaatje
 
-De alt-tekst wordt ook hier niet ondersteund. Het onderschrift toont alleen het nummer van de afbeelding.
+Een spatie in de bestandsnaam werkt ook.
 
 ```markdown
 ![[_assets/dutch flag.png|50]]
@@ -254,6 +254,28 @@ De alt-tekst wordt ook hier niet ondersteund. Het onderschrift toont alleen het 
 
 ![[_assets/dutch flag.png|50]]
 
+
+### Breedte 200 en alt-tekst – Optie 3
+
+Het dubbele-haakjes-formaat met breedte en alt-tekst. De volgorde van breedte en alt-tekst maakt niet uit.
+
+```markdown
+![[_assets/laptop.png|200|alt text]]
+```
+
+![[_assets/laptop.png|200|alt text]]
+
+### Alleen alt-tekst – Optie 4
+
+Het dubbele-haakjes-formaat met alt-tekst en zonder breedte.
+
+```markdown
+![[_assets/laptop.png|alt text]]
+```
+
+![[_assets/laptop.png|alt text]]
+
+Met de instelling *Use file name as caption* (CLI: `--filename-captions`) krijgt een afbeelding zonder alt-tekst de bestandsnaam als onderschrift. Alt-tekst gaat altijd voor.
 
 ## Call-outs
 

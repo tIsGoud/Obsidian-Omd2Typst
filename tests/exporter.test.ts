@@ -21,6 +21,8 @@ const BASE_SETTINGS: Omd2TypstSettings = {
   defaultLanguage: 'en',
   wikilinkMode: 'text',
   mathSyntax: 'latex',
+  excalidrawImage: 'png',
+  filenameCaptions: false,
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',
@@ -93,6 +95,7 @@ describe('exportNote — wikilink options', () => {
       wikilinks: 'link',
       obsidianVault: 'My Vault',
       math: 'latex',
+      filenameCaptions: false,
     });
 
     await exportNote(file, 'typ', null, { ...BASE_SETTINGS, wikilinkMode: 'bold' }, makeApp() as any, noopComponent);
@@ -100,6 +103,7 @@ describe('exportNote — wikilink options', () => {
       wikilinks: 'bold',
       obsidianVault: undefined,
       math: 'latex',
+      filenameCaptions: false,
     });
   });
 });

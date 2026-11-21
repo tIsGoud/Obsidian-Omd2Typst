@@ -236,13 +236,35 @@ Das erste Format für ein Bild mit Breite 200.
 ### Breite 150 – Option 2
 
 Das zweite Format für ein Bild mit Breite 150.
-Der Alternativtext wird in diesem Format nicht unterstützt. Die Bildunterschrift zeigt nur die Abbildungsnummer.
+Obsidians Format mit doppelten eckigen Klammern. Ohne Alternativtext zeigt die Bildunterschrift nur die Abbildungsnummer.
 
 ```markdown
 ![[_assets/laptop.png|150]]
 ```
 
 ![[_assets/laptop.png|150]]
+
+### Breite 200 und Alternativtext – Option 3
+
+Das Format mit doppelten eckigen Klammern, mit Breite und Alternativtext. Die Reihenfolge von Breite und Alternativtext spielt keine Rolle.
+
+```markdown
+![[_assets/laptop.png|200|alt text]]
+```
+
+![[_assets/laptop.png|200|alt text]]
+
+### Nur Alternativtext – Option 4
+
+Das Format mit doppelten eckigen Klammern, mit Alternativtext und ohne Breite.
+
+```markdown
+![[_assets/laptop.png|alt text]]
+```
+
+![[_assets/laptop.png|alt text]]
+
+Mit der Einstellung *Use file name as caption* (CLI: `--filename-captions`) erhält ein Bild ohne Alternativtext seinen Dateinamen als Bildunterschrift. Der Alternativtext hat immer Vorrang.
 
 ## Call-outs
 

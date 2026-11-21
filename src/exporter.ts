@@ -7,6 +7,7 @@ import { findTypstBinary, compileToPdfViaCli } from './typst-cli';
 import { renderMermaidBlocks } from './mermaid';
 import { renderBaseEmbeds } from './bases';
 import { resolveImagePaths } from './image-paths';
+import { renderExcalidrawEmbeds } from './excalidraw';
 
 /**
  * Extract the value of a YAML key from the frontmatter block.
@@ -56,7 +57,16 @@ export async function exportNote(
   // Resolve image links to /-absolute vault paths BEFORE mermaid, which emits
   // its own bare-filename references that must not be resolved here (ADR 0012).
   const markdownAfterImages = resolveImagePaths(markdownAfterBases, app, file);
-  const { markdown, cleanup } = await renderMermaidBlocks(markdownAfterImages, app, file);
+  // Excalidraw drawings become temporary images next to the note, like Mermaid.
+  const excalidraw = await renderExcalidrawEmbeds(
+    markdownAfterImages, app, file, settings.excalidrawImage, settings.filenameCaptions,
+  );
+  const mermaid = await renderMermaidBlocks(excalidraw.markdown, app, file);
+  const markdown = mermaid.markdown;
+  const cleanup = async () => {
+    await excalidraw.cleanup();
+    await mermaid.cleanup();
+  };
   try {
     // Step 2: Resolve template path for #import (verify file exists; null → built-in).
     // Prefixing with / makes the path vault-root-relative; typst resolves it from --root.
@@ -85,6 +95,7 @@ export async function exportNote(
       wikilinks: settings.wikilinkMode,
       obsidianVault: settings.wikilinkMode === 'link' ? app.vault.getName() : undefined,
       math: settings.mathSyntax,
+      filenameCaptions: settings.filenameCaptions,
     });
 
     // Step 5: Resolve output path

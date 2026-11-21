@@ -15,6 +15,8 @@ const SETTINGS_BASE: Omd2TypstSettings = {
   defaultLanguage: 'en',
   wikilinkMode: 'text',
   mathSyntax: 'latex',
+  excalidrawImage: 'png',
+  filenameCaptions: false,
   frontmatterTemplateMode: 'inline',
   frontmatterInline: '',
   frontmatterFilePath: '',

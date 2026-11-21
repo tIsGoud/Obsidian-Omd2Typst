@@ -127,6 +127,8 @@ The top of the Export section shows the detected Typst version and path, or *"Ty
 | **Output location** | *Same folder as note* / *Fixed folder* (vault folder autocomplete) / *Ask every time*. |
 | **Wikilinks** | *Display text* (default) / *Bold display text* / *Links* / *Keep as typed*. *Links*: `[[#Heading]]` becomes a link to that heading in the PDF, and links to other notes become `obsidian://` links that open the note in Obsidian — the vault name is stored in the PDF. Links to headings that don't exist, or to other notes in non-link modes, show as plain text. |
 | **Math syntax** | *LaTeX* (default, as Obsidian renders formulas) or *Typst*. LaTeX formulas are converted to Typst math; a formula that cannot be converted is passed through as typed. The choice applies to every note you export. |
+| **Excalidraw drawings** | *PNG image* (default, looks exactly like Obsidian), *SVG image* (sharp when zoomed, but text uses a normal font because Typst cannot use Excalidraw's hand-drawn web font) or *Do not render* (placeholder). Drawings always use the light theme. |
+| **Use file name as caption** | Off by default. When on, an image without alt text gets its file name as caption (also Excalidraw drawings). Alt text, as in `![[image.png\|200\|alt text]]`, always wins. |
 
 ### Document defaults
 
@@ -157,7 +159,7 @@ Full coverage of standard Markdown plus the most-used Obsidian extensions:
 | Inline and display math | `$…$` and `$$…$$`; LaTeX by default (converted to Typst), Typst syntax via the *Math syntax* setting |
 | Code blocks with language tag | Language label preserved |
 | Tables | Left / center / right alignment |
-| Images — standard `![alt](path)` and wikilink `![[path\|width]]` | Width in points |
+| Images — standard `![alt\|width](path)` and double bracket `![[path\|width\|alt text]]` | Width in points; width and alt text can be given in any order; the alt text becomes the figure caption |
 | Callouts `> [!type] Title` | 13 built-in types with Lucide SVG icons |
 | Block quotes `> text` | Left accent bar |
 | Checkbox lists | 10 variants: `[ ]` `[x]` `[/]` `[-]` `[>]` `[!]` `[?]` `[i]` `[I]` `[*]` |
@@ -167,6 +169,7 @@ Full coverage of standard Markdown plus the most-used Obsidian extensions:
 | Wikilinks `[[Note]]`, `[[Note\|alias]]`, `[[#Heading]]` | Rendered per the *Wikilinks* setting (display text by default) |
 | Thematic breaks `---` | Full-width rule |
 | Mermaid diagrams | Rendered via Obsidian's Mermaid; embedded as SVG. Multi-line labels are preserved: explicit `<br>` in the source becomes a hard break, and long labels are auto-wrapped at word boundaries to fit the node — the wrap point matches Obsidian's preview ± ~1 word. **Emoji codepoints in labels are stripped** — resvg (Typst's SVG renderer) can't render color-emoji glyphs cleanly, so the plugin removes them and keeps the surrounding text (e.g. `Foo 📊 Bar` → `Foo Bar`). |
+| Excalidraw drawings `![[Drawing.excalidraw]]` | Rendered with the Excalidraw plugin (light theme, white background) to a PNG (default) or SVG image; `\|width` is respected. Falls back to an image the Excalidraw plugin auto-exported next to the drawing. Frame embeds (`#^frame=…`) are not rendered. |
 | Obsidian Bases embeds `![[file.base]]` | Rendered via Obsidian's embed registry as a Markdown table |
 
 For the complete feature reference including YAML frontmatter keys, callout icon colours, and checkbox meanings, see the [omd2typst README](https://github.com/tIsGoud/Omd2Typst#readme).

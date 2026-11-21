@@ -15,6 +15,7 @@ const renderFn   = _renderToTypst    as unknown as (
   wikilinks?: string,
   vault?: string,
   math?: string,
+  filenameCaptions?: boolean,
 ) => string;
 const templateFn = _getBuiltinTemplate as unknown as () => string;
 
@@ -25,6 +26,8 @@ export interface RenderToTypstOptions {
   obsidianVault?: string;
   /** Syntax of math formulas: 'latex' (default) or 'typst'. */
   math?: string;
+  /** Caption images without alt text with their file name. */
+  filenameCaptions?: boolean;
 }
 
 let initialised = false;
@@ -53,7 +56,7 @@ export async function renderToTypst(
   options: RenderToTypstOptions = {},
 ): Promise<string> {
   await ensureInit();
-  return renderFn(markdown, templateSrc ?? undefined, options.wikilinks, options.obsidianVault, options.math);
+  return renderFn(markdown, templateSrc ?? undefined, options.wikilinks, options.obsidianVault, options.math, options.filenameCaptions);
 }
 
 /** Return the built-in Typst template source. */

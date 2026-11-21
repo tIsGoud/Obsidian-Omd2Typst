@@ -24,9 +24,10 @@ export function get_builtin_template() {
  * @param {string | null} [wikilinks]
  * @param {string | null} [obsidian_vault]
  * @param {string | null} [math]
+ * @param {boolean | null} [filename_captions]
  * @returns {string}
  */
-export function render_to_typst(markdown, template_src, wikilinks, obsidian_vault, math) {
+export function render_to_typst(markdown, template_src, wikilinks, obsidian_vault, math, filename_captions) {
     let deferred6_0;
     let deferred6_1;
     try {
@@ -41,7 +42,7 @@ export function render_to_typst(markdown, template_src, wikilinks, obsidian_vaul
         var len3 = WASM_VECTOR_LEN;
         var ptr4 = isLikeNone(math) ? 0 : passStringToWasm0(math, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
         var len4 = WASM_VECTOR_LEN;
-        wasm.render_to_typst(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4);
+        wasm.render_to_typst(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4, isLikeNone(filename_captions) ? 0xFFFFFF : filename_captions ? 1 : 0);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         deferred6_0 = r0;

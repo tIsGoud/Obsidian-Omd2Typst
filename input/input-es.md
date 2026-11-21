@@ -236,13 +236,35 @@ El primer formato para una imagen con ancho 200.
 ### Ancho 150 – Opción 2
 
 El segundo formato para una imagen con ancho 150.
-El texto alternativo no es compatible con este formato. El pie de figura muestra solo el número de figura.
+El formato de Obsidian con dobles corchetes. Sin texto alternativo, el pie de figura muestra solo el número de figura.
 
 ```markdown
 ![[_assets/laptop.png|150]]
 ```
 
 ![[_assets/laptop.png|150]]
+
+### Ancho 200 y texto alternativo – Opción 3
+
+El formato con dobles corchetes, con ancho y texto alternativo. El orden del ancho y del texto alternativo no importa.
+
+```markdown
+![[_assets/laptop.png|200|alt text]]
+```
+
+![[_assets/laptop.png|200|alt text]]
+
+### Solo texto alternativo – Opción 4
+
+El formato con dobles corchetes, con texto alternativo y sin ancho.
+
+```markdown
+![[_assets/laptop.png|alt text]]
+```
+
+![[_assets/laptop.png|alt text]]
+
+Con el ajuste *Use file name as caption* (CLI: `--filename-captions`) una imagen sin texto alternativo recibe su nombre de archivo como leyenda. El texto alternativo siempre tiene prioridad.
 
 ## Call-outs
 

@@ -120,6 +120,15 @@ describe('resolveImagePaths — wikilink embeds', () => {
     expect(out).toBe(`![|150](</${ASSET}>)`);
   });
 
+  it('splits |width|alt text into alt text and width, in any order', () => {
+    const app = makeApp([ASSET]);
+    const note = makeFile(NOTE);
+    expect(resolveImagePaths('![[_assets/laptop.png|200|alt text]]', app, note)).toBe(`![alt text|200](</${ASSET}>)`);
+    expect(resolveImagePaths('![[_assets/laptop.png|alt text|200]]', app, note)).toBe(`![alt text|200](</${ASSET}>)`);
+    expect(resolveImagePaths('![[_assets/laptop.png|alt text]]', app, note)).toBe(`![alt text](</${ASSET}>)`);
+    expect(resolveImagePaths('![[_assets/laptop.png|100x145|alt text]]', app, note)).toBe(`![alt text|100](</${ASSET}>)`);
+  });
+
   it('rewrites a full vault-path wikilink embed', () => {
     const app = makeApp([ASSET]);
     const out = resolveImagePaths(`![[${ASSET}|150]]`, app, makeFile(NOTE));

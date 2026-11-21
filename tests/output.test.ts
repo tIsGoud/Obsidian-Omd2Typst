@@ -5,7 +5,7 @@ const BASE: Omd2TypstSettings = {
   templates: [], defaultTemplate: 'built-in',
   defaultOutputFormat: 'pdf', outputMode: 'same-folder', outputFolder: 'exports',
   defaultLanguage: 'en',
-  wikilinkMode: 'text', mathSyntax: 'latex', frontmatterTemplateMode: 'inline',
+  wikilinkMode: 'text', mathSyntax: 'latex', excalidrawImage: 'png', filenameCaptions: false, frontmatterTemplateMode: 'inline',
   frontmatterInline: '', frontmatterFilePath: '',
   showContextMenu: true, showBuiltinInPicker: false,
 };

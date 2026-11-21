@@ -236,13 +236,35 @@ Le premier format pour une image de largeur 200.
 ### Largeur 150 – Option 2
 
 Le deuxième format pour une image de largeur 150.
-Le texte alternatif n'est pas pris en charge dans ce format. La légende affiche uniquement le numéro de figure.
+Le format d'Obsidian avec doubles crochets. Sans texte alternatif, la légende affiche uniquement le numéro de figure.
 
 ```markdown
 ![[_assets/laptop.png|150]]
 ```
 
 ![[_assets/laptop.png|150]]
+
+### Largeur 200 et texte alternatif – Option 3
+
+Le format avec doubles crochets, avec largeur et texte alternatif. L'ordre de la largeur et du texte alternatif n'a pas d'importance.
+
+```markdown
+![[_assets/laptop.png|200|alt text]]
+```
+
+![[_assets/laptop.png|200|alt text]]
+
+### Texte alternatif seul – Option 4
+
+Le format avec doubles crochets, avec texte alternatif et sans largeur.
+
+```markdown
+![[_assets/laptop.png|alt text]]
+```
+
+![[_assets/laptop.png|alt text]]
+
+Avec le réglage *Use file name as caption* (CLI : `--filename-captions`), une image sans texte alternatif reçoit son nom de fichier comme légende. Le texte alternatif est toujours prioritaire.
 
 ## Call-outs
 

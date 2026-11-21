@@ -1,4 +1,5 @@
 import { App, TFile } from 'obsidian';
+import { markdownImage, parseEmbedOptions } from './embed-options';
 
 /**
  * Image-path resolution preprocessor.
@@ -93,10 +94,11 @@ function rewriteChunk(text: string, app: App, notePath: string): string {
     const linkpath = (bar >= 0 ? inner.slice(0, bar) : inner).split('#')[0].trim();
     const file = resolveImageFile(app, linkpath, notePath);
     if (!file) return whole;
-    // Mirror the engine's `![[path|X]]` → `![|X](path)` conversion, but emit an
-    // angle-bracketed, `/`-absolute destination (ADR 0002 + ADR 0012).
-    const alt = bar >= 0 ? `|${inner.slice(bar + 1).trim()}` : '';
-    return `![${alt}](</${file.path}>)`;
+    // Mirror the engine's `![[path|200|alt text]]` → `![alt text|200](path)`
+    // conversion, but emit an angle-bracketed, `/`-absolute destination
+    // (ADR 0002 + ADR 0012).
+    const { alt, width } = parseEmbedOptions(bar >= 0 ? inner.slice(bar + 1) : '');
+    return markdownImage(alt, width, `/${file.path}`);
   });
 
   result = result.replace(MD_IMAGE_RE, (whole, alt: string, dest: string, title: string) => {
