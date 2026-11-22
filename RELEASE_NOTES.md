@@ -21,6 +21,11 @@
   the folder) without Obsidian. Exporting the same note again replaces its
   folder, but only a folder that carries the `.omd2typst-bundle` marker file is
   ever replaced.
+- **Made for CI/CD pipelines.** Mermaid diagrams, Excalidraw drawings and
+  Bases tables are rendered by Obsidian into the bundle, so a pipeline needs
+  only the command line tool (one binary with Typst built in) to turn the
+  bundles into PDFs: no Obsidian, no vault, no Node. The command line tool's
+  README now has a *Bundles and CI/CD* section with an example.
 - **Choosing the bundle folder.** New settings *Bundle folder* (type a path or
   press **Choose folder…**, with a live message if the path is inside the
   vault) and *Open folder after exporting a bundle* (off by default). If no

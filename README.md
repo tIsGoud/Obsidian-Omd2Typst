@@ -93,6 +93,7 @@ This partial PDF output shows the added front page, the added revision and appro
 - **Five languages** — `nl` · `en` · `de` · `es` · `fr`; the default language dropdown updates automatically when you switch templates
 - **Frontmatter insertion** — insert a configurable YAML frontmatter block; existing keys are never overwritten
 - **Output location** — same folder as note, fixed folder (with vault autocomplete), or ask every time
+- **Bundles for pipelines** — export a note with all its images (including rendered Mermaid diagrams and Excalidraw drawings) as a folder, and convert it later with the command line tool, for example in a CI/CD pipeline, without Obsidian
 
 ---
 
@@ -122,6 +123,7 @@ This partial PDF output shows the added front page, the added revision and appro
 
 - **Everything Obsidian renders is included as an image:** normal images (all link styles), Mermaid diagrams, Excalidraw drawings (see the *Excalidraw drawings* setting) and Bases tables (as Markdown tables). Image references are relative (`assets/…`), and images that share a file name get a unique name.
 - **Convert it** from inside the folder: `cd "My note" && omd2typst "My note.md" "My note.pdf"`. Add `--template`, `--wikilinks` and the other options as you like; they are not baked into the bundle.
+- **Made for CI/CD.** Everything Obsidian has to render is already in the bundle, so a pipeline only needs the command line tool (one binary, Typst built in): no Obsidian, no vault, no Node. Export the notes with the plugin into a folder that is part of a repository, and let the pipeline convert every bundle. See *Bundles and CI/CD* in the [command line tool's README](https://github.com/tIsGoud/Omd2Typst#bundles-and-cicd).
 - **The bundle is a snapshot.** Export again after changing the note: the folder is replaced, but only if it carries the marker file, so another folder with the same name is never touched.
 - **Not included:** PDF, note and audio/video embeds (they stay placeholders), the template and the settings. Images that cannot be found are reported and left as they were.
 - **Choosing the folder.** Set it in the settings (type a path or press *Choose folder…*), or just run the command: the first time, with no folder set, a folder dialog opens and your choice is remembered. *Export as bundle to a chosen folder…* opens the dialog every time and saves nothing, to put one bundle somewhere else.
