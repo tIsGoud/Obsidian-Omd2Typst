@@ -272,6 +272,21 @@ The double bracket format with alt text and no width.
 
 With the *Use file name as caption* setting (CLI: `--filename-captions`) an image without alt text gets its file name as caption. Alt text always wins.
 
+## PDF embeds
+
+A PDF can be embedded like an image: `![[file.pdf]]`. The export includes its pages, so an annex keeps the document's page numbering and chapter headings. In the Obsidian plugin the *PDF embeds* setting chooses how the pages appear: inside the page margins, keeping the header and footer (default), or as full pages. This needs Typst 0.14 or newer. The command line tool does not include PDFs yet and shows a placeholder.
+
+| Syntax | Pages included |
+| --- | --- |
+| `![[example.pdf]]` | all pages |
+| `![[example.pdf#page=5]]` | page 5 through the last page |
+| `![[example.pdf#page=5-7]]` | pages 5 to 7 |
+| `![[example.pdf#page=5,6,7]]` | exactly pages 5, 6 and 7 |
+
+Pages 5, 6 and 7 of `example.pdf`:
+
+![[_assets/example.pdf#page=5,6,7]]
+
 ## Call-outs
 
 The collection of supported call-outs.

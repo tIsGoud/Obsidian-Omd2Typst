@@ -60,6 +60,23 @@ function isImageFile(file: TFile): boolean {
 }
 
 /**
+ * PDFs are resolved like images so the engine can include their pages
+ * (`![[annex.pdf#page=3]]`); unlike images they keep their `#fragment`.
+ */
+function isPdfFile(file: TFile): boolean {
+  return file.extension.toLowerCase() === 'pdf';
+}
+
+/** Split `annex.pdf#page=3` into path and fragment; other references are returned whole. */
+function splitPdfFragment(raw: string): { path: string; fragment: string } {
+  const hash = raw.indexOf('#');
+  if (hash >= 0 && /\.pdf$/i.test(raw.slice(0, hash).trim())) {
+    return { path: raw.slice(0, hash), fragment: raw.slice(hash) };
+  }
+  return { path: raw, fragment: '' };
+}
+
+/**
  * Resolve an image reference to a vault file the way Obsidian would, or null.
  *
  * Note-relative resolution is tried first (matching Obsidian's preview, and the
@@ -77,11 +94,11 @@ function resolveImageFile(app: App, rawPath: string, notePath: string): TFile | 
   // 1) Relative to the note's folder (handles `foo.png`, `_assets/foo.png`, `./`, `../`).
   const relTarget = normalizeVaultPath(`${dirOf(notePath)}/${p}`);
   const relFile = app.vault.getAbstractFileByPath(relTarget);
-  if (relFile instanceof TFile && isImageFile(relFile)) return relFile;
+  if (relFile instanceof TFile && (isImageFile(relFile) || isPdfFile(relFile))) return relFile;
 
   // 2) Obsidian's link resolver — vault-root path, or shortest-path basename match.
   const dest = app.metadataCache.getFirstLinkpathDest(normalizeVaultPath(p), notePath);
-  if (dest instanceof TFile && isImageFile(dest)) return dest;
+  if (dest instanceof TFile && (isImageFile(dest) || isPdfFile(dest))) return dest;
 
   return null;
 }
@@ -91,21 +108,25 @@ function rewriteChunk(text: string, app: App, notePath: string): string {
   // Wikilink embeds first — they never overlap the markdown-image syntax.
   let result = text.replace(WIKILINK_EMBED_RE, (whole, inner: string) => {
     const bar = inner.indexOf('|');
-    const linkpath = (bar >= 0 ? inner.slice(0, bar) : inner).split('#')[0].trim();
+    const target = bar >= 0 ? inner.slice(0, bar) : inner;
+    const linkpath = target.split('#')[0].trim();
     const file = resolveImageFile(app, linkpath, notePath);
     if (!file) return whole;
+    // A PDF keeps its `#page=…` selection for the engine.
+    const fragment = isPdfFile(file) && target.includes('#') ? target.slice(target.indexOf('#')).trim() : '';
     // Mirror the engine's `![[path|200|alt text]]` → `![alt text|200](path)`
     // conversion, but emit an angle-bracketed, `/`-absolute destination
     // (ADR 0002 + ADR 0012).
     const { alt, width } = parseEmbedOptions(bar >= 0 ? inner.slice(bar + 1) : '');
-    return markdownImage(alt, width, `/${file.path}`);
+    return markdownImage(alt, width, `/${file.path}${fragment}`);
   });
 
   result = result.replace(MD_IMAGE_RE, (whole, alt: string, dest: string, title: string) => {
     const bare = dest.startsWith('<') && dest.endsWith('>') ? dest.slice(1, -1) : dest;
-    const file = resolveImageFile(app, bare, notePath);
+    const { path, fragment } = splitPdfFragment(bare);
+    const file = resolveImageFile(app, path, notePath);
     if (!file) return whole;
-    return `![${alt}](</${file.path}>${title})`;
+    return `![${alt}](</${file.path}${isPdfFile(file) ? fragment : ''}>${title})`;
   });
 
   return result;

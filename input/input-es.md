@@ -268,6 +268,21 @@ El formato con dobles corchetes, con texto alternativo y sin ancho.
 
 Con el ajuste *Use file name as caption* (CLI: `--filename-captions`) una imagen sin texto alternativo recibe su nombre de archivo como leyenda. El texto alternativo siempre tiene prioridad.
 
+## PDF incrustados
+
+Un PDF se puede incrustar como una imagen: `![[archivo.pdf]]`. La exportación incluye sus páginas, de modo que un anexo conserva la numeración de páginas y los títulos de capítulo del documento. En el plugin de Obsidian el ajuste *PDF embeds* decide cómo aparecen las páginas: dentro de los márgenes, con encabezado y pie de página (predeterminado), o como páginas completas. Requiere Typst 0.14 o posterior. La herramienta de línea de comandos aún no incluye PDF y muestra un marcador de posición.
+
+| Sintaxis | Páginas incluidas |
+| --- | --- |
+| `![[example.pdf]]` | todas las páginas |
+| `![[example.pdf#page=5]]` | de la página 5 hasta la última |
+| `![[example.pdf#page=5-7]]` | páginas 5 a 7 |
+| `![[example.pdf#page=5,6,7]]` | exactamente las páginas 5, 6 y 7 |
+
+Las páginas 5, 6 y 7 de `example.pdf`:
+
+![[_assets/example.pdf#page=5,6,7]]
+
 ## Call-outs
 
 La sintaxis de los call-outs está en inglés, por lo tanto los sub-párrafos están en inglés.

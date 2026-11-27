@@ -279,6 +279,21 @@ Het dubbele-haakjes-formaat met alt-tekst en zonder breedte.
 
 Met de instelling *Use file name as caption* (CLI: `--filename-captions`) krijgt een afbeelding zonder alt-tekst de bestandsnaam als onderschrift. Alt-tekst gaat altijd voor.
 
+## PDF-embeds
+
+Een PDF kan net als een afbeelding worden ingesloten: `![[bestand.pdf]]`. De export neemt de pagina's op, zodat een bijlage de paginanummering en hoofdstukkoppen van het document behoudt. In de Obsidian-plugin bepaalt de instelling *PDF embeds* hoe de pagina's verschijnen: binnen de paginamarges met behoud van koptekst en voettekst (standaard), of als volledige pagina's. Hiervoor is Typst 0.14 of nieuwer nodig. De opdrachtregeltool neemt PDF's nog niet op en toont een plaatshouder.
+
+| Syntax | Opgenomen pagina's |
+| --- | --- |
+| `![[example.pdf]]` | alle pagina's |
+| `![[example.pdf#page=5]]` | pagina 5 tot en met de laatste pagina |
+| `![[example.pdf#page=5-7]]` | pagina 5 tot en met 7 |
+| `![[example.pdf#page=5,6,7]]` | precies pagina 5, 6 en 7 |
+
+Pagina 5, 6 en 7 van `example.pdf`:
+
+![[_assets/example.pdf#page=5,6,7]]
+
 ## Call-outs
 
 De syntax van de call-outs is in het Engels, daarom zijn de sub-paragrafen Engelstalig.

@@ -5,6 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SUBMODULE="$REPO_ROOT/libs/omd2typst"
 OUT="$REPO_ROOT/src/wasm/omd2typst-pkg"
+# The rm commands below use $OUT: never let an empty value turn them into deletes at /.
+: "${REPO_ROOT:?}" "${OUT:?}"
 
 cd "$SUBMODULE"
 wasm-pack build crates/wasm --target bundler --out-dir "$OUT" --no-opt

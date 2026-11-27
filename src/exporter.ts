@@ -3,7 +3,9 @@ import type { OutputFormat, TemplateEntry, Omd2TypstSettings } from './settings'
 import { checkLanguageCompatibility } from './template';
 import { resolveOutputPath } from './output';
 import { renderToTypst } from './wasm/omd2typst';
-import { findTypstBinary, compileToPdfViaCli } from './typst-cli';
+import { findTypstBinary, compileToPdfViaCli, detectSystemTypst } from './typst-cli';
+import { typstSupportsPdfImages } from './typst-version';
+import { collectPdfEmbeds, countPdfPages, formatPdfPages, hasPdfEmbeds } from './pdf-pages';
 import { renderMermaidBlocks } from './mermaid';
 import { renderBaseEmbeds } from './bases';
 import { resolveImagePaths } from './image-paths';
@@ -111,6 +113,24 @@ export async function exportNote(
       }
     }
 
+    // PDF embeds: Typst can include PDF pages from 0.14 on. A PDF export with an
+    // older system Typst keeps the placeholder instead of failing to compile.
+    // "Do not include" leaves PDF embeds out silently ('skip'); the engine's own
+    // 'off' shows its "Embed not supported" placeholder.
+    let pdfEmbeds: 'fit' | 'full' | 'skip' | 'off' = settings.pdfEmbeds === 'off' ? 'skip' : settings.pdfEmbeds;
+    if ((pdfEmbeds === 'fit' || pdfEmbeds === 'full') && format === 'pdf') {
+      const typst = detectSystemTypst();
+      if (typst.source === 'system' && !typstSupportsPdfImages(typst.version)) {
+        if (hasPdfEmbeds(markdown)) {
+          new Notice(`PDF embeds need Typst 0.14 or newer (found ${typst.version}); they are left out.`);
+        }
+        pdfEmbeds = 'off';
+      }
+    }
+    const pdfPages = pdfEmbeds === 'fit' || pdfEmbeds === 'full'
+      ? await countPdfPages(app, collectPdfEmbeds(markdown))
+      : {};
+
     // Step 4: Render to Typst
     // Links to other notes need the vault name; it is only embedded in link mode.
     const typstSrc = await renderToTypst(markdown, templatePath, {
@@ -119,6 +139,8 @@ export async function exportNote(
       math: settings.mathSyntax,
       filenameCaptions: settings.filenameCaptions,
       imageReferenceWidth: sanitizeReferenceWidth(settings.imageReferenceWidth),
+      pdfEmbeds,
+      pdfPages: formatPdfPages(pdfPages),
     });
 
     // Step 5: Resolve output path

@@ -58,6 +58,16 @@ describe('writeBundle', () => {
     expect(readBinary).toHaveBeenCalledTimes(2);
   });
 
+  it('copies a PDF once and keeps its #page selection', async () => {
+    const mem = memoryIo();
+    const readBinary = reader({ 'A/annex.pdf': 'PDF' });
+    const md = '![](</A/annex.pdf>)\n\n![|300](</A/annex.pdf#page=2-3>)\n';
+    const res = await writeBundle({ markdown: md, noteDir: '', noteName: 'n', bundleRoot: '/out', readBinary, io: mem.io });
+    expect(res.copied).toBe(1);
+    expect(mem.files.get('/out/n/n.md')).toBe('![](<assets/annex.pdf>)\n\n![|300](<assets/annex.pdf#page=2-3>)\n');
+    expect(readBinary).toHaveBeenCalledTimes(1);
+  });
+
   it('leaves external links, missing files and code untouched', async () => {
     const mem = memoryIo();
     const readBinary = reader({ 'ok.png': 'X' });
@@ -81,6 +91,23 @@ describe('writeBundle', () => {
       writeBundle({ markdown: '# new\n', noteDir: '', noteName: 'n', bundleRoot: '/out', readBinary: reader({}), io: foreign.io }),
     ).rejects.toThrow(/not created by this plugin/);
     expect(foreign.files.get('/out/n/precious.txt')).toBe('keep');
+  });
+});
+
+describe('writeBundle — folder name safety', () => {
+  it.each(['', '  ', '.', '..', 'a/b', 'a\\b'])('refuses the note name %j before touching the disk', async name => {
+    const foreign = memoryIo({ [`/out/${BUNDLE_MARKER}`]: '', '/out/keep.txt': 'x' });
+    await expect(
+      writeBundle({ markdown: '# x\n', noteDir: '', noteName: name, bundleRoot: '/out', readBinary: reader({}), io: foreign.io }),
+    ).rejects.toThrow(/Cannot create a bundle folder/);
+    expect(foreign.files.get('/out/keep.txt')).toBe('x'); // nothing was removed
+  });
+
+  it('refuses an empty bundle root', async () => {
+    const mem = memoryIo();
+    await expect(
+      writeBundle({ markdown: '# x\n', noteDir: '', noteName: 'n', bundleRoot: ' ', readBinary: reader({}), io: mem.io }),
+    ).rejects.toThrow(/Cannot create a bundle folder/);
   });
 });
 

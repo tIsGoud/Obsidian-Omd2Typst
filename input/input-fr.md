@@ -268,6 +268,21 @@ Le format avec doubles crochets, avec texte alternatif et sans largeur.
 
 Avec le réglage *Use file name as caption* (CLI : `--filename-captions`), une image sans texte alternatif reçoit son nom de fichier comme légende. Le texte alternatif est toujours prioritaire.
 
+## PDF intégrés
+
+Un PDF peut être intégré comme une image : `![[fichier.pdf]]`. L'export inclut ses pages, de sorte qu'une annexe conserve la numérotation des pages et les titres de chapitre du document. Dans le plugin Obsidian, le réglage *PDF embeds* choisit l'affichage des pages : dans les marges de la page, avec l'en-tête et le pied de page (par défaut), ou en pages entières. Cela demande Typst 0.14 ou plus récent. L'outil en ligne de commande n'inclut pas encore les PDF et affiche un espace réservé.
+
+| Syntaxe | Pages incluses |
+| --- | --- |
+| `![[example.pdf]]` | toutes les pages |
+| `![[example.pdf#page=5]]` | de la page 5 à la dernière page |
+| `![[example.pdf#page=5-7]]` | pages 5 à 7 |
+| `![[example.pdf#page=5,6,7]]` | exactement les pages 5, 6 et 7 |
+
+Les pages 5, 6 et 7 de `example.pdf` :
+
+![[_assets/example.pdf#page=5,6,7]]
+
 ## Call-outs
 
 La syntaxe des blocs d'alerte est en anglais, c'est pourquoi les sous-paragraphes sont en anglais.

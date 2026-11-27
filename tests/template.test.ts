@@ -16,6 +16,7 @@ const SETTINGS_BASE: Omd2TypstSettings = {
   wikilinkMode: 'text',
   mathSyntax: 'latex',
   excalidrawImage: 'png',
+  pdfEmbeds: 'fit',
   filenameCaptions: false,
   imageReferenceWidth: 700,
   bundleFolder: '',

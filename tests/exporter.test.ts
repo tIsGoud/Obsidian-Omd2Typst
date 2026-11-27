@@ -8,6 +8,7 @@ jest.mock('../src/wasm/omd2typst', () => ({
   renderToTypst: jest.fn().mockResolvedValue('#heading[Hello]'),
 }));
 jest.mock('../src/typst-cli', () => ({
+  detectSystemTypst: jest.fn().mockReturnValue({ source: 'system', version: '0.15.1' }),
   findTypstBinary: jest.fn().mockReturnValue('/usr/local/bin/typst'),
   compileToPdfViaCli: jest.fn().mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
 }));
@@ -22,6 +23,7 @@ const BASE_SETTINGS: Omd2TypstSettings = {
   wikilinkMode: 'text',
   mathSyntax: 'latex',
   excalidrawImage: 'png',
+  pdfEmbeds: 'fit',
   filenameCaptions: false,
   imageReferenceWidth: 700,
   bundleFolder: '',
@@ -100,6 +102,8 @@ describe('exportNote — wikilink options', () => {
       math: 'latex',
       filenameCaptions: false,
       imageReferenceWidth: 700,
+      pdfEmbeds: 'fit',
+      pdfPages: '',
     });
 
     await exportNote(file, 'typ', null, { ...BASE_SETTINGS, wikilinkMode: 'bold' }, makeApp() as any, noopComponent);
@@ -109,6 +113,8 @@ describe('exportNote — wikilink options', () => {
       math: 'latex',
       filenameCaptions: false,
       imageReferenceWidth: 700,
+      pdfEmbeds: 'fit',
+      pdfPages: '',
     });
   });
 });
@@ -136,6 +142,54 @@ describe('exportNote — image width reference', () => {
     expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, expect.objectContaining({ imageReferenceWidth: 0 }));
     await exportNote(file, 'typ', null, { ...BASE_SETTINGS, imageReferenceWidth: Number.NaN }, makeApp() as any, noopComponent);
     expect(renderToTypst).toHaveBeenLastCalledWith('# Hello\n', null, expect.objectContaining({ imageReferenceWidth: 700 }));
+  });
+});
+
+describe('exportNote — PDF embeds', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { renderToTypst } = require('../src/wasm/omd2typst') as { renderToTypst: jest.Mock };
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { detectSystemTypst } = require('../src/typst-cli') as { detectSystemTypst: jest.Mock };
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { loadPdfJs, Notice } = require('obsidian') as { loadPdfJs: jest.Mock; Notice: jest.Mock };
+
+  const md = '# Hello\n\n![](</A/annex.pdf>)\n';
+  const appWithPdf = () => {
+    const app = makeApp({ read: jest.fn().mockResolvedValue(md) });
+    (app.vault.adapter as any).readBinary = jest.fn().mockResolvedValue(new Uint8Array(5).buffer);
+    return app;
+  };
+
+  beforeEach(() => {
+    renderToTypst.mockClear();
+    Notice.mockClear();
+    loadPdfJs.mockClear();
+    detectSystemTypst.mockReturnValue({ source: 'system', version: '0.15.1' });
+    loadPdfJs.mockResolvedValue({ getDocument: () => ({ promise: Promise.resolve({ numPages: 5 }) }) });
+  });
+
+  it('passes the mode and the page counts of embedded PDFs', async () => {
+    await exportNote(makeTFile('notes/hello.md'), 'pdf', null, { ...BASE_SETTINGS, pdfEmbeds: 'full' }, appWithPdf() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith(md, null, expect.objectContaining({ pdfEmbeds: 'full', pdfPages: '5\t/A/annex.pdf' }));
+  });
+
+  it('leaves PDF embeds out silently (engine mode skip) and counts no pages when set to Do not include', async () => {
+    await exportNote(makeTFile('notes/hello.md'), 'pdf', null, { ...BASE_SETTINGS, pdfEmbeds: 'off' }, appWithPdf() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith(md, null, expect.objectContaining({ pdfEmbeds: 'skip', pdfPages: '' }));
+    expect(loadPdfJs).not.toHaveBeenCalled();
+  });
+
+  it('leaves PDF embeds out with a notice when the system Typst is older than 0.14', async () => {
+    detectSystemTypst.mockReturnValue({ source: 'system', version: '0.13.1' });
+    await exportNote(makeTFile('notes/hello.md'), 'pdf', null, BASE_SETTINGS, appWithPdf() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith(md, null, expect.objectContaining({ pdfEmbeds: 'off', pdfPages: '' }));
+    expect(Notice).toHaveBeenCalledWith(expect.stringContaining('Typst 0.14'));
+  });
+
+  it('keeps the mode for a .typ export, which is compiled later', async () => {
+    detectSystemTypst.mockReturnValue({ source: 'system', version: '0.13.1' });
+    await exportNote(makeTFile('notes/hello.md'), 'typ', null, BASE_SETTINGS, appWithPdf() as any, noopComponent);
+    expect(renderToTypst).toHaveBeenLastCalledWith(md, null, expect.objectContaining({ pdfEmbeds: 'fit' }));
   });
 });
 

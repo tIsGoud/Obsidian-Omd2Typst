@@ -17,6 +17,8 @@ const renderFn   = _renderToTypst    as unknown as (
   math?: string,
   filenameCaptions?: boolean,
   imageReferenceWidth?: number,
+  pdfEmbeds?: string,
+  pdfPages?: string,
 ) => string;
 const templateFn = _getBuiltinTemplate as unknown as () => string;
 
@@ -31,6 +33,10 @@ export interface RenderToTypstOptions {
   filenameCaptions?: boolean;
   /** Pixels that count as the full text width for image sizes (default 700; 0 = points). */
   imageReferenceWidth?: number;
+  /** How PDF embeds are included: 'fit', 'full' or 'off' (default). */
+  pdfEmbeds?: string;
+  /** Page counts of the embedded PDFs, one `<count>\t<path>` line each. */
+  pdfPages?: string;
 }
 
 let initialised = false;
@@ -60,7 +66,7 @@ export async function renderToTypst(
 ): Promise<string> {
   await ensureInit();
   return renderFn(markdown, templateSrc ?? undefined, options.wikilinks, options.obsidianVault, options.math, options.filenameCaptions,
-    options.imageReferenceWidth);
+    options.imageReferenceWidth, options.pdfEmbeds, options.pdfPages);
 }
 
 /** Return the built-in Typst template source. */

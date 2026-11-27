@@ -1,5 +1,30 @@
 # Release Notes
 
+## v0.14.0 — PDF embeds
+
+- **PDF annexes.** `![[annex.pdf]]` now includes the PDF's pages in the exported
+  document, so an annex keeps the page numbering and chapter headings. Each PDF
+  page stays a vector page with selectable text.
+- **New setting *PDF embeds*:** *Fit within the margins* (default: each page on
+  its own page, scaled inside the margins, keeping header and footer), *Full
+  pages* (each page fills a whole page, without margins, header, footer or
+  background) or *Do not include* (the embed is left out).
+- **Choose the pages** with Obsidian's `#page=` syntax: `#page=3` is page 3
+  through the last page (in Obsidian it is where the viewer starts), `#page=2-4`
+  is pages 2 to 4, and `#page=3,5,7` is exactly those pages (`#page=2-3,7` mixes
+  ranges in). The plugin counts the pages with Obsidian's PDF library.
+- **Needs Typst 0.14 or newer.** With an older system Typst the PDF export
+  leaves PDF embeds out and shows a notice; a `.typ` export keeps them.
+- *Export as bundle* copies embedded PDFs into `assets/` and keeps their `#page=`
+  selection. The command line tool does not include PDFs yet and shows a
+  placeholder.
+- Safer bundle export: a note name that is empty or contains a path can no longer
+  point the folder replacement at the bundle root. The WASM build script guards
+  its delete commands against empty variables.
+- Bundles omd2typst engine v0.18.0.
+
+---
+
 ## v0.13.1 — Add template row restored
 
 - The **Choose file…** button on the *Add template* row is removed again: with

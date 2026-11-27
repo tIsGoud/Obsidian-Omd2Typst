@@ -93,6 +93,7 @@ This partial PDF output shows the added front page, the added revision and appro
 - **Five languages** — `nl` · `en` · `de` · `es` · `fr`; the default language dropdown updates automatically when you switch templates
 - **Frontmatter insertion** — insert a configurable YAML frontmatter block; existing keys are never overwritten
 - **Output location** — same folder as note, fixed folder (with vault autocomplete), or ask every time
+- **PDF embeds** — `![[annex.pdf]]` includes the PDF's pages (all, `#page=3` onwards, `#page=2-4`, or a list like `#page=3,5,7`) inside the page margins or as full pages, with the document's page numbering and chapter headings
 - **Bundles for pipelines** — export a note with all its images (including rendered Mermaid diagrams and Excalidraw drawings) as a folder, and convert it later with the command line tool, for example in a CI/CD pipeline, without Obsidian
 
 ---
@@ -130,6 +131,28 @@ This partial PDF output shows the added front page, the added revision and appro
 - The bundle folder must be outside the vault, so exported files never end up among your notes. Enable *Open folder after exporting a bundle* to show the result in your file manager.
 - If a future Obsidian version removes the folder dialog, type the path in the settings instead.
 
+## PDF embeds
+
+A PDF embedded as `![[annex.pdf]]` is included page by page, so an annex keeps the document's page numbering and the chapter headings in front of it. Each PDF page stays a vector page, with selectable text. Choose how the pages appear with the *PDF embeds* setting:
+
+- **Fit within the margins** (default): every PDF page on its own page, scaled to fit inside the margins and keeping the document's header and footer.
+- **Full pages:** every PDF page fills a whole page, without margins, header, footer or background.
+- **Do not include:** the embed is left out.
+
+Select pages with Obsidian's `#page=` syntax:
+
+| Embed | Pages included |
+|---|---|
+| `![[annex.pdf]]` | all pages |
+| `![[annex.pdf#page=3]]` | page 3 through the last page (in Obsidian `#page=3` is where the viewer starts) |
+| `![[annex.pdf#page=2-4]]` | pages 2 to 4 |
+| `![[annex.pdf#page=3,5,7]]` | exactly pages 3, 5 and 7; ranges can be mixed in (`#page=2-3,7`) |
+
+- **Needs Typst 0.14 or newer** on your system. With an older Typst the PDF export leaves the embeds out and shows a notice; a `.typ` export keeps them for compiling later.
+- A chapter heading in front of a full-page annex sits alone on its page. Bookmarks, links and form fields inside the PDF are not carried over, and an annex with another page size is fitted onto the document's page size.
+- A selection the plugin cannot read (for example `#page=3-`) shows the "Embed not supported" placeholder.
+- *Export as bundle* copies the PDF into `assets/`. The command line tool does not include PDFs yet and shows a placeholder for them.
+
 ## Settings
 
 ### Typst templates
@@ -151,6 +174,7 @@ The top of the Export section shows the detected Typst version and path, or *"Ty
 | **Wikilinks** | *Display text* (default) / *Bold display text* / *Links* / *Keep as typed*. *Links*: `[[#Heading]]` becomes a link to that heading in the PDF, and links to other notes become `obsidian://` links that open the note in Obsidian — the vault name is stored in the PDF. Links to headings that don't exist, or to other notes in non-link modes, show as plain text. |
 | **Math syntax** | *LaTeX* (default, as Obsidian renders formulas) or *Typst*. LaTeX formulas are converted to Typst math; a formula that cannot be converted is passed through as typed. The choice applies to every note you export. |
 | **Excalidraw drawings** | *PNG image* (default, looks exactly like Obsidian), *SVG image* (sharp when zoomed, but text uses a normal font because Typst cannot use Excalidraw's hand-drawn web font) or *Do not render* (placeholder). Drawings always use the light theme. |
+| **PDF embeds** | *Fit within the margins* (default), *Full pages* or *Do not include*. See *PDF embeds*; needs Typst 0.14 or newer. |
 | **Use file name as caption** | Off by default. When on, an image without alt text gets its file name as caption (also Excalidraw drawings). Alt text, as in `![[image.png\|200\|alt text]]`, always wins. |
 | **Bundle folder** | Where *Export as bundle* saves its folders. Type a path or press **Choose folder…** to pick one in the system dialog. Must be outside your vault; a short message appears if it is not. If empty, you are asked the first time you export a bundle. |
 | **Open folder after exporting a bundle** | Off by default. When on, the exported bundle folder opens in your file manager. |
@@ -196,6 +220,7 @@ Full coverage of standard Markdown plus the most-used Obsidian extensions:
 | Thematic breaks `---` | Full-width rule |
 | Mermaid diagrams | Rendered via Obsidian's Mermaid; embedded as SVG. Multi-line labels are preserved: explicit `<br>` in the source becomes a hard break, and long labels are auto-wrapped at word boundaries to fit the node — the wrap point matches Obsidian's preview ± ~1 word. **Emoji codepoints in labels are stripped** — resvg (Typst's SVG renderer) can't render color-emoji glyphs cleanly, so the plugin removes them and keeps the surrounding text (e.g. `Foo 📊 Bar` → `Foo Bar`). |
 | Excalidraw drawings `![[Drawing.excalidraw]]` | Rendered with the Excalidraw plugin (light theme, white background) to a PNG (default) or SVG image; `\|width` is respected. Falls back to an image the Excalidraw plugin auto-exported next to the drawing. Frame embeds (`#^frame=…`) are not rendered. |
+| PDF embeds `![[annex.pdf]]`, `#page=…` | Pages included inside the margins or as full pages; needs Typst 0.14+ (see *PDF embeds*) |
 | Obsidian Bases embeds `![[file.base]]` | Rendered via Obsidian's embed registry as a Markdown table |
 
 For the complete feature reference including YAML frontmatter keys, callout icon colours, and checkbox meanings, see the [omd2typst README](https://github.com/tIsGoud/Omd2Typst#readme).

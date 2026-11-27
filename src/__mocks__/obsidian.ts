@@ -60,3 +60,4 @@ export class Setting {
 }
 
 export const loadMermaid = jest.fn().mockResolvedValue(undefined);
+export const loadPdfJs = jest.fn().mockResolvedValue(undefined);

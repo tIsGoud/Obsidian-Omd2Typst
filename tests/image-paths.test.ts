@@ -142,6 +142,28 @@ describe('resolveImagePaths — wikilink embeds', () => {
   });
 });
 
+describe('resolveImagePaths — PDF embeds', () => {
+  const PDF = 'A/proj/_assets/annex.pdf';
+
+  it('resolves a PDF embed and keeps its #page selection and width', () => {
+    const app = makeApp([PDF]);
+    const note = makeFile(NOTE);
+    expect(resolveImagePaths('![[_assets/annex.pdf]]', app, note)).toBe(`![](</${PDF}>)`);
+    expect(resolveImagePaths('![[_assets/annex.pdf#page=3]]', app, note)).toBe(`![](</${PDF}#page=3>)`);
+    expect(resolveImagePaths('![[_assets/annex.pdf#page=2-4&height=400|200]]', app, note)).toBe(`![|200](</${PDF}#page=2-4&height=400>)`);
+  });
+
+  it('resolves a markdown PDF reference and keeps its fragment', () => {
+    const app = makeApp([PDF]);
+    expect(resolveImagePaths('![](_assets/annex.pdf#page=3)', app, makeFile(NOTE))).toBe(`![](</${PDF}#page=3>)`);
+  });
+
+  it('does not strip a # from image names', () => {
+    const app = makeApp([ASSET]);
+    expect(resolveImagePaths('![[_assets/laptop.png#x]]', app, makeFile(NOTE))).toBe(`![](</${ASSET}>)`);
+  });
+});
+
 describe('resolveImagePaths — code is not rewritten', () => {
   it('does not touch an image inside a fenced code block', () => {
     const app = makeApp([ASSET]);
@@ -177,5 +199,13 @@ describe('resolveImagePaths — no-op', () => {
     const app = makeApp([ASSET]);
     const src = '# Heading\n\nJust text, no images.\n';
     expect(resolveImagePaths(src, app, makeFile(NOTE))).toBe(src);
+  });
+});
+
+describe('resolveImagePaths — PDF page lists', () => {
+  it('keeps a page list with spaces in the destination', () => {
+    const PDF = 'A/proj/_assets/annex.pdf';
+    const app = makeApp([PDF]);
+    expect(resolveImagePaths('![[_assets/annex.pdf#page=3,5, 7]]', app, makeFile(NOTE))).toBe(`![](</${PDF}#page=3,5, 7>)`);
   });
 });

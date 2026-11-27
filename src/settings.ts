@@ -55,6 +55,9 @@ export type WikilinkMode = 'text' | 'bold' | 'link' | 'keep';
 /** How embedded Excalidraw drawings are exported: as a PNG or SVG image, or not at all. */
 export type ExcalidrawImageMode = 'png' | 'svg' | 'off';
 
+/** How embedded PDFs are included: inside the margins, as full pages, or not at all. */
+export type PdfEmbedMode = 'fit' | 'full' | 'off';
+
 /** Syntax of $…$ / $$…$$ formulas in the notes. */
 export type MathSyntax = 'latex' | 'typst';
 
@@ -82,6 +85,8 @@ export interface Omd2TypstSettings {
   mathSyntax: MathSyntax;
   /** Image format for embedded Excalidraw drawings. */
   excalidrawImage: ExcalidrawImageMode;
+  /** How embedded PDFs (`![[annex.pdf]]`) are included in a PDF export (needs Typst 0.14+). */
+  pdfEmbeds: PdfEmbedMode;
   /** Caption images without alt text with their file name. */
   filenameCaptions: boolean;
   /** Obsidian pixels that count as the full text width when image widths are converted; 0 = points. */
@@ -111,6 +116,7 @@ export const DEFAULT_SETTINGS: Omd2TypstSettings = {
   wikilinkMode: 'text',
   mathSyntax: 'latex',
   excalidrawImage: 'png',
+  pdfEmbeds: 'fit',
   filenameCaptions: false,
   imageReferenceWidth: 700,
   bundleFolder: '',
@@ -502,6 +508,22 @@ export class Omd2TypstSettingTab extends PluginSettingTab {
                 png: 'PNG image',
                 svg: 'SVG image',
                 off: 'Do not render',
+              },
+            },
+          },
+          {
+            name: 'PDF embeds',
+            desc: 'How a PDF embedded as ![[annex.pdf]] appears: every page inside the page margins (keeping header ' +
+              'and footer), every page as a full page without header and footer, or left out. As in Obsidian, ' +
+              '#page=3 starts at page 3 (through the last page); #page=2-4 includes only those pages and ' +
+              '#page=3,5,7 exactly those. Needs Typst 0.14 or newer.',
+            control: {
+              type: 'dropdown',
+              key: 'pdfEmbeds',
+              options: {
+                fit: 'Fit within the margins',
+                full: 'Full pages',
+                off: 'Do not include',
               },
             },
           },

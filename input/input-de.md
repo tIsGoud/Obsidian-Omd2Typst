@@ -268,6 +268,21 @@ Das Format mit doppelten eckigen Klammern, mit Alternativtext und ohne Breite.
 
 Mit der Einstellung *Use file name as caption* (CLI: `--filename-captions`) erhält ein Bild ohne Alternativtext seinen Dateinamen als Bildunterschrift. Der Alternativtext hat immer Vorrang.
 
+## PDF-Einbettungen
+
+Ein PDF kann wie ein Bild eingebettet werden: `![[datei.pdf]]`. Der Export enthält seine Seiten, sodass ein Anhang die Seitennummerierung und die Kapitelüberschriften des Dokuments behält. In der Obsidian-Erweiterung legt die Einstellung *PDF embeds* fest, wie die Seiten erscheinen: innerhalb der Seitenränder mit Kopf- und Fußzeile (Standard) oder als ganze Seiten. Dafür ist Typst 0.14 oder neuer nötig. Das Kommandozeilenwerkzeug bindet PDFs noch nicht ein und zeigt einen Platzhalter.
+
+| Syntax | Enthaltene Seiten |
+| --- | --- |
+| `![[example.pdf]]` | alle Seiten |
+| `![[example.pdf#page=5]]` | Seite 5 bis zur letzten Seite |
+| `![[example.pdf#page=5-7]]` | Seiten 5 bis 7 |
+| `![[example.pdf#page=5,6,7]]` | genau die Seiten 5, 6 und 7 |
+
+Die Seiten 5, 6 und 7 von `example.pdf`:
+
+![[_assets/example.pdf#page=5,6,7]]
+
 ## Call-outs
 
 Die Syntax der Call-outs ist auf Englisch, daher sind die Unterabschnitte auf Englisch.

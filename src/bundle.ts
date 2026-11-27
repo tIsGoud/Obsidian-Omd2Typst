@@ -139,13 +139,27 @@ export interface BundleInput {
  */
 export async function writeBundle(input: BundleInput): Promise<BundleResult> {
   const io = input.io ?? nodeBundleIo;
-  const dir = path.join(input.bundleRoot, input.noteName);
+  // The bundle folder may be deleted below (a re-export replaces it), so the note
+  // name must be a plain, non-empty folder name: never the bundle root itself,
+  // a parent, or a path.
+  const name = input.noteName.trim();
+  if (name === '' || name === '.' || name === '..' || /[\\/]/.test(name) || !input.bundleRoot.trim()) {
+    throw new Error(`Cannot create a bundle folder named '${input.noteName}'.`);
+  }
+  const dir = path.join(input.bundleRoot, name);
   const assetsDir = path.join(dir, 'assets');
 
   // 1) Find the images: reference -> vault path.
   const refs = new Set<string>();
+  /** Split `annex.pdf#page=3` into path and fragment (other references are returned whole). */
+  const splitFragment = (dest: string): { path: string; fragment: string } => {
+    const hash = dest.indexOf('#');
+    return hash >= 0 && /\.pdf$/i.test(dest.slice(0, hash).trim())
+      ? { path: dest.slice(0, hash), fragment: dest.slice(hash) }
+      : { path: dest, fragment: '' };
+  };
   const vaultPathOf = (dest: string): string | null => {
-    let p = dest;
+    let p = splitFragment(dest).path;
     try { p = decodeURIComponent(p); } catch { /* keep the raw text */ }
     if (p === '' || p.startsWith('//') || EXTERNAL_RE.test(p)) return null;
     return p.startsWith('/') ? normalizeVaultPath(p) : normalizeVaultPath(`${input.noteDir}/${p}`);
@@ -183,7 +197,8 @@ export async function writeBundle(input: BundleInput): Promise<BundleResult> {
     line.replace(new RegExp(MD_IMAGE_RE.source, 'g'), (whole, alt: string, dest: string, title: string) => {
       const vaultPath = vaultPathOf(destOf(dest));
       const asset = vaultPath ? assets.get(vaultPath) : undefined;
-      return asset ? `![${alt}](<assets/${asset.name}>${title})` : whole;
+      // A PDF keeps its `#page=…` selection.
+      return asset ? `![${alt}](<assets/${asset.name}${splitFragment(destOf(dest)).fragment}>${title})` : whole;
     }),
   );
 
@@ -197,7 +212,7 @@ export async function writeBundle(input: BundleInput): Promise<BundleResult> {
   io.mkdirp(assetsDir);
   io.writeFile(path.join(dir, BUNDLE_MARKER), 'Created by the Omd2Typst plugin. This folder is replaced when the note is exported again.\n');
   for (const { name, data } of assets.values()) io.writeFile(path.join(assetsDir, name), data);
-  io.writeFile(path.join(dir, `${input.noteName}.md`), markdown);
+  io.writeFile(path.join(dir, `${name}.md`), markdown);
 
   return { dir, copied: assets.size, missing };
 }
